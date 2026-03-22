@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html class="light" lang="de">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <title>Bier CHILLER</title>
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#f5fafc">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Bier CHILLER">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-surface-variant": "#3e4850", "tertiary-container": "#c29100", "surface-container-low": "#eff4f6",
+                        "on-tertiary-fixed-variant": "#5c4300", "on-secondary-container": "#55676f", "inverse-primary": "#81cfff",
+                        "surface-container-lowest": "#ffffff", "outline-variant": "#bdc8d1", "secondary-container": "#d2e6ef",
+                        "on-tertiary-container": "#412e00", "inverse-surface": "#2c3133", "primary-fixed": "#c6e7ff",
+                        "on-background": "#171c1e", "primary-container": "#00a3e0", "on-primary-fixed-variant": "#004c6b",
+                        "inverse-on-surface": "#ecf2f4", "surface-container-high": "#e4e9eb", "surface-container": "#eaeff1",
+                        "on-error-container": "#93000a", "on-error": "#ffffff", "on-secondary": "#ffffff",
+                        "tertiary-fixed-dim": "#fbbc00", "surface-tint": "#00658d", "surface-dim": "#d6dbdd",
+                        "on-primary-container": "#00354b", "on-primary-fixed": "#001e2d", "on-tertiary-fixed": "#261a00",
+                        "background": "#f5fafc", "tertiary": "#795900", "surface-bright": "#f5fafc",
+                        "secondary-fixed-dim": "#b6cad2", "surface-container-highest": "#dee3e5", "secondary-fixed": "#d2e6ef",
+                        "outline": "#6e7881", "on-tertiary": "#ffffff", "error-container": "#ffdad6", "error": "#ba1a1a",
+                        "on-secondary-fixed": "#0b1e24", "primary-fixed-dim": "#81cfff", "on-primary": "#ffffff",
+                        "tertiary-fixed": "#ffdfa0", "secondary": "#4f6169", "on-surface": "#171c1e", "surface-variant": "#dee3e5",
+                        "surface": "#f5fafc", "primary": "#00658d", "on-secondary-fixed-variant": "#374951"
+                    },
+                    fontFamily: { "headline": ["Plus Jakarta Sans"], "body": ["Manrope"], "label": ["Manrope"] },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .glass-panel { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { background: #d2e6ef; height: 6px; border-radius: 999px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #00658d; margin-top: -7px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0, 101, 141, 0.2); }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+    
+    <!-- Top Navigation Bar (Fixed) -->
+    <header class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl flex items-center justify-between px-6 h-14 shadow-[0px_1px_0px_rgba(0,101,141,0.1)]">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">ac_unit</span>
+            <h1 class="font-headline font-bold text-lg tracking-tight text-primary">Bier CHILLER</h1>
+        </div>
+        <button class="text-slate-400" onclick="alert('Basiert auf thermodynamischer Formel.\nBerechnet Dichte, Wärmekapazität & Wärmeübergangskoeffizient.\nInklusive Alarmton bei Erreichen der Zielzeit.')">
+            <span class="material-symbols-outlined">info</span>
+        </button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 w-full max-w-lg mx-auto flex flex-col gap-4 px-4 pt-20 pb-10">
+        
+        <!-- Hero Section: Visual Indicator & Timer -->
+        <section class="glass-panel rounded-3xl p-5 flex flex-col items-center justify-center relative overflow-hidden shadow-[0px_10px_30px_rgba(0,101,141,0.04)]">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
+            
+            <div class="relative mb-2 flex flex-col items-center">
+                <div class="relative w-14 h-14 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-6xl text-tertiary-fixed-dim drop-shadow-sm" style="font-variation-settings: 'FILL' 1;">sports_bar</span>
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-60">
+                        <span class="material-symbols-outlined text-2xl text-white/80 animate-pulse">ac_unit</span>
+                    </div>
+                </div>
+            </div>
+            
+            <span class="font-headline font-bold text-primary uppercase tracking-widest text-[10px] h-3" id="timerLabel">Bereit</span>
+            <div class="font-headline font-extrabold text-7xl text-primary tracking-tighter tabular-nums drop-shadow-sm transition-all mt-2" id="timerDisplay">--:--</div>
+            
+            <!-- Warnung & Fehler -->
+            <div class="hidden mt-4 px-4 py-1.5 bg-error/10 text-error rounded-full items-center gap-1.5 animate-pulse" id="freezerWarning">
+                <span class="material-symbols-outlined text-sm">warning</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider">Bruchgefahr (Eis!)</span>
+            </div>
+            <div class="hidden mt-3 text-error text-[11px] font-bold text-center" id="errorMessage">Fehler</div>
+        </section>
+
+        <!-- Selection Controls -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="glass-panel p-3 rounded-2xl flex flex-col gap-1.5">
+                <label class="font-label text-[10px] font-bold text-on-secondary-container uppercase tracking-wider">Behälter</label>
+                <div class="relative">
+                    <select class="w-full bg-surface-container-highest/40 border-none rounded-xl text-sm font-bold py-2.5 px-3 focus:ring-1 focus:ring-primary appearance-none outline-none" id="containerSelect">
+                        <option value="bottle_330">Flasche 0.33l</option>
+                        <option value="bottle_500">Flasche 0.5l</option>
+                        <option value="can_330">Dose 0.33l</option>
+                        <option value="can_500">Dose 0.5l</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-base">expand_more</span>
+                </div>
+            </div>
+            <div class="glass-panel p-3 rounded-2xl flex flex-col gap-1.5">
+                <label class="font-label text-[10px] font-bold text-on-secondary-container uppercase tracking-wider">Gerät</label>
+                <div class="relative">
+                    <select class="w-full bg-surface-container-highest/40 border-none rounded-xl text-sm font-bold py-2.5 px-3 focus:ring-1 focus:ring-primary appearance-none outline-none" id="deviceSelect">
+                        <option value="fridge" selected>Kühlschrank</option>
+                        <option value="freezer">Gefrierfach</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-base">expand_more</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature Sliders -->
+        <div class="glass-panel p-5 rounded-3xl flex flex-col gap-5 shadow-sm">
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary text-sm">thermometer</span>
+                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Starttemperatur</span>
+                    </div>
+                    <span class="bg-primary-fixed text-on-primary-fixed text-[11px] font-black px-2.5 py-1 rounded-lg" id="startTempLabel">20.0 °C</span>
+                </div>
+                <input class="w-full mt-1" id="startTemp" max="30" min="4" step="0.5" type="range" value="20"/>
+            </div>
+            
+            <div class="h-px bg-slate-200 w-full my-1"></div>
+
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-tertiary text-sm" style="font-variation-settings: 'FILL' 1;">sports_bar</span>
+                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Zieltemperatur</span>
+                    </div>
+                    <span class="bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-black px-2.5 py-1 rounded-lg" id="targetTempLabel">8.0 °C</span>
+                </div>
+                <input class="w-full mt-1" id="targetTemp" max="12" min="4" step="0.5" type="range" value="8"/>
+            </div>
+
+            <div class="h-px bg-slate-200 w-full my-1"></div>
+
+            <div class="flex flex-col gap-2">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-slate-400 text-sm">kitchen</span>
+                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Gerätetemperatur</span>
+                    </div>
+                    <span class="bg-surface-container-highest text-on-surface-variant text-[11px] font-black px-2.5 py-1 rounded-lg" id="fridgeTempLabel">4.0 °C</span>
+                </div>
+                <input class="w-full mt-1" id="fridgeTemp" max="10" min="-24" step="0.5" type="range" value="4"/>
+            </div>
+        </div>
+
+        <!-- Options: Umluft Toggle -->
+        <div class="flex items-center justify-between px-3 h-10 mt-1">
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-base" id="fanIcon">air</span>
+                <span class="text-sm font-bold text-secondary" id="fanText">Umluft / No-Frost</span>
+            </div>
+            <button class="relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 bg-surface-container-highest outline-none" id="convectionToggle">
+                <span class="sr-only">Toggle Umluft</span>
+                <span class="inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-200 translate-x-1 shadow-md" id="convectionSwitch"></span>
+            </button>
+        </div>
+
+        <!-- Primary Action Bar -->
+        <div class="flex items-center gap-3 mt-4 h-16">
+            <button class="w-1/4 bg-surface-container-high hover:bg-surface-container-highest text-secondary font-bold h-full rounded-2xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-all outline-none" id="resetBtn">
+                <span class="material-symbols-outlined text-xl">restart_alt</span>
+                <span class="text-[10px] uppercase tracking-tighter">Reset</span>
+            </button>
+            <button class="flex-1 bg-gradient-to-br from-primary to-primary-container hover:brightness-110 text-white font-black h-full rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all outline-none disabled:opacity-50 disabled:pointer-events-none" id="startBtn">
+                <span class="material-symbols-outlined" id="startIcon" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                <span class="text-lg uppercase tracking-wider" id="startText">Start</span>
+            </button>
+            <button class="hidden flex-1 bg-secondary-container hover:bg-secondary-fixed text-primary font-bold h-full rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all outline-none" id="pauseBtn">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pause</span>
+                <span class="text-lg uppercase tracking-wider">Pause</span>
+            </button>
+        </div>
+    </main>
+
+    <script>
+        // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW Registration failed', err));
+            });
+        }
+
+        // --- AUDIO ALARM SYSTEM (Web Audio API) ---
+        let audioCtx = null;
+
+        // Initiiert Audio-Kontext nach User-Interaktion (wichtig für iOS Safari)
+        function initAudio() {
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    audioCtx = new AudioContext();
+                    // Kurzer stummer Ton um Audio freizuschalten
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    gain.gain.value = 0;
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.001);
+                }
+            }
+        }
+
+        function playAlarm() {
+            if (!audioCtx) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            // Spielt einen einzelnen kurzen "Beep"
+            const playBeep = (time) => {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'square'; // Klingt nach digitaler Stoppuhr
+                osc.frequency.setValueAtTime(880, time); // A5 Note (Hoch)
+                gain.gain.setValueAtTime(0.1, time); // Lautstärke
+                gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(time);
+                osc.stop(time + 0.1);
+            };
+
+            const now = audioCtx.currentTime;
+            // Alarm Muster: 4 mal Doppel-Beep
+            for (let i = 0; i < 4; i++) {
+                playBeep(now + i * 0.5);          // Erster Beep
+                playBeep(now + i * 0.5 + 0.15);   // Zweiter Beep kurz danach
+            }
+        }
+
+
+        // --- PHYSIK DATEN ---
+        const CONTAINERS = {
+            bottle_330: { beer_volume_m3: 0.00033, container_mass_kg: 0.200, container_cp_J_kgK: 840, effective_area_m2: 0.035 },
+            bottle_500: { beer_volume_m3: 0.00050, container_mass_kg: 0.300, container_cp_J_kgK: 840, effective_area_m2: 0.045 },
+            can_330: { beer_volume_m3: 0.00033, container_mass_kg: 0.014, container_cp_J_kgK: 900, effective_area_m2: 0.031 },
+            can_500: { beer_volume_m3: 0.00050, container_mass_kg: 0.016, container_cp_J_kgK: 900, effective_area_m2: 0.039 },
+        };
+        const MATERIALS = { beer_density_kg_m3: 1010, beer_cp_J_kgK: 3900 };
+
+        function getHeatTransferCoefficient(device, fanActive) {
+            if (device === 'fridge' && !fanActive) return 9.0;
+            if (device === 'fridge' && fanActive) return 11.0;
+            if (device === 'freezer' && !fanActive) return 8.0;
+            if (device === 'freezer' && fanActive) return 12.0;
+            return 9.0;
+        }
+
+        // --- APP STATE ---
+        let calculatedTimeSeconds = 0;
+        let timeLeft = 0;
+        let timerInterval = null;
+        let status = 'ready'; // ready, running, paused, done
+        let isConvectionOn = false;
+
+        // --- DOM ELEMENTE ---
+        const elStartTemp = document.getElementById('startTemp');
+        const elTargetTemp = document.getElementById('targetTemp');
+        const elFridgeTemp = document.getElementById('fridgeTemp');
+        const elStartLbl = document.getElementById('startTempLabel');
+        const elTargetLbl = document.getElementById('targetTempLabel');
+        const elFridgeLbl = document.getElementById('fridgeTempLabel');
+        
+        const elContainer = document.getElementById('containerSelect');
+        const elDevice = document.getElementById('deviceSelect');
+        const elToggle = document.getElementById('convectionToggle');
+        const elSwitch = document.getElementById('convectionSwitch');
+        
+        const timerDisplay = document.getElementById('timerDisplay');
+        const timerLabel = document.getElementById('timerLabel');
+        const errorMsg = document.getElementById('errorMessage');
+        const warningMsg = document.getElementById('freezerWarning');
+        
+        const btnStart = document.getElementById('startBtn');
+        const btnPause = document.getElementById('pauseBtn');
+        const btnReset = document.getElementById('resetBtn');
+        const startIcon = document.getElementById('startIcon');
+        const startText = document.getElementById('startText');
+
+        // --- LOGIK ---
+        function formatTime(seconds) {
+            if(isNaN(seconds) || seconds < 0) return "--:--";
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            const mStr = m.toString().padStart(2, '0');
+            const sStr = s.toString().padStart(2, '0');
+            return h > 0 ? `${h}:${mStr}:${sStr}` : `${mStr}:${sStr}`;
+        }
+
+        function calculate() {
+            const startC = parseFloat(elStartTemp.value);
+            const targetC = parseFloat(elTargetTemp.value);
+            const fridgeC = parseFloat(elFridgeTemp.value);
+            const contKey = elContainer.value;
+            const deviceKey = elDevice.value;
+
+            // Labels aktualisieren
+            elStartLbl.textContent = startC.toFixed(1) + ' °C';
+            elTargetLbl.textContent = targetC.toFixed(1) + ' °C';
+            elFridgeLbl.textContent = fridgeC.toFixed(1) + ' °C';
+
+            // Warnungen & Fehler
+            let hasError = false;
+            warningMsg.className = (fridgeC < 0) ? "mt-4 px-4 py-1.5 bg-error/10 text-error rounded-full flex items-center gap-1.5 animate-pulse" : "hidden";
+            
+            if (targetC <= fridgeC) {
+                errorMsg.textContent = "Fehler: Ziel muss über Gerätetemp. liegen";
+                hasError = true;
+            } else if (targetC >= startC) {
+                errorMsg.textContent = "Fehler: Ziel muss unter Starttemp. liegen";
+                hasError = true;
+            }
+
+            if (hasError) {
+                errorMsg.classList.remove('hidden');
+                btnStart.disabled = true;
+                timerDisplay.textContent = "--:--";
+                return;
+            } else {
+                errorMsg.classList.add('hidden');
+                btnStart.disabled = (status === 'done'); 
+            }
+
+            // Physik Berechnung
+            const cont = CONTAINERS[contKey];
+            const h_eff = getHeatTransferCoefficient(deviceKey, isConvectionOn);
+            const mBeer = cont.beer_volume_m3 * MATERIALS.beer_density_kg_m3;
+            const C_total = (mBeer * MATERIALS.beer_cp_J_kgK) + (cont.container_mass_kg * cont.container_cp_J_kgK);
+            const tau = C_total / (h_eff * cont.effective_area_m2);
+            
+            calculatedTimeSeconds = Math.ceil(tau * Math.log((startC - fridgeC) / (targetC - fridgeC)));
+
+            // Timer logik: Live Update bei Änderungen während des Laufs
+            if(status !== 'done') {
+                timeLeft = calculatedTimeSeconds;
+                if(status === 'ready') updateUIReady();
+                else updateUITimerOnly();
+            }
+        }
+
+        function updateUIReady() {
+            timerLabel.textContent = "Bereit";
+            timerLabel.className = "font-headline font-bold text-slate-500 uppercase tracking-widest text-[10px] h-3";
+            timerDisplay.className = "font-headline font-extrabold text-7xl text-primary tracking-tighter tabular-nums drop-shadow-sm transition-all mt-2";
+            timerDisplay.textContent = formatTime(timeLeft);
+            
+            btnPause.classList.add('hidden');
+            btnStart.classList.remove('hidden');
+            startIcon.textContent = 'play_arrow';
+            startText.textContent = 'Start';
+            btnStart.disabled = false;
+        }
+
+        function updateUITimerOnly() {
+            timerDisplay.textContent = formatTime(timeLeft);
+        }
+
+        function startCooling() {
+            if (status === 'done' || btnStart.disabled) return;
+            
+            // Audio System entsperren, wenn der User den Start-Button drückt
+            initAudio();
+
+            status = 'running';
+            timerLabel.textContent = "Kühlt...";
+            timerLabel.className = "font-headline font-bold text-primary uppercase tracking-widest text-[10px] h-3 animate-pulse";
+            
+            btnStart.classList.add('hidden');
+            btnPause.classList.remove('hidden');
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                if (timeLeft <= 0) {
+                    timeLeft = 0;
+                    finishCooling();
+                } else {
+                    updateUITimerOnly();
+                }
+            }, 1000);
+        }
+
+        function pauseCooling() {
+            if (status !== 'running') return;
+            status = 'paused';
+            clearInterval(timerInterval);
+            
+            timerLabel.textContent = "Pausiert";
+            timerLabel.className = "font-headline font-bold text-tertiary uppercase tracking-widest text-[10px] h-3";
+            
+            btnPause.classList.add('hidden');
+            btnStart.classList.remove('hidden');
+            startIcon.textContent = 'play_arrow';
+            startText.textContent = 'Weiter';
+        }
+
+        function finishCooling() {
+            status = 'done';
+            clearInterval(timerInterval);
+            
+            // Vibration (falls unterstützt) und Alarm-Ton abspielen
+            if(navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
+            playAlarm();
+            
+            timerLabel.textContent = "Bier ist kalt!";
+            timerLabel.className = "font-headline font-bold text-emerald-600 uppercase tracking-widest text-[10px] h-3";
+            timerDisplay.textContent = "PROST!";
+            timerDisplay.className = "font-headline font-extrabold text-6xl text-emerald-500 tracking-tighter drop-shadow-sm transition-all mt-2";
+            
+            btnPause.classList.add('hidden');
+            btnStart.classList.remove('hidden');
+            startIcon.textContent = 'check';
+            startText.textContent = 'Fertig';
+            btnStart.disabled = true;
+        }
+
+        function resetCooling() {
+            status = 'ready';
+            clearInterval(timerInterval);
+            calculate();
+            updateUIReady();
+        }
+
+        // --- EVENT LISTENER ---
+        [elStartTemp, elTargetTemp, elFridgeTemp, elContainer].forEach(el => el.addEventListener('input', calculate));
+        
+        elFridgeTemp.addEventListener('input', () => {
+            if (parseFloat(elFridgeTemp.value) < 0 && elDevice.value === 'fridge') elDevice.value = 'freezer';
+            if (parseFloat(elFridgeTemp.value) > 0 && elDevice.value === 'freezer') elDevice.value = 'fridge';
+            calculate();
+        });
+
+        elDevice.addEventListener('change', () => {
+            if (elDevice.value === 'freezer' && parseFloat(elFridgeTemp.value) > 0) elFridgeTemp.value = -18;
+            if (elDevice.value === 'fridge' && parseFloat(elFridgeTemp.value) < 0) elFridgeTemp.value = 4;
+            calculate();
+        });
+
+        elToggle.addEventListener('click', () => {
+            isConvectionOn = !isConvectionOn;
+            elToggle.classList.toggle('bg-primary-container', isConvectionOn);
+            elToggle.classList.toggle('bg-surface-container-highest', !isConvectionOn);
+            elSwitch.classList.toggle('translate-x-5', isConvectionOn);
+            elSwitch.classList.toggle('translate-x-1', !isConvectionOn);
+            document.getElementById('fanIcon').classList.toggle('text-primary-container', isConvectionOn);
+            calculate();
+        });
+
+        btnStart.addEventListener('click', () => {
+            if (status === 'ready' || status === 'paused') startCooling();
+        });
+        btnPause.addEventListener('click', pauseCooling);
+        btnReset.addEventListener('click', resetCooling);
+
+        // --- START ---
+        calculate();
+        updateUIReady();
+    </script>
+</body>
+</html>
