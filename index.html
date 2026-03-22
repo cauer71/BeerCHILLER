@@ -2,7 +2,8 @@
 <html class="light" lang="de">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+    <!-- WICHTIG: user-scalable=no und viewport-fit=cover verhindern Zoomen und passen es an Notch/Dynamic Island an -->
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
     <title>Bier CHILLER</title>
     
     <!-- PWA Meta Tags -->
@@ -46,145 +47,144 @@
         }
     </script>
     <style>
-        body { -webkit-tap-highlight-color: transparent; font-family: 'Manrope', sans-serif; }
+        /* Verhindert "Gummiband"-Effekt auf iOS und blockiert Scrollen komplett */
+        body { 
+            -webkit-tap-highlight-color: transparent; 
+            font-family: 'Manrope', sans-serif; 
+            overscroll-behavior: none;
+            touch-action: pan-x pan-y;
+        }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .glass-panel { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); }
         input[type=range] { -webkit-appearance: none; background: transparent; }
         input[type=range]::-webkit-slider-runnable-track { background: #d2e6ef; height: 6px; border-radius: 999px; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #00658d; margin-top: -7px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0, 101, 141, 0.2); }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 22px; width: 22px; border-radius: 50%; background: #00658d; margin-top: -8px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0, 101, 141, 0.2); }
     </style>
 </head>
-<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+
+<!-- h-[100dvh] nutzt dynamische Viewport-Höhe (beachtet Adressleisten), overflow-hidden stoppt Scrolling -->
+<body class="bg-surface text-on-surface h-[100dvh] w-screen overflow-hidden flex flex-col">
     
-    <!-- Top Navigation Bar (Fixed) -->
-    <header class="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-xl flex items-center justify-between px-6 h-14 shadow-[0px_1px_0px_rgba(0,101,141,0.1)]">
+    <!-- Top Navigation Bar (Höhe minimiert auf h-12) -->
+    <header class="flex-none w-full bg-white/70 backdrop-blur-xl flex items-center justify-between px-4 h-12 shadow-[0px_1px_0px_rgba(0,101,141,0.1)] z-50">
         <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">ac_unit</span>
-            <h1 class="font-headline font-bold text-lg tracking-tight text-primary">Bier CHILLER</h1>
+            <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">ac_unit</span>
+            <h1 class="font-headline font-bold text-base tracking-tight text-primary">Bier CHILLER</h1>
         </div>
-        <button class="text-slate-400" onclick="alert('Basiert auf thermodynamischer Formel.\nBerechnet Dichte, Wärmekapazität & Wärmeübergangskoeffizient.\nInklusive Alarmton bei Erreichen der Zielzeit.')">
-            <span class="material-symbols-outlined">info</span>
+        <button class="text-slate-400 p-1" onclick="alert('Basiert auf thermodynamischer Formel.\nBerechnet Dichte, Wärmekapazität & Wärmeübergangskoeffizient.\nInklusive Alarmton bei Erreichen der Zielzeit.')">
+            <span class="material-symbols-outlined text-xl">info</span>
         </button>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 w-full max-w-lg mx-auto flex flex-col gap-4 px-4 pt-20 pb-10">
+    <!-- Main Content (flex-1 füllt den Rest, min-h-0 verhindert Ausbrechen aus dem Bildschirm) -->
+    <main class="flex-1 min-h-0 w-full max-w-lg mx-auto flex flex-col gap-2 px-3 py-2">
         
-        <!-- Hero Section: Visual Indicator & Timer -->
-        <section class="glass-panel rounded-3xl p-5 flex flex-col items-center justify-center relative overflow-hidden shadow-[0px_10px_30px_rgba(0,101,141,0.04)]">
-            <div class="absolute -top-10 -right-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
+        <!-- Hero Section: Visual Indicator & Timer (Kompakter) -->
+        <section class="flex-none h-[110px] glass-panel rounded-2xl flex flex-col items-center justify-center relative overflow-hidden shadow-[0px_10px_30px_rgba(0,101,141,0.04)]">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl"></div>
             
-            <div class="relative mb-2 flex flex-col items-center">
-                <div class="relative w-14 h-14 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-6xl text-tertiary-fixed-dim drop-shadow-sm" style="font-variation-settings: 'FILL' 1;">sports_bar</span>
-                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-60">
-                        <span class="material-symbols-outlined text-2xl text-white/80 animate-pulse">ac_unit</span>
-                    </div>
+            <div class="relative flex flex-col items-center z-10">
+                <span class="font-headline font-bold text-primary uppercase tracking-widest text-[9px] mb-0.5" id="timerLabel">Bereit</span>
+                <div class="font-headline font-extrabold text-6xl text-primary tracking-tighter tabular-nums drop-shadow-sm transition-all" id="timerDisplay">--:--</div>
+            </div>
+            
+            <!-- Warnung (Absolut positioniert, damit das Layout beim Einblenden nicht springt) -->
+            <div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-full flex justify-center z-20">
+                <div class="hidden px-3 py-1 bg-error/10 text-error rounded-full items-center gap-1 animate-pulse" id="freezerWarning">
+                    <span class="material-symbols-outlined text-xs">warning</span>
+                    <span class="text-[9px] font-bold uppercase tracking-wider">Bruchgefahr (Eis!)</span>
                 </div>
+                <div class="hidden text-error text-[10px] font-bold bg-white/80 px-2 py-0.5 rounded" id="errorMessage">Fehler</div>
             </div>
-            
-            <span class="font-headline font-bold text-primary uppercase tracking-widest text-[10px] h-3" id="timerLabel">Bereit</span>
-            <div class="font-headline font-extrabold text-7xl text-primary tracking-tighter tabular-nums drop-shadow-sm transition-all mt-2" id="timerDisplay">--:--</div>
-            
-            <!-- Warnung & Fehler -->
-            <div class="hidden mt-4 px-4 py-1.5 bg-error/10 text-error rounded-full items-center gap-1.5 animate-pulse" id="freezerWarning">
-                <span class="material-symbols-outlined text-sm">warning</span>
-                <span class="text-[10px] font-bold uppercase tracking-wider">Bruchgefahr (Eis!)</span>
-            </div>
-            <div class="hidden mt-3 text-error text-[11px] font-bold text-center" id="errorMessage">Fehler</div>
         </section>
 
-        <!-- Selection Controls -->
-        <div class="grid grid-cols-2 gap-3">
-            <div class="glass-panel p-3 rounded-2xl flex flex-col gap-1.5">
-                <label class="font-label text-[10px] font-bold text-on-secondary-container uppercase tracking-wider">Behälter</label>
+        <!-- Selection Controls (Kompakter) -->
+        <div class="flex-none grid grid-cols-2 gap-2">
+            <div class="glass-panel p-2 rounded-xl flex flex-col gap-1">
+                <label class="font-label text-[9px] font-bold text-on-secondary-container uppercase tracking-wider">Behälter</label>
                 <div class="relative">
-                    <select class="w-full bg-surface-container-highest/40 border-none rounded-xl text-sm font-bold py-2.5 px-3 focus:ring-1 focus:ring-primary appearance-none outline-none" id="containerSelect">
+                    <select class="w-full bg-surface-container-highest/40 border-none rounded-lg text-xs font-bold py-1.5 px-2 focus:ring-1 focus:ring-primary appearance-none outline-none" id="containerSelect">
                         <option value="bottle_330">Flasche 0.33l</option>
                         <option value="bottle_500">Flasche 0.5l</option>
                         <option value="can_330">Dose 0.33l</option>
                         <option value="can_500">Dose 0.5l</option>
                     </select>
-                    <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-base">expand_more</span>
+                    <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-sm">expand_more</span>
                 </div>
             </div>
-            <div class="glass-panel p-3 rounded-2xl flex flex-col gap-1.5">
-                <label class="font-label text-[10px] font-bold text-on-secondary-container uppercase tracking-wider">Gerät</label>
+            <div class="glass-panel p-2 rounded-xl flex flex-col gap-1">
+                <label class="font-label text-[9px] font-bold text-on-secondary-container uppercase tracking-wider">Gerät</label>
                 <div class="relative">
-                    <select class="w-full bg-surface-container-highest/40 border-none rounded-xl text-sm font-bold py-2.5 px-3 focus:ring-1 focus:ring-primary appearance-none outline-none" id="deviceSelect">
+                    <select class="w-full bg-surface-container-highest/40 border-none rounded-lg text-xs font-bold py-1.5 px-2 focus:ring-1 focus:ring-primary appearance-none outline-none" id="deviceSelect">
                         <option value="fridge" selected>Kühlschrank</option>
                         <option value="freezer">Gefrierfach</option>
                     </select>
-                    <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-base">expand_more</span>
+                    <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-sm">expand_more</span>
                 </div>
             </div>
         </div>
 
-        <!-- Temperature Sliders -->
-        <div class="glass-panel p-5 rounded-3xl flex flex-col gap-5 shadow-sm">
-            <div class="flex flex-col gap-2">
+        <!-- Temperature Sliders (Flex-1: Passt sich dem restlichen Bildschirmplatz an) -->
+        <div class="flex-1 min-h-0 glass-panel p-4 rounded-2xl flex flex-col justify-between shadow-sm">
+            <div class="flex flex-col gap-1.5">
                 <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-primary text-sm">thermometer</span>
-                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Starttemperatur</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-primary text-[14px]">thermometer</span>
+                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Starttemp.</span>
                     </div>
-                    <span class="bg-primary-fixed text-on-primary-fixed text-[11px] font-black px-2.5 py-1 rounded-lg" id="startTempLabel">20.0 °C</span>
+                    <span class="bg-primary-fixed text-on-primary-fixed text-[10px] font-black px-2 py-0.5 rounded-lg" id="startTempLabel">20.0 °C</span>
                 </div>
                 <input class="w-full mt-1" id="startTemp" max="30" min="4" step="0.5" type="range" value="20"/>
             </div>
-            
-            <div class="h-px bg-slate-200 w-full my-1"></div>
 
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-1.5">
                 <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-tertiary text-sm" style="font-variation-settings: 'FILL' 1;">sports_bar</span>
-                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Zieltemperatur</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-tertiary text-[14px]" style="font-variation-settings: 'FILL' 1;">sports_bar</span>
+                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Zieltemp.</span>
                     </div>
-                    <span class="bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-black px-2.5 py-1 rounded-lg" id="targetTempLabel">8.0 °C</span>
+                    <span class="bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-black px-2 py-0.5 rounded-lg" id="targetTempLabel">8.0 °C</span>
                 </div>
                 <input class="w-full mt-1" id="targetTemp" max="12" min="4" step="0.5" type="range" value="8"/>
             </div>
 
-            <div class="h-px bg-slate-200 w-full my-1"></div>
-
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-1.5">
                 <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-2">
-                        <span class="material-symbols-outlined text-slate-400 text-sm">kitchen</span>
-                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Gerätetemperatur</span>
+                    <div class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-slate-400 text-[14px]">kitchen</span>
+                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Gerätetemp.</span>
                     </div>
-                    <span class="bg-surface-container-highest text-on-surface-variant text-[11px] font-black px-2.5 py-1 rounded-lg" id="fridgeTempLabel">4.0 °C</span>
+                    <span class="bg-surface-container-highest text-on-surface-variant text-[10px] font-black px-2 py-0.5 rounded-lg" id="fridgeTempLabel">4.0 °C</span>
                 </div>
                 <input class="w-full mt-1" id="fridgeTemp" max="10" min="-24" step="0.5" type="range" value="4"/>
             </div>
         </div>
 
-        <!-- Options: Umluft Toggle -->
-        <div class="flex items-center justify-between px-3 h-10 mt-1">
-            <div class="flex items-center gap-3">
-                <span class="material-symbols-outlined text-primary text-base" id="fanIcon">air</span>
-                <span class="text-sm font-bold text-secondary" id="fanText">Umluft / No-Frost</span>
+        <!-- Options: Umluft Toggle (Kompakt) -->
+        <div class="flex-none flex items-center justify-between px-2 h-8">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-sm" id="fanIcon">air</span>
+                <span class="text-xs font-bold text-secondary" id="fanText">Umluft / No-Frost</span>
             </div>
-            <button class="relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 bg-surface-container-highest outline-none" id="convectionToggle">
+            <button class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-surface-container-highest outline-none" id="convectionToggle">
                 <span class="sr-only">Toggle Umluft</span>
-                <span class="inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-200 translate-x-1 shadow-md" id="convectionSwitch"></span>
+                <span class="inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-200 translate-x-1 shadow-md" id="convectionSwitch"></span>
             </button>
         </div>
 
-        <!-- Primary Action Bar -->
-        <div class="flex items-center gap-3 mt-4 h-16">
-            <button class="w-1/4 bg-surface-container-high hover:bg-surface-container-highest text-secondary font-bold h-full rounded-2xl flex flex-col items-center justify-center gap-1 active:scale-95 transition-all outline-none" id="resetBtn">
-                <span class="material-symbols-outlined text-xl">restart_alt</span>
-                <span class="text-[10px] uppercase tracking-tighter">Reset</span>
+        <!-- Primary Action Bar (Fixe Höhe) -->
+        <div class="flex-none flex items-center gap-2 h-14 pb-1">
+            <button class="w-[70px] bg-surface-container-high hover:bg-surface-container-highest text-secondary font-bold h-full rounded-xl flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all outline-none" id="resetBtn">
+                <span class="material-symbols-outlined text-lg">restart_alt</span>
+                <span class="text-[9px] uppercase tracking-tighter">Reset</span>
             </button>
-            <button class="flex-1 bg-gradient-to-br from-primary to-primary-container hover:brightness-110 text-white font-black h-full rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all outline-none disabled:opacity-50 disabled:pointer-events-none" id="startBtn">
+            <button class="flex-1 bg-gradient-to-br from-primary to-primary-container hover:brightness-110 text-white font-black h-full rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all outline-none disabled:opacity-50 disabled:pointer-events-none" id="startBtn">
                 <span class="material-symbols-outlined" id="startIcon" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
-                <span class="text-lg uppercase tracking-wider" id="startText">Start</span>
+                <span class="text-base uppercase tracking-wider" id="startText">Start</span>
             </button>
-            <button class="hidden flex-1 bg-secondary-container hover:bg-secondary-fixed text-primary font-bold h-full rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all outline-none" id="pauseBtn">
+            <button class="hidden flex-1 bg-secondary-container hover:bg-secondary-fixed text-primary font-bold h-full rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all outline-none" id="pauseBtn">
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pause</span>
-                <span class="text-lg uppercase tracking-wider">Pause</span>
+                <span class="text-base uppercase tracking-wider">Pause</span>
             </button>
         </div>
     </main>
@@ -199,14 +199,11 @@
 
         // --- AUDIO ALARM SYSTEM (Web Audio API) ---
         let audioCtx = null;
-
-        // Initiiert Audio-Kontext nach User-Interaktion (wichtig für iOS Safari)
         function initAudio() {
             if (!audioCtx) {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 if (AudioContext) {
                     audioCtx = new AudioContext();
-                    // Kurzer stummer Ton um Audio freizuschalten
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     gain.gain.value = 0;
@@ -222,13 +219,12 @@
             if (!audioCtx) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
-            // Spielt einen einzelnen kurzen "Beep"
             const playBeep = (time) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'square'; // Klingt nach digitaler Stoppuhr
-                osc.frequency.setValueAtTime(880, time); // A5 Note (Hoch)
-                gain.gain.setValueAtTime(0.1, time); // Lautstärke
+                osc.type = 'square'; 
+                osc.frequency.setValueAtTime(880, time); 
+                gain.gain.setValueAtTime(0.1, time); 
                 gain.gain.exponentialRampToValueAtTime(0.001, time + 0.1);
                 
                 osc.connect(gain);
@@ -238,10 +234,9 @@
             };
 
             const now = audioCtx.currentTime;
-            // Alarm Muster: 4 mal Doppel-Beep
             for (let i = 0; i < 4; i++) {
-                playBeep(now + i * 0.5);          // Erster Beep
-                playBeep(now + i * 0.5 + 0.15);   // Zweiter Beep kurz danach
+                playBeep(now + i * 0.5);          
+                playBeep(now + i * 0.5 + 0.15);   
             }
         }
 
@@ -267,7 +262,7 @@
         let calculatedTimeSeconds = 0;
         let timeLeft = 0;
         let timerInterval = null;
-        let status = 'ready'; // ready, running, paused, done
+        let status = 'ready'; 
         let isConvectionOn = false;
 
         // --- DOM ELEMENTE ---
@@ -312,20 +307,20 @@
             const contKey = elContainer.value;
             const deviceKey = elDevice.value;
 
-            // Labels aktualisieren
+            // Labels
             elStartLbl.textContent = startC.toFixed(1) + ' °C';
             elTargetLbl.textContent = targetC.toFixed(1) + ' °C';
             elFridgeLbl.textContent = fridgeC.toFixed(1) + ' °C';
 
-            // Warnungen & Fehler
+            // Warnungen
             let hasError = false;
-            warningMsg.className = (fridgeC < 0) ? "mt-4 px-4 py-1.5 bg-error/10 text-error rounded-full flex items-center gap-1.5 animate-pulse" : "hidden";
+            warningMsg.className = (fridgeC < 0) ? "flex px-3 py-1 bg-error/10 text-error rounded-full items-center gap-1 animate-pulse" : "hidden";
             
             if (targetC <= fridgeC) {
-                errorMsg.textContent = "Fehler: Ziel muss über Gerätetemp. liegen";
+                errorMsg.textContent = "Ziel muss über Gerät liegen";
                 hasError = true;
             } else if (targetC >= startC) {
-                errorMsg.textContent = "Fehler: Ziel muss unter Starttemp. liegen";
+                errorMsg.textContent = "Ziel muss unter Start liegen";
                 hasError = true;
             }
 
@@ -339,7 +334,7 @@
                 btnStart.disabled = (status === 'done'); 
             }
 
-            // Physik Berechnung
+            // Physik
             const cont = CONTAINERS[contKey];
             const h_eff = getHeatTransferCoefficient(deviceKey, isConvectionOn);
             const mBeer = cont.beer_volume_m3 * MATERIALS.beer_density_kg_m3;
@@ -348,7 +343,6 @@
             
             calculatedTimeSeconds = Math.ceil(tau * Math.log((startC - fridgeC) / (targetC - fridgeC)));
 
-            // Timer logik: Live Update bei Änderungen während des Laufs
             if(status !== 'done') {
                 timeLeft = calculatedTimeSeconds;
                 if(status === 'ready') updateUIReady();
@@ -358,8 +352,8 @@
 
         function updateUIReady() {
             timerLabel.textContent = "Bereit";
-            timerLabel.className = "font-headline font-bold text-slate-500 uppercase tracking-widest text-[10px] h-3";
-            timerDisplay.className = "font-headline font-extrabold text-7xl text-primary tracking-tighter tabular-nums drop-shadow-sm transition-all mt-2";
+            timerLabel.className = "font-headline font-bold text-slate-500 uppercase tracking-widest text-[9px] mb-0.5";
+            timerDisplay.className = "font-headline font-extrabold text-6xl text-primary tracking-tighter tabular-nums drop-shadow-sm transition-all";
             timerDisplay.textContent = formatTime(timeLeft);
             
             btnPause.classList.add('hidden');
@@ -375,13 +369,11 @@
 
         function startCooling() {
             if (status === 'done' || btnStart.disabled) return;
-            
-            // Audio System entsperren, wenn der User den Start-Button drückt
             initAudio();
 
             status = 'running';
             timerLabel.textContent = "Kühlt...";
-            timerLabel.className = "font-headline font-bold text-primary uppercase tracking-widest text-[10px] h-3 animate-pulse";
+            timerLabel.className = "font-headline font-bold text-primary uppercase tracking-widest text-[9px] mb-0.5 animate-pulse";
             
             btnStart.classList.add('hidden');
             btnPause.classList.remove('hidden');
@@ -403,7 +395,7 @@
             clearInterval(timerInterval);
             
             timerLabel.textContent = "Pausiert";
-            timerLabel.className = "font-headline font-bold text-tertiary uppercase tracking-widest text-[10px] h-3";
+            timerLabel.className = "font-headline font-bold text-tertiary uppercase tracking-widest text-[9px] mb-0.5";
             
             btnPause.classList.add('hidden');
             btnStart.classList.remove('hidden');
@@ -415,14 +407,13 @@
             status = 'done';
             clearInterval(timerInterval);
             
-            // Vibration (falls unterstützt) und Alarm-Ton abspielen
             if(navigator.vibrate) navigator.vibrate([300, 100, 300, 100, 300]);
             playAlarm();
             
             timerLabel.textContent = "Bier ist kalt!";
-            timerLabel.className = "font-headline font-bold text-emerald-600 uppercase tracking-widest text-[10px] h-3";
+            timerLabel.className = "font-headline font-bold text-emerald-600 uppercase tracking-widest text-[9px] mb-0.5";
             timerDisplay.textContent = "PROST!";
-            timerDisplay.className = "font-headline font-extrabold text-6xl text-emerald-500 tracking-tighter drop-shadow-sm transition-all mt-2";
+            timerDisplay.className = "font-headline font-extrabold text-5xl text-emerald-500 tracking-tighter drop-shadow-sm transition-all";
             
             btnPause.classList.add('hidden');
             btnStart.classList.remove('hidden');
