@@ -54,15 +54,36 @@
             overscroll-behavior: none;
             touch-action: pan-x pan-y;
         }
+        :root {
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
         .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
         .glass-panel { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); }
         input[type=range] { -webkit-appearance: none; background: transparent; }
         input[type=range]::-webkit-slider-runnable-track { background: #d2e6ef; height: 6px; border-radius: 999px; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 22px; width: 22px; border-radius: 50%; background: #00658d; margin-top: -8px; border: 3px solid white; box-shadow: 0 4px 10px rgba(0, 101, 141, 0.2); }
+        .app-shell {
+            min-height: 100dvh;
+            max-height: 100dvh;
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+            background:
+                radial-gradient(circle at top right, rgba(0, 163, 224, 0.16), transparent 30%),
+                radial-gradient(circle at bottom left, rgba(194, 145, 0, 0.12), transparent 28%),
+                linear-gradient(180deg, #f8fcfe 0%, #eef5f8 100%);
+        }
+        .app-main {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        .compact-slider {
+            accent-color: #00658d;
+        }
     </style>
 </head>
 
-<body class="bg-surface text-on-surface h-[100dvh] w-screen overflow-hidden flex flex-col relative">
+<body class="app-shell text-on-surface w-screen overflow-hidden flex flex-col relative">
     
     <!-- Info Modal Overlay -->
     <div id="infoModal" class="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm hidden flex-col items-center justify-center p-4 transition-opacity">
@@ -87,30 +108,31 @@
     </div>
 
     <!-- Top Navigation Bar -->
-    <header class="flex-none w-full bg-white/70 backdrop-blur-xl flex items-center justify-between px-4 h-12 shadow-[0px_1px_0px_rgba(0,101,141,0.1)] z-50">
+    <header class="flex-none w-full bg-white/75 backdrop-blur-xl flex items-center justify-between px-4 h-12 shadow-[0px_1px_0px_rgba(0,101,141,0.1)] z-50">
         <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings: 'FILL' 1;">ac_unit</span>
             <h1 class="font-headline font-bold text-base tracking-tight text-primary">Bier CHILLER</h1>
         </div>
-        <button class="text-slate-400 p-1" onclick="document.getElementById('infoModal').classList.remove('hidden')">
+        <button class="text-slate-400 p-1.5 rounded-full bg-white/60 shadow-sm" onclick="document.getElementById('infoModal').classList.remove('hidden')">
             <span class="material-symbols-outlined text-xl">info</span>
         </button>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 min-h-0 w-full max-w-lg mx-auto flex flex-col gap-2 px-3 py-2">
+    <main class="app-main w-full max-w-lg mx-auto grid grid-rows-[auto_auto_1fr_auto] gap-2 px-3 py-2">
         
         <!-- Hero Section: Visual Indicator & Timer -->
-        <section class="flex-none h-[110px] glass-panel rounded-2xl flex flex-col items-center justify-center relative overflow-hidden shadow-[0px_10px_30px_rgba(0,101,141,0.04)]">
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl"></div>
+        <section class="glass-panel rounded-[1.75rem] flex flex-col items-center justify-center relative overflow-hidden shadow-[0px_10px_30px_rgba(0,101,141,0.06)] min-h-[124px]">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-12 -left-8 w-28 h-28 bg-tertiary/10 rounded-full blur-2xl"></div>
             
-            <div class="relative flex flex-col items-center z-10">
-                <span class="font-headline font-bold text-primary uppercase tracking-widest text-[9px] mb-0.5" id="timerLabel">Bereit</span>
-                <div class="font-headline font-extrabold text-6xl text-primary tracking-tighter tabular-nums drop-shadow-sm transition-all" id="timerDisplay">--:--</div>
+            <div class="relative flex flex-col items-center z-10 px-4 py-3">
+                <span class="font-headline font-bold text-primary uppercase tracking-[0.35em] text-[10px] mb-1" id="timerLabel">Bereit</span>
+                <div class="font-headline font-extrabold text-[clamp(2.6rem,10vw,4.1rem)] leading-none text-primary tracking-[-0.06em] tabular-nums drop-shadow-sm transition-all" id="timerDisplay">--:--</div>
             </div>
             
             <!-- Warnung -->
-            <div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-full flex justify-center z-20">
+            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-full flex justify-center z-20 px-3">
                 <div class="hidden px-3 py-1 bg-error/10 text-error rounded-full items-center gap-1 animate-pulse" id="freezerWarning">
                     <span class="material-symbols-outlined text-xs">warning</span>
                     <span class="text-[9px] font-bold uppercase tracking-wider">Bruchgefahr (Eis!)</span>
@@ -120,93 +142,96 @@
         </section>
 
         <!-- Selection Controls -->
-        <div class="flex-none grid grid-cols-2 gap-2">
-            <div class="glass-panel p-2 rounded-xl flex flex-col gap-1">
-                <label class="font-label text-[9px] font-bold text-on-secondary-container uppercase tracking-wider">Behälter</label>
+        <div class="grid grid-cols-2 gap-2">
+            <div class="glass-panel p-3 rounded-2xl flex flex-col gap-1.5 shadow-sm">
+                <label class="font-label text-[10px] font-bold text-on-secondary-container uppercase tracking-[0.22em]">Behälter</label>
                 <div class="relative">
-                    <select class="w-full bg-surface-container-highest/40 border-none rounded-lg text-xs font-bold py-1.5 px-2 focus:ring-1 focus:ring-primary appearance-none outline-none" id="containerSelect">
+                    <select class="w-full min-h-10 bg-surface-container-highest/70 border-none rounded-xl text-[13px] font-bold py-2 px-3 focus:ring-1 focus:ring-primary appearance-none outline-none" id="containerSelect">
                         <option value="bottle_330">Flasche 0.33l</option>
                         <option value="bottle_500">Flasche 0.5l</option>
                         <option value="can_330">Dose 0.33l</option>
                         <option value="can_500">Dose 0.5l</option>
                     </select>
-                    <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-sm">expand_more</span>
+                    <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-sm">expand_more</span>
                 </div>
             </div>
-            <div class="glass-panel p-2 rounded-xl flex flex-col gap-1">
-                <label class="font-label text-[9px] font-bold text-on-secondary-container uppercase tracking-wider">Gerät</label>
+            <div class="glass-panel p-3 rounded-2xl flex flex-col gap-1.5 shadow-sm">
+                <label class="font-label text-[10px] font-bold text-on-secondary-container uppercase tracking-[0.22em]">Gerät</label>
                 <div class="relative">
-                    <select class="w-full bg-surface-container-highest/40 border-none rounded-lg text-xs font-bold py-1.5 px-2 focus:ring-1 focus:ring-primary appearance-none outline-none" id="deviceSelect">
+                    <select class="w-full min-h-10 bg-surface-container-highest/70 border-none rounded-xl text-[13px] font-bold py-2 px-3 focus:ring-1 focus:ring-primary appearance-none outline-none" id="deviceSelect">
                         <option value="fridge" selected>Kühlschrank</option>
                         <option value="freezer">Gefrierfach</option>
                     </select>
-                    <span class="material-symbols-outlined absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-sm">expand_more</span>
+                    <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 text-sm">expand_more</span>
                 </div>
             </div>
         </div>
 
-        <!-- Temperature Sliders -->
-        <div class="flex-1 min-h-0 glass-panel p-4 rounded-2xl flex flex-col justify-between shadow-sm">
-            <div class="flex flex-col gap-1.5">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-primary text-[14px]">thermometer</span>
-                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Starttemp.</span>
+        <!-- Temperature Sliders + Options -->
+        <section class="glass-panel rounded-[1.75rem] p-3 shadow-sm grid grid-rows-[1fr_auto] gap-3 min-h-0 overflow-hidden">
+            <div class="grid grid-rows-3 gap-2 min-h-0">
+                <div class="rounded-2xl bg-white/55 px-3 py-2.5 flex flex-col justify-center gap-2">
+                    <div class="flex justify-between items-center gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="material-symbols-outlined text-primary text-[16px]">thermometer</span>
+                            <span class="font-label text-[13px] font-bold text-secondary tracking-wide">Starttemp.</span>
+                        </div>
+                        <span class="bg-primary-fixed text-on-primary-fixed text-[11px] font-black px-2.5 py-1 rounded-xl whitespace-nowrap" id="startTempLabel">20.0 °C</span>
                     </div>
-                    <span class="bg-primary-fixed text-on-primary-fixed text-[10px] font-black px-2 py-0.5 rounded-lg" id="startTempLabel">20.0 °C</span>
+                    <input class="compact-slider w-full" id="startTemp" max="30" min="4" step="0.5" type="range" value="20"/>
                 </div>
-                <input class="w-full mt-1" id="startTemp" max="30" min="4" step="0.5" type="range" value="20"/>
+
+                <div class="rounded-2xl bg-white/55 px-3 py-2.5 flex flex-col justify-center gap-2">
+                    <div class="flex justify-between items-center gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="material-symbols-outlined text-tertiary text-[16px]" style="font-variation-settings: 'FILL' 1;">sports_bar</span>
+                            <span class="font-label text-[13px] font-bold text-secondary tracking-wide">Zieltemp.</span>
+                        </div>
+                        <span class="bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-black px-2.5 py-1 rounded-xl whitespace-nowrap" id="targetTempLabel">8.0 °C</span>
+                    </div>
+                    <input class="compact-slider w-full" id="targetTemp" max="12" min="4" step="0.5" type="range" value="8"/>
+                </div>
+
+                <div class="rounded-2xl bg-white/55 px-3 py-2.5 flex flex-col justify-center gap-2">
+                    <div class="flex justify-between items-center gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="material-symbols-outlined text-slate-400 text-[16px]">kitchen</span>
+                            <span class="font-label text-[13px] font-bold text-secondary tracking-wide">Gerätetemp.</span>
+                        </div>
+                        <span class="bg-surface-container-highest text-on-surface-variant text-[11px] font-black px-2.5 py-1 rounded-xl whitespace-nowrap" id="fridgeTempLabel">4.0 °C</span>
+                    </div>
+                    <input class="compact-slider w-full" id="fridgeTemp" max="10" min="-24" step="0.5" type="range" value="4"/>
+                </div>
             </div>
 
-            <div class="flex flex-col gap-1.5">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-tertiary text-[14px]" style="font-variation-settings: 'FILL' 1;">sports_bar</span>
-                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Zieltemp.</span>
-                    </div>
-                    <span class="bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-black px-2 py-0.5 rounded-lg" id="targetTempLabel">8.0 °C</span>
+            <div class="rounded-2xl bg-white/55 px-3 py-2.5 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 min-w-0">
+                    <span class="material-symbols-outlined text-primary text-base shrink-0" id="fanIcon">air</span>
+                    <span class="text-[13px] font-bold text-secondary leading-tight" id="fanText">Umluft / No-Frost</span>
                 </div>
-                <input class="w-full mt-1" id="targetTemp" max="12" min="4" step="0.5" type="range" value="8"/>
+                <button class="relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 bg-surface-container-highest outline-none shrink-0" id="convectionToggle">
+                    <span class="sr-only">Toggle Umluft</span>
+                    <span class="inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-200 translate-x-1 shadow-md" id="convectionSwitch"></span>
+                </button>
             </div>
-
-            <div class="flex flex-col gap-1.5">
-                <div class="flex justify-between items-center">
-                    <div class="flex items-center gap-1.5">
-                        <span class="material-symbols-outlined text-slate-400 text-[14px]">kitchen</span>
-                        <span class="font-label text-xs font-bold text-secondary tracking-wide">Gerätetemp.</span>
-                    </div>
-                    <span class="bg-surface-container-highest text-on-surface-variant text-[10px] font-black px-2 py-0.5 rounded-lg" id="fridgeTempLabel">4.0 °C</span>
-                </div>
-                <input class="w-full mt-1" id="fridgeTemp" max="10" min="-24" step="0.5" type="range" value="4"/>
-            </div>
-        </div>
-
-        <!-- Options: Umluft Toggle -->
-        <div class="flex-none flex items-center justify-between px-2 h-8">
-            <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary text-sm" id="fanIcon">air</span>
-                <span class="text-xs font-bold text-secondary" id="fanText">Umluft / No-Frost</span>
-            </div>
-            <button class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 bg-surface-container-highest outline-none" id="convectionToggle">
-                <span class="sr-only">Toggle Umluft</span>
-                <span class="inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-200 translate-x-1 shadow-md" id="convectionSwitch"></span>
-            </button>
-        </div>
+        </section>
 
         <!-- Primary Action Bar -->
-        <div class="flex-none flex items-center gap-2 h-14 pb-1">
-            <button class="w-[70px] bg-surface-container-high hover:bg-surface-container-highest text-secondary font-bold h-full rounded-xl flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all outline-none" id="resetBtn">
+        <div class="grid grid-cols-[84px_1fr] gap-2 min-h-[60px]">
+            <button class="bg-surface-container-high hover:bg-surface-container-highest text-secondary font-bold rounded-2xl flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all outline-none shadow-sm" id="resetBtn">
                 <span class="material-symbols-outlined text-lg">restart_alt</span>
-                <span class="text-[9px] uppercase tracking-tighter">Reset</span>
+                <span class="text-[10px] uppercase tracking-[0.18em]">Reset</span>
             </button>
-            <button class="flex-1 bg-gradient-to-br from-primary to-primary-container hover:brightness-110 text-white font-black h-full rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all outline-none disabled:opacity-50 disabled:pointer-events-none" id="startBtn">
-                <span class="material-symbols-outlined" id="startIcon" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
-                <span class="text-base uppercase tracking-wider" id="startText">Start</span>
-            </button>
-            <button class="hidden flex-1 bg-secondary-container hover:bg-secondary-fixed text-primary font-bold h-full rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-all outline-none" id="pauseBtn">
-                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pause</span>
-                <span class="text-base uppercase tracking-wider">Pause</span>
-            </button>
+            <div class="relative">
+                <button class="w-full h-full bg-gradient-to-br from-primary to-primary-container hover:brightness-110 text-white font-black rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all outline-none disabled:opacity-50 disabled:pointer-events-none" id="startBtn">
+                    <span class="material-symbols-outlined" id="startIcon" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+                    <span class="text-base uppercase tracking-[0.22em]" id="startText">Start</span>
+                </button>
+                <button class="hidden absolute inset-0 bg-secondary-container hover:bg-secondary-fixed text-primary font-bold rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all outline-none" id="pauseBtn">
+                    <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pause</span>
+                    <span class="text-base uppercase tracking-[0.22em]">Pause</span>
+                </button>
+            </div>
         </div>
     </main>
 
