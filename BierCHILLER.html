@@ -322,10 +322,10 @@
             warningMsg.className = (fridgeC < 0) ? "mt-4 px-4 py-1.5 bg-error/10 text-error rounded-full flex items-center gap-1.5 animate-pulse" : "hidden";
             
             if (targetC <= fridgeC) {
-                errorMsg.textContent = "Fehler: Ziel muss über Gerätetemp. liegen";
+                errorMsg.textContent = "Fehler: Ziel muss über Gerätetemperatur liegen";
                 hasError = true;
             } else if (targetC >= startC) {
-                errorMsg.textContent = "Fehler: Ziel muss unter Starttemp. liegen";
+                errorMsg.textContent = "Fehler: Ziel muss unter Starttemperatur liegen";
                 hasError = true;
             }
 
