@@ -1,0 +1,10 @@
+.gradle/
+build/
+**/build/
+toolchain/
+*.apk
+local.properties
+design-qa.md
+app/bierchiller-release.keystore
+.idea/
+*.iml

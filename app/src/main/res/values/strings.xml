@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BierCHILLER</string>
+    <string name="header_subtitle">Gefrierschrank-Timer</string>
+    <string name="tagline">K&#252;hlzeit berechnen und zuverl&#228;ssig alarmieren</string>
+    <string name="start_temperature">Starttemperatur</string>
+    <string name="target_temperature">Zieltemperatur</string>
+    <string name="device_temperature">Ger&#228;tetemperatur</string>
+    <string name="bottle_volume">Flaschengr&#246;&#223;e</string>
+    <string name="start_timer">Timer starten</string>
+    <string name="stop_timer">Stoppen</string>
+    <string name="ready">Bereit</string>
+    <string name="running">L&#228;uft</string>
+    <string name="alarm_ringing">Dein Bier ist kalt</string>
+    <string name="alarm_detail">Zieltemperatur erreicht.</string>
+    <string name="stop_alarm">Alarm stoppen</string>
+    <string name="no_timer">-- min</string>
+    <string name="end_time_placeholder">Ende um --:-- Uhr</string>
+    <string name="info_text">Version 1.3.11 &#183; Standby-fester Android-Alarm</string>
+    <string name="version_display">BierCHILLER Version 1.3.11</string>
+    <string name="alarm_channel_name">BierCHILLER Alarm</string>
+    <string name="alarm_channel_description">Benachrichtigungen f&#252;r BierCHILLER K&#252;hlalarme</string>
+</resources>
