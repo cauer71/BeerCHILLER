@@ -367,7 +367,10 @@ public class MainActivity extends Activity {
         startButton.setEnabled(editable);
         startButton.setAlpha(editable ? 1f : 0.55f);
         stopButton.setEnabled(running);
-        stopButton.setAlpha(running ? 1f : 0.55f);
+        stopButton.setAlpha(1f);
+        stopButton.setTextColor(running
+                ? Color.parseColor("#123B4A")
+                : Color.parseColor("#7D9092"));
     }
 
     private void tintStartButton(int color) {

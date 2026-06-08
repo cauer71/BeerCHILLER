@@ -48,12 +48,12 @@ public class TimerCircleView extends View {
 
         trackPaint.setStyle(Paint.Style.STROKE);
         trackPaint.setStrokeCap(Paint.Cap.ROUND);
-        trackPaint.setStrokeWidth(dp(16));
+        trackPaint.setStrokeWidth(dp(12));
         trackPaint.setColor(Color.parseColor("#E7F2F7"));
 
         progressPaint.setStyle(Paint.Style.STROKE);
         progressPaint.setStrokeCap(Paint.Cap.ROUND);
-        progressPaint.setStrokeWidth(dp(16));
+        progressPaint.setStrokeWidth(dp(12));
 
         highlightPaint.setStyle(Paint.Style.STROKE);
         highlightPaint.setStrokeCap(Paint.Cap.ROUND);
@@ -92,8 +92,8 @@ public class TimerCircleView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        float stroke = dp(16);
-        float size = (Math.min(getWidth(), getHeight()) - stroke - dp(4)) * 0.86f;
+        float stroke = dp(12);
+        float size = (Math.min(getWidth(), getHeight()) - stroke - dp(4)) * 0.88f;
         if (size <= 0f) {
             return;
         }
@@ -111,7 +111,7 @@ public class TimerCircleView extends View {
                     centerX,
                     centerY,
                     glowRadius,
-                    Color.parseColor("#A6FFE066"),
+                    Color.parseColor("#66FFF3C7"),
                     Color.TRANSPARENT,
                     Shader.TileMode.CLAMP
             ));
@@ -122,17 +122,17 @@ public class TimerCircleView extends View {
         }
 
         fillPaint.setColor(backgroundVisible
-                ? Color.parseColor("#80FFEEB9")
+                ? Color.parseColor("#CCFFF6DA")
                 : Color.parseColor("#FFFFFFFF"));
         fillPaint.setShadowLayer(
-                backgroundVisible ? dp(16) : dp(12),
+                backgroundVisible ? dp(12) : dp(12),
                 0,
-                backgroundVisible ? dp(5) : dp(4),
-                backgroundVisible ? Color.parseColor("#40000000") : Color.parseColor("#26000000")
+                backgroundVisible ? dp(4) : dp(4),
+                backgroundVisible ? Color.parseColor("#30000000") : Color.parseColor("#26000000")
         );
         canvas.drawCircle(centerX, centerY, radius - stroke / 2f, fillPaint);
         trackPaint.setColor(backgroundVisible
-                ? Color.parseColor("#F1EBD1")
+                ? Color.parseColor("#F5E8A8")
                 : Color.parseColor("#E7F2F7"));
         canvas.drawArc(oval, 0, 360, false, trackPaint);
         progressPaint.setColor(valid
@@ -145,10 +145,10 @@ public class TimerCircleView extends View {
         }
         if (backgroundVisible && valid) {
             RectF highlightOval = new RectF(
-                    left + stroke * 0.75f,
-                    top + stroke * 0.75f,
-                    left + size - stroke * 0.75f,
-                    top + size - stroke * 0.75f
+                    left + stroke * 0.95f,
+                    top + stroke * 0.95f,
+                    left + size - stroke * 0.95f,
+                    top + size - stroke * 0.95f
             );
             canvas.drawArc(highlightOval, 205, 82, false, highlightPaint);
         }
