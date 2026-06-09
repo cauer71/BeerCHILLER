@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="46dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingRight="10dp"
+        android:text="@string/start_temperature"
+        android:textColor="#123B4A"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/startMinusButton"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:background="@drawable/bg_step_button"
+        android:elevation="4dp"
+        android:minHeight="0dp"
+        android:minWidth="0dp"
+        android:text="-"
+        android:textColor="#123B4A"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/startTempValue"
+        android:layout_width="72dp"
+        android:layout_height="34dp"
+        android:layout_marginLeft="6dp"
+        android:layout_marginRight="6dp"
+        android:background="@drawable/bg_value_chip"
+        android:elevation="2dp"
+        android:gravity="center"
+        android:text="22 &#176;C"
+        android:textColor="#123B4A"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/startPlusButton"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:background="@drawable/bg_step_button"
+        android:elevation="4dp"
+        android:minHeight="0dp"
+        android:minWidth="0dp"
+        android:text="+"
+        android:textColor="#123B4A"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+</LinearLayout>

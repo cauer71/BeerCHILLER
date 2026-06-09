@@ -11,8 +11,8 @@ android {
         applicationId = "com.bierchiller.app"
         minSdk = 23
         targetSdk = 34
-        versionCode = 10313
-        versionName = "1.3.11"
+        versionCode = 10315
+        versionName = "1.3.13"
     }
 
     signingConfigs {

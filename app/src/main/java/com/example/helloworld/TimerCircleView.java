@@ -153,23 +153,25 @@ public class TimerCircleView extends View {
             canvas.drawArc(highlightOval, 205, 82, false, highlightPaint);
         }
 
-        mainTextPaint.setTextSize(sp(58));
+        mainTextPaint.setTextSize(Math.min(sp(58), size * 0.25f));
         labelTextPaint.setColor(backgroundVisible
                 ? Color.parseColor("#123B4A")
                 : Color.parseColor("#5F767B"));
-        labelTextPaint.setTextSize(sp(18));
+        labelTextPaint.setTextSize(Math.min(sp(18), size * 0.095f));
         Paint detailTextPaint = labelTextPaint;
 
         Paint.FontMetrics mainMetrics = mainTextPaint.getFontMetrics();
         Paint.FontMetrics labelMetrics = labelTextPaint.getFontMetrics();
         float mainBaseline = centerY - dp(2) - (mainMetrics.ascent + mainMetrics.descent) / 2f;
-        float labelBaseline = centerY - dp(78) - (labelMetrics.ascent + labelMetrics.descent) / 2f;
-        float detailBaseline = centerY + dp(43) - (labelMetrics.ascent + labelMetrics.descent) / 2f;
+        float labelBaseline = centerY - Math.min(dp(78), size * 0.26f)
+                - (labelMetrics.ascent + labelMetrics.descent) / 2f;
+        float detailBaseline = centerY + Math.min(dp(43), size * 0.16f)
+                - (labelMetrics.ascent + labelMetrics.descent) / 2f;
 
         canvas.drawText(mainText, centerX, mainBaseline, mainTextPaint);
         canvas.drawText(labelText, centerX, labelBaseline, labelTextPaint);
         if (detailText != null && !detailText.isEmpty()) {
-            detailTextPaint.setTextSize(sp(18));
+            detailTextPaint.setTextSize(Math.min(sp(18), size * 0.095f));
             canvas.drawText(detailText, centerX, detailBaseline, detailTextPaint);
         }
     }
