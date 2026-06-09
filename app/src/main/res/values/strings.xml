@@ -16,8 +16,8 @@
     <string name="stop_alarm">Alarm stoppen</string>
     <string name="no_timer">-- min</string>
     <string name="end_time_placeholder">Ende um --:-- Uhr</string>
-    <string name="info_text">Version 1.3.13 &#183; Standby-fester Android-Alarm</string>
-    <string name="version_display">BierCHILLER Version 1.3.13</string>
+    <string name="info_text">Version 1.3.14 &#183; Standby-fester Android-Alarm</string>
+    <string name="version_display">BierCHILLER Version 1.3.14</string>
     <string name="alarm_channel_name">BierCHILLER Alarm</string>
     <string name="alarm_channel_description">Benachrichtigungen f&#252;r BierCHILLER K&#252;hlalarme</string>
 </resources>
