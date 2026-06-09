@@ -181,7 +181,7 @@
                 android:layout_weight="1.35"
                 android:background="@drawable/bg_primary_button"
                 android:clickable="true"
-                android:elevation="6dp"
+                android:elevation="0dp"
                 android:focusable="true"
                 android:gravity="center"
                 android:orientation="horizontal">
