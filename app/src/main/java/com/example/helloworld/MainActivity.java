@@ -21,7 +21,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,6 +30,7 @@ public class MainActivity extends Activity {
     private static final String PREFS = "bierchiller";
     private static final String KEY_END_TIME = "endTimeMillis";
     private static final String KEY_TOTAL_DURATION = "totalDurationMillis";
+    private static final String KEY_VISUAL_MODE = "visualMode";
     private static final int ALARM_REQUEST_CODE = 1001;
     private static final int SHOW_REQUEST_CODE = 1002;
     private static final String[] LANGUAGE_CODES = new String[]{
@@ -70,6 +70,7 @@ public class MainActivity extends Activity {
     private int deviceTemp = -18;
     private int volumeIndex = 1;
     private boolean running;
+    private boolean visualModeEnabled;
     private AlarmManager alarmManager;
     private SharedPreferences preferences;
 
@@ -106,21 +107,12 @@ public class MainActivity extends Activity {
         targetPlusButton = findViewById(R.id.targetPlusButton);
         deviceMinusButton = findViewById(R.id.deviceMinusButton);
         devicePlusButton = findViewById(R.id.devicePlusButton);
-        View headerTitleGroup = findViewById(R.id.headerTitleGroup);
 
         preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         updateHeaderBrand();
-        tintStartButton(Color.parseColor("#102A33"));
-
-        headerTitleGroup.setOnLongClickListener(v -> {
-            backgroundImage.setVisibility(View.VISIBLE);
-            backgroundOverlay.setVisibility(View.VISIBLE);
-            timerCircle.setBackgroundVisible(true);
-            tintStartButton(Color.WHITE);
-            Toast.makeText(this, getString(R.string.version_display, BuildConfig.VERSION_NAME), Toast.LENGTH_LONG).show();
-            return true;
-        });
+        visualModeEnabled = preferences.getBoolean(KEY_VISUAL_MODE, false);
+        applyVisualMode();
 
         wireControls();
         wireMenu();
@@ -148,14 +140,21 @@ public class MainActivity extends Activity {
     private void wireMenu() {
         menuButton.setOnClickListener(v -> {
             PopupMenu popupMenu = new PopupMenu(this, menuButton);
-            popupMenu.getMenu().add(0, 1, 0, R.string.menu_language);
-            popupMenu.getMenu().add(0, 2, 1, R.string.menu_info);
+            popupMenu.getMenu().add(0, 1, 0, R.string.menu_visual_mode)
+                    .setCheckable(true)
+                    .setChecked(visualModeEnabled);
+            popupMenu.getMenu().add(0, 2, 1, R.string.menu_language);
+            popupMenu.getMenu().add(0, 3, 2, R.string.menu_info);
             popupMenu.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == 1) {
-                    showLanguageDialog();
+                    setVisualModeEnabled(!visualModeEnabled);
                     return true;
                 }
                 if (item.getItemId() == 2) {
+                    showLanguageDialog();
+                    return true;
+                }
+                if (item.getItemId() == 3) {
                     showInfoDialog();
                     return true;
                 }
@@ -163,6 +162,19 @@ public class MainActivity extends Activity {
             });
             popupMenu.show();
         });
+    }
+
+    private void setVisualModeEnabled(boolean enabled) {
+        visualModeEnabled = enabled;
+        preferences.edit().putBoolean(KEY_VISUAL_MODE, enabled).apply();
+        applyVisualMode();
+    }
+
+    private void applyVisualMode() {
+        backgroundImage.setVisibility(visualModeEnabled ? View.VISIBLE : View.GONE);
+        backgroundOverlay.setVisibility(visualModeEnabled ? View.VISIBLE : View.GONE);
+        timerCircle.setBackgroundVisible(visualModeEnabled);
+        tintStartButton(visualModeEnabled ? Color.WHITE : Color.parseColor("#102A33"));
     }
 
     private void showInfoDialog() {

@@ -23,6 +23,7 @@
     <string name="minutes_short">%1$d min</string>
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Otwórz menu</string>
+    <string name="menu_visual_mode">Tryb VR</string>
     <string name="menu_language">Język</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Wybierz język</string>

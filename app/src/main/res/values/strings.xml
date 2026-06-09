@@ -23,6 +23,7 @@
     <string name="minutes_short">%1$d min</string>
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Open menu</string>
+    <string name="menu_visual_mode">VR mode</string>
     <string name="menu_language">Language</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Choose language</string>
