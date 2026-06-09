@@ -53,6 +53,7 @@
                     android:src="@drawable/ic_snowflake" />
 
                 <TextView
+                    android:id="@+id/headerBeerText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Bier"
@@ -61,6 +62,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/headerChillerText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="CHILLER"
@@ -68,6 +70,15 @@
                     android:textSize="24sp"
                     android:textStyle="bold" />
             </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/menuButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/menu_open"
+                android:padding="12dp"
+                android:src="@drawable/ic_more_vert" />
 
         </LinearLayout>
 

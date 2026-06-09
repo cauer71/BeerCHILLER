@@ -10,8 +10,13 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:paddingRight="10dp"
+        android:maxLines="2"
         android:text="@string/target_temperature"
         android:textColor="#123B4A"
+        android:autoSizeMaxTextSize="12sp"
+        android:autoSizeMinTextSize="7sp"
+        android:autoSizeStepGranularity="1sp"
+        android:autoSizeTextType="uniform"
         android:textSize="12sp"
         android:textStyle="bold" />
 

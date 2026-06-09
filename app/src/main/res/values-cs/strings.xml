@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BeerCHILLER</string>
+    <string name="header_subtitle">Časovač mrazáku</string>
+    <string name="tagline">Vypočítá dobu chlazení a spolehlivě spustí alarm</string>
+    <string name="status_ready">Připraveno</string>
+    <string name="ready">Připraveno</string>
+    <string name="running">Běží</string>
+    <string name="cooling_time">Chlazení</string>
+    <string name="calculated_cooling_time">Chlazení</string>
+    <string name="remaining_time">Zbývající čas</string>
+    <string name="ends_at">Konec v %1$s</string>
+    <string name="bottle_size">Velikost lahve</string>
+    <string name="bottle_volume">Velikost lahve</string>
+    <string name="start_temperature">Počáteční teplota</string>
+    <string name="target_temperature">Cílová teplota</string>
+    <string name="device_temperature">Teplota zařízení</string>
+    <string name="start_timer">Spustit timer</string>
+    <string name="stop">Stop</string>
+    <string name="stop_timer">Stop</string>
+    <string name="alarm_start">Spustit alarm</string>
+    <string name="version_alarm">Verze %1$s · Android alarm</string>
+    <string name="minutes_short">%1$d min</string>
+    <string name="degrees_celsius">%1$d °C</string>
+    <string name="menu_open">Otevřít menu</string>
+    <string name="menu_language">Jazyk</string>
+    <string name="menu_info">Info</string>
+    <string name="language_title">Vybrat jazyk</string>
+    <string name="language_system">Jazyk systému</string>
+    <string name="info_title">Info</string>
+    <string name="app_version">Verze %1$s</string>
+    <string name="app_info_message">%1$s
+%2$s</string>
+    <string name="close">Zavřít</string>
+    <string name="alarm_ringing">Vaše pivo je studené</string>
+    <string name="alarm_detail">Cílová teplota dosažena.</string>
+    <string name="stop_alarm">Zastavit alarm</string>
+    <string name="no_timer">-- min</string>
+    <string name="end_time_placeholder">Konec v --:--</string>
+    <string name="info_text">Verze %1$s · Android alarm</string>
+    <string name="version_display">BeerCHILLER Verze %1$s</string>
+    <string name="alarm_channel_name">Alarm BeerCHILLER</string>
+    <string name="alarm_channel_description">Oznámení pro alarmy chlazení BeerCHILLER</string>
+    <string name="check_inputs_short">Zkontrolovat</string>
+    <string name="check_inputs">Zkontrolujte hodnoty</string>
+</resources>

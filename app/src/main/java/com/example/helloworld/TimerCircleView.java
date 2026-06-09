@@ -39,6 +39,8 @@ public class TimerCircleView extends View {
 
     private void init() {
         setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        mainText = getResources().getString(R.string.no_timer);
+        labelText = getResources().getString(R.string.cooling_time);
 
         glowPaint.setStyle(Paint.Style.FILL);
 
@@ -153,11 +155,12 @@ public class TimerCircleView extends View {
             canvas.drawArc(highlightOval, 205, 82, false, highlightPaint);
         }
 
-        mainTextPaint.setTextSize(Math.min(sp(58), size * 0.25f));
+        float textMaxWidth = size * 0.74f;
+        mainTextPaint.setTextSize(fitTextSize(mainTextPaint, mainText, Math.min(sp(58), size * 0.25f), sp(30), textMaxWidth));
         labelTextPaint.setColor(backgroundVisible
                 ? Color.parseColor("#123B4A")
                 : Color.parseColor("#5F767B"));
-        labelTextPaint.setTextSize(Math.min(sp(18), size * 0.095f));
+        labelTextPaint.setTextSize(fitTextSize(labelTextPaint, labelText, Math.min(sp(18), size * 0.095f), sp(10), textMaxWidth));
         Paint detailTextPaint = labelTextPaint;
 
         Paint.FontMetrics mainMetrics = mainTextPaint.getFontMetrics();
@@ -171,9 +174,19 @@ public class TimerCircleView extends View {
         canvas.drawText(mainText, centerX, mainBaseline, mainTextPaint);
         canvas.drawText(labelText, centerX, labelBaseline, labelTextPaint);
         if (detailText != null && !detailText.isEmpty()) {
-            detailTextPaint.setTextSize(Math.min(sp(18), size * 0.095f));
+            detailTextPaint.setTextSize(fitTextSize(detailTextPaint, detailText, Math.min(sp(18), size * 0.095f), sp(10), textMaxWidth));
             canvas.drawText(detailText, centerX, detailBaseline, detailTextPaint);
         }
+    }
+
+    private float fitTextSize(Paint paint, String text, float maxSize, float minSize, float maxWidth) {
+        float textSize = maxSize;
+        paint.setTextSize(textSize);
+        while (textSize > minSize && paint.measureText(text) > maxWidth) {
+            textSize -= sp(1);
+            paint.setTextSize(textSize);
+        }
+        return textSize;
     }
 
     private float dp(float value) {

@@ -5,6 +5,7 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.Ringtone;
@@ -23,6 +24,11 @@ public class AlarmService extends Service {
 
     private Ringtone ringtone;
     private Vibrator vibrator;
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {

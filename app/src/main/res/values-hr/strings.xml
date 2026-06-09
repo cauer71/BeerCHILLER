@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BeerCHILLER</string>
+    <string name="header_subtitle">Tajmer zamrzivača</string>
+    <string name="tagline">Izračunava vrijeme hlađenja i pouzdano pokreće alarm</string>
+    <string name="status_ready">Spremno</string>
+    <string name="ready">Spremno</string>
+    <string name="running">Radi</string>
+    <string name="cooling_time">Hlađenje</string>
+    <string name="calculated_cooling_time">Hlađenje</string>
+    <string name="remaining_time">Preostalo vrijeme</string>
+    <string name="ends_at">Završava u %1$s</string>
+    <string name="bottle_size">Veličina boce</string>
+    <string name="bottle_volume">Veličina boce</string>
+    <string name="start_temperature">Početna temperatura</string>
+    <string name="target_temperature">Ciljna temperatura</string>
+    <string name="device_temperature">Temperatura uređaja</string>
+    <string name="start_timer">Pokreni timer</string>
+    <string name="stop">Stop</string>
+    <string name="stop_timer">Stop</string>
+    <string name="alarm_start">Pokreni alarm</string>
+    <string name="version_alarm">Verzija %1$s · Android alarm</string>
+    <string name="minutes_short">%1$d min</string>
+    <string name="degrees_celsius">%1$d °C</string>
+    <string name="menu_open">Otvori izbornik</string>
+    <string name="menu_language">Jezik</string>
+    <string name="menu_info">Info</string>
+    <string name="language_title">Odabir jezika</string>
+    <string name="language_system">Jezik sustava</string>
+    <string name="info_title">Info</string>
+    <string name="app_version">Verzija %1$s</string>
+    <string name="app_info_message">%1$s
+%2$s</string>
+    <string name="close">Zatvori</string>
+    <string name="alarm_ringing">Vaše pivo je hladno</string>
+    <string name="alarm_detail">Ciljna temperatura dosegnuta.</string>
+    <string name="stop_alarm">Zaustavi alarm</string>
+    <string name="no_timer">-- min</string>
+    <string name="end_time_placeholder">Završava u --:--</string>
+    <string name="info_text">Verzija %1$s · Android alarm</string>
+    <string name="version_display">BeerCHILLER Verzija %1$s</string>
+    <string name="alarm_channel_name">BeerCHILLER alarm</string>
+    <string name="alarm_channel_description">Obavijesti za BeerCHILLER alarme hlađenja</string>
+    <string name="check_inputs_short">Provjeri</string>
+    <string name="check_inputs">Provjeri vrijednosti</string>
+</resources>

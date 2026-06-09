@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BeerCHILLER</string>
+    <string name="header_subtitle">Minutnik zamrażarki</string>
+    <string name="tagline">Oblicza czas chłodzenia i uruchamia niezawodny alarm</string>
+    <string name="status_ready">Gotowe</string>
+    <string name="ready">Gotowe</string>
+    <string name="running">Działa</string>
+    <string name="cooling_time">Chłodzenie</string>
+    <string name="calculated_cooling_time">Chłodzenie</string>
+    <string name="remaining_time">Pozostały czas</string>
+    <string name="ends_at">Koniec o %1$s</string>
+    <string name="bottle_size">Butelka</string>
+    <string name="bottle_volume">Butelka</string>
+    <string name="start_temperature">Temperatura początkowa</string>
+    <string name="target_temperature">Temperatura docelowa</string>
+    <string name="device_temperature">Temperatura urządzenia</string>
+    <string name="start_timer">Uruchom timer</string>
+    <string name="stop">Stop</string>
+    <string name="stop_timer">Stop</string>
+    <string name="alarm_start">Uruchom alarm</string>
+    <string name="version_alarm">Wersja %1$s · Alarm Android</string>
+    <string name="minutes_short">%1$d min</string>
+    <string name="degrees_celsius">%1$d °C</string>
+    <string name="menu_open">Otwórz menu</string>
+    <string name="menu_language">Język</string>
+    <string name="menu_info">Info</string>
+    <string name="language_title">Wybierz język</string>
+    <string name="language_system">Język systemu</string>
+    <string name="info_title">Info</string>
+    <string name="app_version">Wersja %1$s</string>
+    <string name="app_info_message">%1$s
+%2$s</string>
+    <string name="close">Zamknij</string>
+    <string name="alarm_ringing">Twoje piwo jest zimne</string>
+    <string name="alarm_detail">Osiągnięto temperaturę docelową.</string>
+    <string name="stop_alarm">Zatrzymaj alarm</string>
+    <string name="no_timer">-- min</string>
+    <string name="end_time_placeholder">Koniec o --:--</string>
+    <string name="info_text">Wersja %1$s · Alarm Android</string>
+    <string name="version_display">BeerCHILLER Wersja %1$s</string>
+    <string name="alarm_channel_name">Alarm BeerCHILLER</string>
+    <string name="alarm_channel_description">Powiadomienia dla alarmów chłodzenia BeerCHILLER</string>
+    <string name="check_inputs_short">Sprawdź</string>
+    <string name="check_inputs">Sprawdź wartości</string>
+</resources>

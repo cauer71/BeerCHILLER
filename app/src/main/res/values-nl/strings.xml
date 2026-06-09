@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BeerCHILLER</string>
+    <string name="header_subtitle">Vriezertimer</string>
+    <string name="tagline">Bereken koeltijd en activeer betrouwbaar alarm</string>
+    <string name="status_ready">Gereed</string>
+    <string name="ready">Gereed</string>
+    <string name="running">Loopt</string>
+    <string name="cooling_time">Koeltijd</string>
+    <string name="calculated_cooling_time">Koeltijd</string>
+    <string name="remaining_time">Resterende tijd</string>
+    <string name="ends_at">Einde om %1$s</string>
+    <string name="bottle_size">Flesgrootte</string>
+    <string name="bottle_volume">Flesgrootte</string>
+    <string name="start_temperature">Starttemperatuur</string>
+    <string name="target_temperature">Doeltemperatuur</string>
+    <string name="device_temperature">Apparaattemperatuur</string>
+    <string name="start_timer">Timer starten</string>
+    <string name="stop">Stoppen</string>
+    <string name="stop_timer">Stoppen</string>
+    <string name="alarm_start">Alarm starten</string>
+    <string name="version_alarm">Versie %1$s · Android-alarm</string>
+    <string name="minutes_short">%1$d min</string>
+    <string name="degrees_celsius">%1$d °C</string>
+    <string name="menu_open">Menu openen</string>
+    <string name="menu_language">Taal</string>
+    <string name="menu_info">Info</string>
+    <string name="language_title">Taal kiezen</string>
+    <string name="language_system">Systeemtaal</string>
+    <string name="info_title">Info</string>
+    <string name="app_version">Versie %1$s</string>
+    <string name="app_info_message">%1$s
+%2$s</string>
+    <string name="close">Sluiten</string>
+    <string name="alarm_ringing">Je bier is koud</string>
+    <string name="alarm_detail">Doeltemperatuur bereikt.</string>
+    <string name="stop_alarm">Alarm stoppen</string>
+    <string name="no_timer">-- min</string>
+    <string name="end_time_placeholder">Einde om --:--</string>
+    <string name="info_text">Versie %1$s · Android-alarm</string>
+    <string name="version_display">BeerCHILLER Versie %1$s</string>
+    <string name="alarm_channel_name">BeerCHILLER-alarm</string>
+    <string name="alarm_channel_description">Meldingen voor BeerCHILLER-koelalarmen</string>
+    <string name="check_inputs_short">Controleren</string>
+    <string name="check_inputs">Waarden controleren</string>
+</resources>

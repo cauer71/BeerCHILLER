@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">BeerCHILLER</string>
+    <string name="header_subtitle">Temporizador do congelador</string>
+    <string name="tagline">Calcula o resfriamento e aciona um alarme confiável</string>
+    <string name="status_ready">Pronto</string>
+    <string name="ready">Pronto</string>
+    <string name="running">Em curso</string>
+    <string name="cooling_time">Resfriamento</string>
+    <string name="calculated_cooling_time">Resfriamento</string>
+    <string name="remaining_time">Tempo restante</string>
+    <string name="ends_at">Termina às %1$s</string>
+    <string name="bottle_size">Garrafa</string>
+    <string name="bottle_volume">Garrafa</string>
+    <string name="start_temperature">Temperatura inicial</string>
+    <string name="target_temperature">Temperatura alvo</string>
+    <string name="device_temperature">Temperatura dispositivo</string>
+    <string name="start_timer">Iniciar timer</string>
+    <string name="stop">Parar</string>
+    <string name="stop_timer">Parar</string>
+    <string name="alarm_start">Iniciar alarme</string>
+    <string name="version_alarm">Versão %1$s · Alarme Android</string>
+    <string name="minutes_short">%1$d min</string>
+    <string name="degrees_celsius">%1$d °C</string>
+    <string name="menu_open">Abrir menu</string>
+    <string name="menu_language">Idioma</string>
+    <string name="menu_info">Info</string>
+    <string name="language_title">Escolher idioma</string>
+    <string name="language_system">Idioma do sistema</string>
+    <string name="info_title">Info</string>
+    <string name="app_version">Versão %1$s</string>
+    <string name="app_info_message">%1$s
+%2$s</string>
+    <string name="close">Fechar</string>
+    <string name="alarm_ringing">A sua cerveja está fria</string>
+    <string name="alarm_detail">Temperatura alvo atingida.</string>
+    <string name="stop_alarm">Parar alarme</string>
+    <string name="no_timer">-- min</string>
+    <string name="end_time_placeholder">Termina às --:--</string>
+    <string name="info_text">Versão %1$s · Alarme Android</string>
+    <string name="version_display">BeerCHILLER Versão %1$s</string>
+    <string name="alarm_channel_name">Alarme BeerCHILLER</string>
+    <string name="alarm_channel_description">Notificações para alarmes de resfriamento BeerCHILLER</string>
+    <string name="check_inputs_short">Verificar</string>
+    <string name="check_inputs">Verificar valores</string>
+</resources>

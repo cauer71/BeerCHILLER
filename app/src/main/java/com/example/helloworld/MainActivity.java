@@ -1,6 +1,7 @@
 package com.example.helloworld;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -16,7 +17,9 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +33,9 @@ public class MainActivity extends Activity {
     private static final String KEY_TOTAL_DURATION = "totalDurationMillis";
     private static final int ALARM_REQUEST_CODE = 1001;
     private static final int SHOW_REQUEST_CODE = 1002;
+    private static final String[] LANGUAGE_CODES = new String[]{
+            LocaleHelper.SYSTEM_LANGUAGE, "de", "en", "it", "fr", "es", "pt", "nl", "pl", "cs", "hr"
+    };
 
     private final double[] volumeFactors = new double[]{0.82, 1.0, 1.7};
 
@@ -45,6 +51,9 @@ public class MainActivity extends Activity {
     private View startButton;
     private ImageView startButtonIcon;
     private TextView startButtonText;
+    private TextView headerBeerText;
+    private TextView headerChillerText;
+    private ImageButton menuButton;
     private Button stopButton;
     private Button startMinusButton;
     private Button startPlusButton;
@@ -65,6 +74,11 @@ public class MainActivity extends Activity {
     private SharedPreferences preferences;
 
     @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(LocaleHelper.wrap(newBase));
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         enableFullscreen();
@@ -82,6 +96,9 @@ public class MainActivity extends Activity {
         startButton = findViewById(R.id.startButton);
         startButtonIcon = findViewById(R.id.startButtonIcon);
         startButtonText = findViewById(R.id.startButtonText);
+        headerBeerText = findViewById(R.id.headerBeerText);
+        headerChillerText = findViewById(R.id.headerChillerText);
+        menuButton = findViewById(R.id.menuButton);
         stopButton = findViewById(R.id.stopButton);
         startMinusButton = findViewById(R.id.startMinusButton);
         startPlusButton = findViewById(R.id.startPlusButton);
@@ -93,6 +110,7 @@ public class MainActivity extends Activity {
 
         preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        updateHeaderBrand();
         tintStartButton(Color.parseColor("#102A33"));
 
         headerTitleGroup.setOnLongClickListener(v -> {
@@ -100,11 +118,12 @@ public class MainActivity extends Activity {
             backgroundOverlay.setVisibility(View.VISIBLE);
             timerCircle.setBackgroundVisible(true);
             tintStartButton(Color.WHITE);
-            Toast.makeText(this, getString(R.string.version_display), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, getString(R.string.version_display, BuildConfig.VERSION_NAME), Toast.LENGTH_LONG).show();
             return true;
         });
 
         wireControls();
+        wireMenu();
         requestNotificationPermission();
         updateIdleDisplay();
         restoreRunningAlarm();
@@ -124,6 +143,72 @@ public class MainActivity extends Activity {
 
         startButton.setOnClickListener(v -> startTimerFromInputs());
         stopButton.setOnClickListener(v -> stopTimer());
+    }
+
+    private void wireMenu() {
+        menuButton.setOnClickListener(v -> {
+            PopupMenu popupMenu = new PopupMenu(this, menuButton);
+            popupMenu.getMenu().add(0, 1, 0, R.string.menu_language);
+            popupMenu.getMenu().add(0, 2, 1, R.string.menu_info);
+            popupMenu.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == 1) {
+                    showLanguageDialog();
+                    return true;
+                }
+                if (item.getItemId() == 2) {
+                    showInfoDialog();
+                    return true;
+                }
+                return false;
+            });
+            popupMenu.show();
+        });
+    }
+
+    private void showInfoDialog() {
+        String version = getString(R.string.app_version, BuildConfig.VERSION_NAME);
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.info_title)
+                .setMessage(getString(R.string.app_info_message, getString(R.string.app_name), version))
+                .setPositiveButton(R.string.close, null)
+                .show();
+    }
+
+    private void showLanguageDialog() {
+        String[] languageNames = new String[]{
+                getString(R.string.language_system),
+                "Deutsch",
+                "English",
+                "Italiano",
+                "Fran\u00e7ais",
+                "Espa\u00f1ol",
+                "Portugu\u00eas",
+                "Nederlands",
+                "Polski",
+                "\u010ce\u0161tina",
+                "Hrvatski"
+        };
+        int currentSelection = LocaleHelper.currentSelectionIndex(this, LANGUAGE_CODES);
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.language_title)
+                .setSingleChoiceItems(languageNames, currentSelection, (dialog, which) -> {
+                    LocaleHelper.setStoredLanguage(this, LANGUAGE_CODES[which]);
+                    dialog.dismiss();
+                    recreate();
+                })
+                .setNegativeButton(R.string.close, null)
+                .show();
+    }
+
+    private void updateHeaderBrand() {
+        String appName = getString(R.string.app_name);
+        if (appName.endsWith("CHILLER")) {
+            headerBeerText.setText(appName.substring(0, appName.length() - "CHILLER".length()));
+            headerChillerText.setText("CHILLER");
+        } else {
+            headerBeerText.setText(appName);
+            headerChillerText.setText("");
+        }
     }
 
     private void setVolumeIndex(int index) {
@@ -282,7 +367,7 @@ public class MainActivity extends Activity {
     }
 
     private void finishTimerUi() {
-        timerCircle.setTimerState("00:00", "Restzeit", formatEndTime(endTimeMillis), 0f, true, true);
+        timerCircle.setTimerState("00:00", getString(R.string.remaining_time), formatEndTime(endTimeMillis), 0f, true, true);
         setStatus(getString(R.string.alarm_ringing));
         preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
     }
@@ -293,7 +378,7 @@ public class MainActivity extends Activity {
                 : 0f;
         timerCircle.setTimerState(
                 formatDuration(remainingMillis),
-                "Restzeit",
+                getString(R.string.remaining_time),
                 formatEndTime(endTimeMillis),
                 progress,
                 true,
@@ -315,8 +400,8 @@ public class MainActivity extends Activity {
         setStatus(getString(R.string.ready));
         long estimatedEndTime = System.currentTimeMillis() + minutes * 60_000L;
         timerCircle.setTimerState(
-                String.format(Locale.GERMANY, "%d min", minutes),
-                "K\u00fchlzeit",
+                getString(R.string.minutes_short, minutes),
+                getString(R.string.cooling_time),
                 formatEndTime(estimatedEndTime),
                 1f,
                 false,
@@ -325,17 +410,17 @@ public class MainActivity extends Activity {
     }
 
     private void showInvalidInputs() {
-        setStatus("Pr\u00fcfen");
-        timerCircle.setTimerState("--", "Eingaben pr\u00fcfen", 1f, false, false);
+        setStatus(getString(R.string.check_inputs_short));
+        timerCircle.setTimerState("--", getString(R.string.check_inputs), 1f, false, false);
     }
 
     private void setStatus(String text) {
     }
 
     private void updateTemperatureValues() {
-        startTempValue.setText(String.format(Locale.GERMANY, "%d \u00b0C", startTemp));
-        targetTempValue.setText(String.format(Locale.GERMANY, "%d \u00b0C", targetTemp));
-        deviceTempValue.setText(String.format(Locale.GERMANY, "%d \u00b0C", deviceTemp));
+        startTempValue.setText(getString(R.string.degrees_celsius, startTemp));
+        targetTempValue.setText(getString(R.string.degrees_celsius, targetTemp));
+        deviceTempValue.setText(getString(R.string.degrees_celsius, deviceTemp));
     }
 
     private void updateVolumeButtons() {
@@ -401,7 +486,7 @@ public class MainActivity extends Activity {
     private String formatEndTime(long targetTimeMillis) {
         String time = new SimpleDateFormat("HH:mm", Locale.GERMANY)
                 .format(new Date(targetTimeMillis));
-        return String.format(Locale.GERMANY, "Ende um %s Uhr", time);
+        return getString(R.string.ends_at, time);
     }
 
     private int pendingIntentFlags(int baseFlags) {
