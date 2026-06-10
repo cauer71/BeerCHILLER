@@ -170,6 +170,13 @@ public class TimerCircleView extends View {
 
         float textMaxWidth = size * 0.74f;
         mainTextPaint.setColor(vr2 ? Color.WHITE : Color.parseColor("#123B4A"));
+        if (vr2) {
+            mainTextPaint.setShadowLayer(dp(3), 0, dp(2), Color.parseColor("#99000000"));
+            labelTextPaint.setShadowLayer(dp(2), 0, dp(1), Color.parseColor("#88000000"));
+        } else {
+            mainTextPaint.clearShadowLayer();
+            labelTextPaint.clearShadowLayer();
+        }
         mainTextPaint.setTextSize(fitTextSize(mainTextPaint, mainText, Math.min(sp(58), size * 0.25f), sp(30), textMaxWidth));
         labelTextPaint.setColor(vr2
                 ? Color.WHITE
