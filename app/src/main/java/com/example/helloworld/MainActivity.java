@@ -13,6 +13,7 @@ import android.graphics.PorterDuff;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -33,6 +34,9 @@ public class MainActivity extends Activity {
     private static final String KEY_VISUAL_MODE = "visualMode";
     private static final int ALARM_REQUEST_CODE = 1001;
     private static final int SHOW_REQUEST_CODE = 1002;
+    private static final int VISUAL_CLASSIC = 0;
+    private static final int VISUAL_VR = 1;
+    private static final int VISUAL_VR2 = 2;
     private static final String[] LANGUAGE_CODES = new String[]{
             LocaleHelper.SYSTEM_LANGUAGE, "de", "en", "it", "fr", "es", "pt", "nl", "pl", "cs", "hr"
     };
@@ -42,18 +46,26 @@ public class MainActivity extends Activity {
     private TimerCircleView timerCircle;
     private ImageView backgroundImage;
     private View backgroundOverlay;
+    private View controlPanel;
     private TextView startTempValue;
     private TextView targetTempValue;
     private TextView deviceTempValue;
+    private TextView startTempLabel;
+    private TextView targetTempLabel;
+    private TextView deviceTempLabel;
     private Button volumeSmallButton;
     private Button volumeMediumButton;
     private Button volumeLargeButton;
     private View startButton;
     private ImageView startButtonIcon;
     private TextView startButtonText;
+    private ImageView headerLogoIcon;
     private TextView headerBeerText;
     private TextView headerChillerText;
     private ImageButton menuButton;
+    private ImageView startTempIcon;
+    private ImageView targetTempIcon;
+    private ImageView deviceTempIcon;
     private Button stopButton;
     private Button startMinusButton;
     private Button startPlusButton;
@@ -70,7 +82,7 @@ public class MainActivity extends Activity {
     private int deviceTemp = -18;
     private int volumeIndex = 1;
     private boolean running;
-    private boolean visualModeEnabled;
+    private int visualMode;
     private AlarmManager alarmManager;
     private SharedPreferences preferences;
 
@@ -88,18 +100,26 @@ public class MainActivity extends Activity {
         timerCircle = findViewById(R.id.timerCircle);
         backgroundImage = findViewById(R.id.backgroundImage);
         backgroundOverlay = findViewById(R.id.backgroundOverlay);
+        controlPanel = findViewById(R.id.controlPanel);
         startTempValue = findViewById(R.id.startTempValue);
         targetTempValue = findViewById(R.id.targetTempValue);
         deviceTempValue = findViewById(R.id.deviceTempValue);
+        startTempLabel = findViewById(R.id.startTempLabel);
+        targetTempLabel = findViewById(R.id.targetTempLabel);
+        deviceTempLabel = findViewById(R.id.deviceTempLabel);
         volumeSmallButton = findViewById(R.id.volumeSmallButton);
         volumeMediumButton = findViewById(R.id.volumeMediumButton);
         volumeLargeButton = findViewById(R.id.volumeLargeButton);
         startButton = findViewById(R.id.startButton);
         startButtonIcon = findViewById(R.id.startButtonIcon);
         startButtonText = findViewById(R.id.startButtonText);
+        headerLogoIcon = findViewById(R.id.headerLogoIcon);
         headerBeerText = findViewById(R.id.headerBeerText);
         headerChillerText = findViewById(R.id.headerChillerText);
         menuButton = findViewById(R.id.menuButton);
+        startTempIcon = findViewById(R.id.startTempIcon);
+        targetTempIcon = findViewById(R.id.targetTempIcon);
+        deviceTempIcon = findViewById(R.id.deviceTempIcon);
         stopButton = findViewById(R.id.stopButton);
         startMinusButton = findViewById(R.id.startMinusButton);
         startPlusButton = findViewById(R.id.startPlusButton);
@@ -111,7 +131,7 @@ public class MainActivity extends Activity {
         preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         updateHeaderBrand();
-        visualModeEnabled = preferences.getBoolean(KEY_VISUAL_MODE, false);
+        visualMode = readVisualModePreference();
         applyVisualMode();
 
         wireControls();
@@ -142,19 +162,26 @@ public class MainActivity extends Activity {
             PopupMenu popupMenu = new PopupMenu(this, menuButton);
             popupMenu.getMenu().add(0, 1, 0, R.string.menu_visual_mode)
                     .setCheckable(true)
-                    .setChecked(visualModeEnabled);
-            popupMenu.getMenu().add(0, 2, 1, R.string.menu_language);
-            popupMenu.getMenu().add(0, 3, 2, R.string.menu_info);
+                    .setChecked(visualMode == VISUAL_VR);
+            popupMenu.getMenu().add(0, 2, 1, R.string.menu_vr2_mode)
+                    .setCheckable(true)
+                    .setChecked(visualMode == VISUAL_VR2);
+            popupMenu.getMenu().add(0, 3, 2, R.string.menu_language);
+            popupMenu.getMenu().add(0, 4, 3, R.string.menu_info);
             popupMenu.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == 1) {
-                    setVisualModeEnabled(!visualModeEnabled);
+                    setVisualMode(visualMode == VISUAL_VR ? VISUAL_CLASSIC : VISUAL_VR);
                     return true;
                 }
                 if (item.getItemId() == 2) {
-                    showLanguageDialog();
+                    setVisualMode(visualMode == VISUAL_VR2 ? VISUAL_CLASSIC : VISUAL_VR2);
                     return true;
                 }
                 if (item.getItemId() == 3) {
+                    showLanguageDialog();
+                    return true;
+                }
+                if (item.getItemId() == 4) {
                     showInfoDialog();
                     return true;
                 }
@@ -164,17 +191,75 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void setVisualModeEnabled(boolean enabled) {
-        visualModeEnabled = enabled;
-        preferences.edit().putBoolean(KEY_VISUAL_MODE, enabled).apply();
+    private void setVisualMode(int mode) {
+        visualMode = mode;
+        preferences.edit().putInt(KEY_VISUAL_MODE, mode).apply();
         applyVisualMode();
+        updateVolumeButtons();
+        setControlsForRunningState();
+        if (!running) {
+            updateIdleDisplay();
+        } else if (endTimeMillis > System.currentTimeMillis()) {
+            updateRunningTimerCircle(endTimeMillis - System.currentTimeMillis());
+        }
     }
 
     private void applyVisualMode() {
-        backgroundImage.setVisibility(visualModeEnabled ? View.VISIBLE : View.GONE);
-        backgroundOverlay.setVisibility(visualModeEnabled ? View.VISIBLE : View.GONE);
-        timerCircle.setBackgroundVisible(visualModeEnabled);
-        tintStartButton(visualModeEnabled ? Color.WHITE : Color.parseColor("#102A33"));
+        boolean visualBackground = visualMode != VISUAL_CLASSIC;
+        boolean vr2 = visualMode == VISUAL_VR2;
+        backgroundImage.setVisibility(visualBackground ? View.VISIBLE : View.GONE);
+        backgroundOverlay.setVisibility(visualBackground ? View.VISIBLE : View.GONE);
+        backgroundOverlay.setBackgroundResource(vr2 ? R.drawable.bg_beer_overlay_vr2 : R.drawable.bg_beer_overlay);
+        timerCircle.setVisualMode(visualMode);
+        headerLogoIcon.setImageResource(vr2 ? R.drawable.ic_hops_vr2 : R.drawable.ic_snowflake);
+        headerBeerText.setTextColor(Color.parseColor(vr2 ? "#4A2509" : "#E8B923"));
+        headerChillerText.setTextColor(Color.parseColor(vr2 ? "#D99C00" : "#123B4A"));
+        menuButton.setColorFilter(Color.parseColor(vr2 ? "#4A2509" : "#123B4A"), PorterDuff.Mode.SRC_IN);
+        controlPanel.setBackgroundResource(vr2 ? R.drawable.bg_control_panel_vr2 : R.drawable.bg_control_panel);
+        startButton.setBackgroundResource(vr2 ? R.drawable.bg_primary_button_vr2 : R.drawable.bg_primary_button);
+        stopButton.setBackgroundResource(vr2 ? R.drawable.bg_secondary_button_vr2 : R.drawable.bg_secondary_button);
+        int iconVisibility = vr2 ? View.VISIBLE : View.GONE;
+        startTempIcon.setVisibility(iconVisibility);
+        targetTempIcon.setVisibility(iconVisibility);
+        deviceTempIcon.setVisibility(iconVisibility);
+        tintStartButton(visualBackground ? Color.WHITE : Color.parseColor("#102A33"));
+        styleTemperatureControls(vr2);
+    }
+
+    private int readVisualModePreference() {
+        Object stored = preferences.getAll().get(KEY_VISUAL_MODE);
+        if (stored instanceof Integer) {
+            int mode = (Integer) stored;
+            return mode >= VISUAL_CLASSIC && mode <= VISUAL_VR2 ? mode : VISUAL_CLASSIC;
+        }
+        if (stored instanceof Boolean) {
+            return (Boolean) stored ? VISUAL_VR : VISUAL_CLASSIC;
+        }
+        return VISUAL_CLASSIC;
+    }
+
+    private void styleTemperatureControls(boolean vr2) {
+        int buttonBackground = vr2 ? R.drawable.bg_step_button_vr2 : R.drawable.bg_step_button;
+        int valueBackground = vr2 ? R.drawable.bg_value_chip_vr2 : R.drawable.bg_value_chip;
+        Button[] stepButtons = new Button[]{
+                startMinusButton, startPlusButton, targetMinusButton, targetPlusButton,
+                deviceMinusButton, devicePlusButton
+        };
+        for (Button button : stepButtons) {
+            button.setBackgroundResource(buttonBackground);
+            button.setTextColor(Color.parseColor(vr2 ? "#4A2509" : "#123B4A"));
+        }
+        TextView[] valueChips = new TextView[]{startTempValue, targetTempValue, deviceTempValue};
+        for (TextView valueChip : valueChips) {
+            valueChip.setBackgroundResource(valueBackground);
+            valueChip.setTextColor(Color.parseColor(vr2 ? "#4A2509" : "#123B4A"));
+        }
+        TextView[] labels = new TextView[]{startTempLabel, targetTempLabel, deviceTempLabel};
+        for (TextView label : labels) {
+            label.setTextColor(Color.parseColor(vr2 ? "#4A2509" : "#123B4A"));
+            label.setSingleLine(vr2);
+            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, vr2 ? 9.5f : 12f);
+        }
     }
 
     private void showInfoDialog() {
@@ -379,7 +464,14 @@ public class MainActivity extends Activity {
     }
 
     private void finishTimerUi() {
-        timerCircle.setTimerState("00:00", getString(R.string.remaining_time), formatEndTime(endTimeMillis), 0f, true, true);
+        timerCircle.setTimerState(
+                "00:00",
+                getString(R.string.remaining_time),
+                formatEndTime(endTimeMillis),
+                visualMode == VISUAL_VR2 ? 1f : 0f,
+                true,
+                true
+        );
         setStatus(getString(R.string.alarm_ringing));
         preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
     }
@@ -388,11 +480,12 @@ public class MainActivity extends Activity {
         float progress = totalDurationMillis > 0
                 ? (float) remainingMillis / (float) totalDurationMillis
                 : 0f;
+        float visibleProgress = visualMode == VISUAL_VR2 ? 1f - progress : progress;
         timerCircle.setTimerState(
                 formatDuration(remainingMillis),
                 getString(R.string.remaining_time),
                 formatEndTime(endTimeMillis),
-                progress,
+                visibleProgress,
                 true,
                 true
         );
@@ -415,7 +508,7 @@ public class MainActivity extends Activity {
                 getString(R.string.minutes_short, minutes),
                 getString(R.string.cooling_time),
                 formatEndTime(estimatedEndTime),
-                1f,
+                visualMode == VISUAL_VR2 ? 0f : 1f,
                 false,
                 true
         );
@@ -443,9 +536,11 @@ public class MainActivity extends Activity {
 
     private void styleVolumeButton(Button button, boolean selected) {
         button.setBackgroundResource(selected
-                ? R.drawable.bg_segment_selected
-                : R.drawable.bg_segment_unselected);
-        button.setTextColor(selected ? Color.WHITE : Color.parseColor("#123B4A"));
+                ? (visualMode == VISUAL_VR2 ? R.drawable.bg_segment_selected_vr2 : R.drawable.bg_segment_selected)
+                : (visualMode == VISUAL_VR2 ? R.drawable.bg_segment_unselected_vr2 : R.drawable.bg_segment_unselected));
+        button.setTextColor(selected
+                ? Color.WHITE
+                : Color.parseColor(visualMode == VISUAL_VR2 ? "#4A2509" : "#123B4A"));
     }
 
     private void setControlsForRunningState() {
@@ -466,7 +561,7 @@ public class MainActivity extends Activity {
         stopButton.setEnabled(running);
         stopButton.setAlpha(1f);
         stopButton.setTextColor(running
-                ? Color.parseColor("#123B4A")
+                ? Color.parseColor(visualMode == VISUAL_VR2 ? "#4A2509" : "#123B4A")
                 : Color.parseColor("#7D9092"));
     }
 

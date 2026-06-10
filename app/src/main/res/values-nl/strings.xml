@@ -24,6 +24,7 @@
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Menu openen</string>
     <string name="menu_visual_mode">VR-modus</string>
+    <string name="menu_vr2_mode">VR2-modus</string>
     <string name="menu_language">Taal</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Taal kiezen</string>

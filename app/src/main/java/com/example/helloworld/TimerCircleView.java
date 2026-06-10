@@ -10,6 +10,8 @@ import android.graphics.Shader;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.util.Locale;
+
 public class TimerCircleView extends View {
     private final Paint glowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -26,6 +28,7 @@ public class TimerCircleView extends View {
     private boolean running;
     private boolean valid = true;
     private boolean backgroundVisible;
+    private int visualMode;
 
     public TimerCircleView(Context context) {
         super(context);
@@ -87,6 +90,13 @@ public class TimerCircleView extends View {
 
     public void setBackgroundVisible(boolean backgroundVisible) {
         this.backgroundVisible = backgroundVisible;
+        this.visualMode = backgroundVisible ? 1 : 0;
+        invalidate();
+    }
+
+    public void setVisualMode(int visualMode) {
+        this.visualMode = visualMode;
+        this.backgroundVisible = visualMode != 0;
         invalidate();
     }
 
@@ -107,7 +117,8 @@ public class TimerCircleView extends View {
         float centerY = getHeight() / 2f;
         float radius = size / 2f;
 
-        if (backgroundVisible) {
+        boolean vr2 = visualMode == 2;
+        if (backgroundVisible && !vr2) {
             float glowRadius = radius * 1.28f;
             glowPaint.setShader(new RadialGradient(
                     centerX,
@@ -123,26 +134,28 @@ public class TimerCircleView extends View {
             glowPaint.setShader(null);
         }
 
-        fillPaint.setColor(backgroundVisible
-                ? Color.parseColor("#CCFFF6DA")
-                : Color.parseColor("#FFFFFFFF"));
-        fillPaint.setShadowLayer(
-                backgroundVisible ? dp(12) : dp(12),
-                0,
-                backgroundVisible ? dp(4) : dp(4),
-                backgroundVisible ? Color.parseColor("#30000000") : Color.parseColor("#26000000")
-        );
-        canvas.drawCircle(centerX, centerY, radius - stroke / 2f, fillPaint);
-        trackPaint.setColor(backgroundVisible
-                ? Color.parseColor("#F5E8A8")
-                : Color.parseColor("#E7F2F7"));
+        if (!vr2) {
+            fillPaint.setColor(backgroundVisible
+                    ? Color.parseColor("#CCFFF6DA")
+                    : Color.parseColor("#FFFFFFFF"));
+            fillPaint.setShadowLayer(
+                    dp(12),
+                    0,
+                    dp(4),
+                    backgroundVisible ? Color.parseColor("#30000000") : Color.parseColor("#26000000")
+            );
+            canvas.drawCircle(centerX, centerY, radius - stroke / 2f, fillPaint);
+        }
+        trackPaint.setColor(vr2
+                ? Color.parseColor("#F6E7BE")
+                : (backgroundVisible ? Color.parseColor("#F5E8A8") : Color.parseColor("#E7F2F7")));
         canvas.drawArc(oval, 0, 360, false, trackPaint);
         progressPaint.setColor(valid
-                ? (running ? Color.parseColor("#E8B923") : Color.parseColor("#123B4A"))
+                ? (vr2 ? Color.parseColor("#5A3008") : (running ? Color.parseColor("#E8B923") : Color.parseColor("#123B4A")))
                 : Color.parseColor("#D56B5D"));
-        if (progress >= 0.999f) {
+        if (progress >= 0.999f && !vr2) {
             canvas.drawCircle(centerX, centerY, radius, progressPaint);
-        } else {
+        } else if (progress > 0.001f) {
             canvas.drawArc(oval, -90, 360f * progress, false, progressPaint);
         }
         if (backgroundVisible && valid) {
@@ -156,11 +169,13 @@ public class TimerCircleView extends View {
         }
 
         float textMaxWidth = size * 0.74f;
+        mainTextPaint.setColor(vr2 ? Color.WHITE : Color.parseColor("#123B4A"));
         mainTextPaint.setTextSize(fitTextSize(mainTextPaint, mainText, Math.min(sp(58), size * 0.25f), sp(30), textMaxWidth));
-        labelTextPaint.setColor(backgroundVisible
-                ? Color.parseColor("#123B4A")
-                : Color.parseColor("#5F767B"));
-        labelTextPaint.setTextSize(fitTextSize(labelTextPaint, labelText, Math.min(sp(18), size * 0.095f), sp(10), textMaxWidth));
+        labelTextPaint.setColor(vr2
+                ? Color.WHITE
+                : (backgroundVisible ? Color.parseColor("#123B4A") : Color.parseColor("#5F767B")));
+        String visibleLabelText = vr2 ? labelText.toUpperCase(Locale.getDefault()) : labelText;
+        labelTextPaint.setTextSize(fitTextSize(labelTextPaint, visibleLabelText, Math.min(sp(18), size * 0.095f), sp(10), textMaxWidth));
         Paint detailTextPaint = labelTextPaint;
 
         Paint.FontMetrics mainMetrics = mainTextPaint.getFontMetrics();
@@ -172,7 +187,7 @@ public class TimerCircleView extends View {
                 - (labelMetrics.ascent + labelMetrics.descent) / 2f;
 
         canvas.drawText(mainText, centerX, mainBaseline, mainTextPaint);
-        canvas.drawText(labelText, centerX, labelBaseline, labelTextPaint);
+        canvas.drawText(visibleLabelText, centerX, labelBaseline, labelTextPaint);
         if (detailText != null && !detailText.isEmpty()) {
             detailTextPaint.setTextSize(fitTextSize(detailTextPaint, detailText, Math.min(sp(18), size * 0.095f), sp(10), textMaxWidth));
             canvas.drawText(detailText, centerX, detailBaseline, detailTextPaint);

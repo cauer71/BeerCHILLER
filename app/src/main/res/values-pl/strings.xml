@@ -24,6 +24,7 @@
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Otwórz menu</string>
     <string name="menu_visual_mode">Tryb VR</string>
+    <string name="menu_vr2_mode">Tryb VR2</string>
     <string name="menu_language">Język</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Wybierz język</string>
