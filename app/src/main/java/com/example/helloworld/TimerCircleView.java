@@ -158,7 +158,7 @@ public class TimerCircleView extends View {
         } else if (progress > 0.001f) {
             canvas.drawArc(oval, -90, 360f * progress, false, progressPaint);
         }
-        if (backgroundVisible && valid) {
+        if (backgroundVisible && valid && !vr2) {
             RectF highlightOval = new RectF(
                     left + stroke * 0.95f,
                     top + stroke * 0.95f,

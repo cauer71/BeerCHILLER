@@ -208,8 +208,10 @@ public class MainActivity extends Activity {
         boolean visualBackground = visualMode != VISUAL_CLASSIC;
         boolean vr2 = visualMode == VISUAL_VR2;
         backgroundImage.setVisibility(visualBackground ? View.VISIBLE : View.GONE);
-        backgroundOverlay.setVisibility(visualBackground ? View.VISIBLE : View.GONE);
-        backgroundOverlay.setBackgroundResource(vr2 ? R.drawable.bg_beer_overlay_vr2 : R.drawable.bg_beer_overlay);
+        backgroundOverlay.setVisibility(visualBackground && !vr2 ? View.VISIBLE : View.GONE);
+        if (!vr2) {
+            backgroundOverlay.setBackgroundResource(R.drawable.bg_beer_overlay);
+        }
         timerCircle.setVisualMode(visualMode);
         headerLogoIcon.setImageResource(vr2 ? R.drawable.ic_hops_vr2 : R.drawable.ic_snowflake);
         headerBeerText.setTextColor(Color.parseColor(vr2 ? "#4A2509" : "#E8B923"));
