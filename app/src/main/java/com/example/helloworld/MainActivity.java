@@ -7,9 +7,12 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -208,6 +211,7 @@ public class MainActivity extends Activity {
         boolean visualBackground = visualMode != VISUAL_CLASSIC;
         boolean vr2 = visualMode == VISUAL_VR2;
         backgroundImage.setVisibility(visualBackground ? View.VISIBLE : View.GONE);
+        applyBackgroundScale();
         backgroundOverlay.setVisibility(visualBackground && !vr2 ? View.VISIBLE : View.GONE);
         if (!vr2) {
             backgroundOverlay.setBackgroundResource(R.drawable.bg_beer_overlay);
@@ -259,9 +263,38 @@ public class MainActivity extends Activity {
         TextView[] labels = new TextView[]{startTempLabel, targetTempLabel, deviceTempLabel};
         for (TextView label : labels) {
             label.setTextColor(Color.parseColor(vr2 ? "#4A2509" : "#123B4A"));
-            label.setSingleLine(vr2);
+            label.setSingleLine(false);
+            label.setMaxLines(2);
+            label.setGravity(android.view.Gravity.CENTER_VERTICAL);
             label.setTextSize(TypedValue.COMPLEX_UNIT_SP, vr2 ? 9.5f : 12f);
         }
+    }
+
+    private void applyBackgroundScale() {
+        if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
+            backgroundImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            return;
+        }
+        backgroundImage.post(() -> {
+            Drawable drawable = backgroundImage.getDrawable();
+            int viewWidth = backgroundImage.getWidth();
+            int viewHeight = backgroundImage.getHeight();
+            if (drawable == null || viewWidth <= 0 || viewHeight <= 0) {
+                return;
+            }
+            int drawableWidth = drawable.getIntrinsicWidth();
+            int drawableHeight = drawable.getIntrinsicHeight();
+            if (drawableWidth <= 0 || drawableHeight <= 0) {
+                return;
+            }
+            float scale = Math.max((float) viewWidth / drawableWidth, (float) viewHeight / drawableHeight);
+            float dx = (viewWidth - drawableWidth * scale) * 0.5f;
+            Matrix matrix = new Matrix();
+            matrix.setScale(scale, scale);
+            matrix.postTranslate(dx, 0f);
+            backgroundImage.setScaleType(ImageView.ScaleType.MATRIX);
+            backgroundImage.setImageMatrix(matrix);
+        });
     }
 
     private void showInfoDialog() {
