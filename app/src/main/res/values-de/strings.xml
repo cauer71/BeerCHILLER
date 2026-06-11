@@ -12,9 +12,9 @@
     <string name="ends_at">Ende um %1$s</string>
     <string name="bottle_size">Flaschengröße</string>
     <string name="bottle_volume">Flaschengröße</string>
-    <string name="start_temperature">Starttemperatur</string>
-    <string name="target_temperature">Zieltemperatur</string>
-    <string name="device_temperature">Gerätetemperatur</string>
+    <string name="start_temperature">Start Temperatur</string>
+    <string name="target_temperature">Ziel Temperatur</string>
+    <string name="device_temperature">Geräte Temperatur</string>
     <string name="start_timer">Timer starten</string>
     <string name="stop">Stoppen</string>
     <string name="stop_timer">Stoppen</string>
@@ -23,7 +23,7 @@
     <string name="minutes_short">%1$d min</string>
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Menü öffnen</string>
-    <string name="menu_visual_mode">VR-Modus</string>
+    <string name="menu_classic_ui">Classic UI</string>
     <string name="menu_vr2_mode">VR2-Modus</string>
     <string name="menu_language">Sprache</string>
     <string name="menu_info">Info</string>

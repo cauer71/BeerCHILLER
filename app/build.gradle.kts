@@ -4,15 +4,15 @@ plugins {
 
 android {
     namespace = "com.example.helloworld"
-    compileSdk = 34
+    compileSdk = 35
     val releaseKeystore = file("bierchiller-release.keystore")
 
     defaultConfig {
         applicationId = "com.bierchiller.app"
         minSdk = 23
-        targetSdk = 34
-        versionCode = 10325
-        versionName = "1.3.23"
+        targetSdk = 35
+        versionCode = 10330
+        versionName = "1.3.28"
     }
 
     buildFeatures {

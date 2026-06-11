@@ -117,7 +117,7 @@ public class TimerCircleView extends View {
         float centerY = getHeight() / 2f;
         float radius = size / 2f;
 
-        boolean vr2 = visualMode == 2;
+        boolean vr2 = visualMode == 1;
         if (backgroundVisible && !vr2) {
             float glowRadius = radius * 1.28f;
             glowPaint.setShader(new RadialGradient(

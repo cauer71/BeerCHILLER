@@ -23,7 +23,7 @@
     <string name="minutes_short">%1$d min</string>
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Ouvrir le menu</string>
-    <string name="menu_visual_mode">Mode VR</string>
+    <string name="menu_classic_ui">Classic UI</string>
     <string name="menu_vr2_mode">Mode VR2</string>
     <string name="menu_language">Langue</string>
     <string name="menu_info">Infos</string>

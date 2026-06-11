@@ -35,11 +35,14 @@ public class MainActivity extends Activity {
     private static final String KEY_END_TIME = "endTimeMillis";
     private static final String KEY_TOTAL_DURATION = "totalDurationMillis";
     private static final String KEY_VISUAL_MODE = "visualMode";
+    private static final String KEY_START_TEMP = "startTemp";
+    private static final String KEY_TARGET_TEMP = "targetTemp";
+    private static final String KEY_DEVICE_TEMP = "deviceTemp";
+    private static final String KEY_VOLUME_INDEX = "volumeIndex";
     private static final int ALARM_REQUEST_CODE = 1001;
     private static final int SHOW_REQUEST_CODE = 1002;
     private static final int VISUAL_CLASSIC = 0;
-    private static final int VISUAL_VR = 1;
-    private static final int VISUAL_VR2 = 2;
+    private static final int VISUAL_VR2 = 1;
     private static final String[] LANGUAGE_CODES = new String[]{
             LocaleHelper.SYSTEM_LANGUAGE, "de", "en", "it", "fr", "es", "pt", "nl", "pl", "cs", "hr"
     };
@@ -133,6 +136,7 @@ public class MainActivity extends Activity {
 
         preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        restoreInputPreferences();
         updateHeaderBrand();
         visualMode = readVisualModePreference();
         applyVisualMode();
@@ -162,10 +166,10 @@ public class MainActivity extends Activity {
 
     private void wireMenu() {
         menuButton.setOnClickListener(v -> {
-            PopupMenu popupMenu = new PopupMenu(this, menuButton);
-            popupMenu.getMenu().add(0, 1, 0, R.string.menu_visual_mode)
+        PopupMenu popupMenu = new PopupMenu(this, menuButton);
+            popupMenu.getMenu().add(0, 1, 0, R.string.menu_classic_ui)
                     .setCheckable(true)
-                    .setChecked(visualMode == VISUAL_VR);
+                    .setChecked(visualMode == VISUAL_CLASSIC);
             popupMenu.getMenu().add(0, 2, 1, R.string.menu_vr2_mode)
                     .setCheckable(true)
                     .setChecked(visualMode == VISUAL_VR2);
@@ -173,7 +177,7 @@ public class MainActivity extends Activity {
             popupMenu.getMenu().add(0, 4, 3, R.string.menu_info);
             popupMenu.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == 1) {
-                    setVisualMode(visualMode == VISUAL_VR ? VISUAL_CLASSIC : VISUAL_VR);
+                    setVisualMode(visualMode == VISUAL_CLASSIC ? VISUAL_VR2 : VISUAL_CLASSIC);
                     return true;
                 }
                 if (item.getItemId() == 2) {
@@ -236,12 +240,12 @@ public class MainActivity extends Activity {
         Object stored = preferences.getAll().get(KEY_VISUAL_MODE);
         if (stored instanceof Integer) {
             int mode = (Integer) stored;
-            return mode >= VISUAL_CLASSIC && mode <= VISUAL_VR2 ? mode : VISUAL_CLASSIC;
+            return mode == VISUAL_CLASSIC ? VISUAL_CLASSIC : VISUAL_VR2;
         }
         if (stored instanceof Boolean) {
-            return (Boolean) stored ? VISUAL_VR : VISUAL_CLASSIC;
+            return (Boolean) stored ? VISUAL_VR2 : VISUAL_CLASSIC;
         }
-        return VISUAL_CLASSIC;
+        return VISUAL_VR2;
     }
 
     private void styleTemperatureControls(boolean vr2) {
@@ -289,9 +293,10 @@ public class MainActivity extends Activity {
             }
             float scale = Math.max((float) viewWidth / drawableWidth, (float) viewHeight / drawableHeight);
             float dx = (viewWidth - drawableWidth * scale) * 0.5f;
+            float dy = -viewHeight * 0.29f;
             Matrix matrix = new Matrix();
             matrix.setScale(scale, scale);
-            matrix.postTranslate(dx, 0f);
+            matrix.postTranslate(dx, dy);
             backgroundImage.setScaleType(ImageView.ScaleType.MATRIX);
             backgroundImage.setImageMatrix(matrix);
         });
@@ -348,6 +353,7 @@ public class MainActivity extends Activity {
             return;
         }
         volumeIndex = Math.max(0, Math.min(index, volumeFactors.length - 1));
+        saveInputPreferences();
         updateIdleDisplay();
     }
 
@@ -356,6 +362,7 @@ public class MainActivity extends Activity {
             return;
         }
         startTemp = clamp(startTemp + delta, -5, 40);
+        saveInputPreferences();
         updateIdleDisplay();
     }
 
@@ -364,6 +371,7 @@ public class MainActivity extends Activity {
             return;
         }
         targetTemp = clamp(targetTemp + delta, -5, 20);
+        saveInputPreferences();
         updateIdleDisplay();
     }
 
@@ -372,7 +380,29 @@ public class MainActivity extends Activity {
             return;
         }
         deviceTemp = clamp(deviceTemp + delta, -30, 5);
+        saveInputPreferences();
         updateIdleDisplay();
+    }
+
+    private void restoreInputPreferences() {
+        startTemp = preferences.getInt(KEY_START_TEMP, startTemp);
+        targetTemp = preferences.getInt(KEY_TARGET_TEMP, targetTemp);
+        deviceTemp = preferences.getInt(KEY_DEVICE_TEMP, deviceTemp);
+        volumeIndex = preferences.getInt(KEY_VOLUME_INDEX, volumeIndex);
+
+        startTemp = clamp(startTemp, -5, 40);
+        targetTemp = clamp(targetTemp, -5, 20);
+        deviceTemp = clamp(deviceTemp, -30, 5);
+        volumeIndex = Math.max(0, Math.min(volumeIndex, volumeFactors.length - 1));
+    }
+
+    private void saveInputPreferences() {
+        preferences.edit()
+                .putInt(KEY_START_TEMP, startTemp)
+                .putInt(KEY_TARGET_TEMP, targetTemp)
+                .putInt(KEY_DEVICE_TEMP, deviceTemp)
+                .putInt(KEY_VOLUME_INDEX, volumeIndex)
+                .apply();
     }
 
     private void startTimerFromInputs() {
