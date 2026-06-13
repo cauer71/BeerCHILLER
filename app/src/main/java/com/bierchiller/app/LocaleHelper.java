@@ -1,4 +1,4 @@
-package com.example.helloworld;
+package com.bierchiller.app;
 
 import android.content.Context;
 import android.content.ContextWrapper;

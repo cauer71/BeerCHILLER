@@ -45,4 +45,10 @@
     <string name="alarm_channel_description">Notificações para alarmes de resfriamento BeerCHILLER</string>
     <string name="check_inputs_short">Verificar</string>
     <string name="check_inputs">Verificar valores</string>
+    <string name="timer_channel_name">Temporizador BeerCHILLER</string>
+    <string name="timer_channel_description">Mostra o temporizador de resfriamento em andamento</string>
+    <string name="freezer">Congelador</string>
+    <string name="fridge">Frigorífico</string>
+    <string name="current_temperature">Temperatura atual</string>
+    <string name="degrees_celsius_decimal">%1$.1f °C</string>
 </resources>

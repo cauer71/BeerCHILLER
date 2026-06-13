@@ -1,4 +1,4 @@
-package com.example.helloworld;
+package com.bierchiller.app;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -17,7 +17,7 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 
 public class AlarmService extends Service {
-    static final String ACTION_STOP = "com.example.helloworld.STOP_ALARM";
+    static final String ACTION_STOP = "com.bierchiller.app.STOP_ALARM";
 
     private static final String CHANNEL_ID = "alarm_channel";
     private static final int NOTIFICATION_ID = 42;

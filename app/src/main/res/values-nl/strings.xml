@@ -45,4 +45,10 @@
     <string name="alarm_channel_description">Meldingen voor BeerCHILLER-koelalarmen</string>
     <string name="check_inputs_short">Controleren</string>
     <string name="check_inputs">Waarden controleren</string>
+    <string name="timer_channel_name">BeerCHILLER-timer</string>
+    <string name="timer_channel_description">Toont de lopende koeltimer</string>
+    <string name="freezer">Vriezer</string>
+    <string name="fridge">Koelkast</string>
+    <string name="current_temperature">Huidige temperatuur</string>
+    <string name="degrees_celsius_decimal">%1$.1f °C</string>
 </resources>

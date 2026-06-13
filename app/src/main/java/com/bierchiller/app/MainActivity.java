@@ -1,4 +1,4 @@
-package com.example.helloworld;
+package com.bierchiller.app;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -26,6 +26,10 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -38,11 +42,18 @@ public class MainActivity extends Activity {
     private static final String KEY_START_TEMP = "startTemp";
     private static final String KEY_TARGET_TEMP = "targetTemp";
     private static final String KEY_DEVICE_TEMP = "deviceTemp";
+    private static final String KEY_DEVICE_MODE = "deviceMode";
     private static final String KEY_VOLUME_INDEX = "volumeIndex";
     private static final int ALARM_REQUEST_CODE = 1001;
     private static final int SHOW_REQUEST_CODE = 1002;
     private static final int VISUAL_CLASSIC = 0;
     private static final int VISUAL_VR2 = 1;
+    private static final int DEVICE_FREEZER = 0;
+    private static final int DEVICE_FRIDGE = 1;
+    private static final int FREEZER_TEMP = -14;
+    private static final int FRIDGE_TEMP = 4;
+    private static final double COOLING_RATE = 0.028;
+    private static final double CONVECTION_EXPONENT = 0.25;
     private static final String[] LANGUAGE_CODES = new String[]{
             LocaleHelper.SYSTEM_LANGUAGE, "de", "en", "it", "fr", "es", "pt", "nl", "pl", "cs", "hr"
     };
@@ -62,6 +73,8 @@ public class MainActivity extends Activity {
     private Button volumeSmallButton;
     private Button volumeMediumButton;
     private Button volumeLargeButton;
+    private Button freezerButton;
+    private Button fridgeButton;
     private View startButton;
     private ImageView startButtonIcon;
     private TextView startButtonText;
@@ -85,8 +98,9 @@ public class MainActivity extends Activity {
     private long totalDurationMillis;
     private int startTemp = 22;
     private int targetTemp = 6;
-    private int deviceTemp = -18;
+    private int deviceTemp = FREEZER_TEMP;
     private int volumeIndex = 1;
+    private int deviceMode = DEVICE_FREEZER;
     private boolean running;
     private int visualMode;
     private AlarmManager alarmManager;
@@ -116,6 +130,8 @@ public class MainActivity extends Activity {
         volumeSmallButton = findViewById(R.id.volumeSmallButton);
         volumeMediumButton = findViewById(R.id.volumeMediumButton);
         volumeLargeButton = findViewById(R.id.volumeLargeButton);
+        freezerButton = findViewById(R.id.freezerButton);
+        fridgeButton = findViewById(R.id.fridgeButton);
         startButton = findViewById(R.id.startButton);
         startButtonIcon = findViewById(R.id.startButtonIcon);
         startButtonText = findViewById(R.id.startButtonText);
@@ -144,14 +160,30 @@ public class MainActivity extends Activity {
         wireControls();
         wireMenu();
         requestNotificationPermission();
+        handleNotificationAction(getIntent());
         updateIdleDisplay();
         restoreRunningAlarm();
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleNotificationAction(intent);
+    }
+
+    private void handleNotificationAction(Intent intent) {
+        if (intent != null && TimerNotificationHelper.ACTION_STOP_TIMER.equals(intent.getAction())) {
+            stopTimer();
+        }
     }
 
     private void wireControls() {
         volumeSmallButton.setOnClickListener(v -> setVolumeIndex(0));
         volumeMediumButton.setOnClickListener(v -> setVolumeIndex(1));
         volumeLargeButton.setOnClickListener(v -> setVolumeIndex(2));
+        freezerButton.setOnClickListener(v -> setDeviceMode(DEVICE_FREEZER));
+        fridgeButton.setOnClickListener(v -> setDeviceMode(DEVICE_FRIDGE));
 
         startMinusButton.setOnClickListener(v -> changeStartTemp(-1));
         startPlusButton.setOnClickListener(v -> changeStartTemp(1));
@@ -203,6 +235,7 @@ public class MainActivity extends Activity {
         preferences.edit().putInt(KEY_VISUAL_MODE, mode).apply();
         applyVisualMode();
         updateVolumeButtons();
+        updateDeviceModeButtons();
         setControlsForRunningState();
         if (!running) {
             updateIdleDisplay();
@@ -380,6 +413,21 @@ public class MainActivity extends Activity {
             return;
         }
         deviceTemp = clamp(deviceTemp + delta, -30, 5);
+        if (deviceTemp == FRIDGE_TEMP) {
+            deviceMode = DEVICE_FRIDGE;
+        } else if (deviceTemp == FREEZER_TEMP) {
+            deviceMode = DEVICE_FREEZER;
+        }
+        saveInputPreferences();
+        updateIdleDisplay();
+    }
+
+    private void setDeviceMode(int mode) {
+        if (running) {
+            return;
+        }
+        deviceMode = mode == DEVICE_FRIDGE ? DEVICE_FRIDGE : DEVICE_FREEZER;
+        deviceTemp = deviceMode == DEVICE_FRIDGE ? FRIDGE_TEMP : FREEZER_TEMP;
         saveInputPreferences();
         updateIdleDisplay();
     }
@@ -388,11 +436,13 @@ public class MainActivity extends Activity {
         startTemp = preferences.getInt(KEY_START_TEMP, startTemp);
         targetTemp = preferences.getInt(KEY_TARGET_TEMP, targetTemp);
         deviceTemp = preferences.getInt(KEY_DEVICE_TEMP, deviceTemp);
+        deviceMode = preferences.getInt(KEY_DEVICE_MODE, deviceTemp == FRIDGE_TEMP ? DEVICE_FRIDGE : DEVICE_FREEZER);
         volumeIndex = preferences.getInt(KEY_VOLUME_INDEX, volumeIndex);
 
         startTemp = clamp(startTemp, -5, 40);
         targetTemp = clamp(targetTemp, -5, 20);
         deviceTemp = clamp(deviceTemp, -30, 5);
+        deviceMode = deviceMode == DEVICE_FRIDGE ? DEVICE_FRIDGE : DEVICE_FREEZER;
         volumeIndex = Math.max(0, Math.min(volumeIndex, volumeFactors.length - 1));
     }
 
@@ -401,6 +451,7 @@ public class MainActivity extends Activity {
                 .putInt(KEY_START_TEMP, startTemp)
                 .putInt(KEY_TARGET_TEMP, targetTemp)
                 .putInt(KEY_DEVICE_TEMP, deviceTemp)
+                .putInt(KEY_DEVICE_MODE, deviceMode)
                 .putInt(KEY_VOLUME_INDEX, volumeIndex)
                 .apply();
     }
@@ -425,6 +476,7 @@ public class MainActivity extends Activity {
         setStatus(getString(R.string.running));
         startUiCountdown(endTimeMillis);
         scheduleExactAlarm(endTimeMillis);
+        TimerNotificationHelper.show(this, endTimeMillis, totalDurationMillis);
     }
 
     private void scheduleExactAlarm(long triggerAtMillis) {
@@ -475,6 +527,7 @@ public class MainActivity extends Activity {
         }
 
         stopService(new Intent(this, AlarmService.class));
+        TimerNotificationHelper.cancel(this);
         endTimeMillis = 0;
         totalDurationMillis = 0;
         running = false;
@@ -497,8 +550,10 @@ public class MainActivity extends Activity {
             setControlsForRunningState();
             setStatus(getString(R.string.running));
             startUiCountdown(endTimeMillis);
+            TimerNotificationHelper.show(this, endTimeMillis, totalDurationMillis);
         } else {
             preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
+            TimerNotificationHelper.cancel(this);
         }
     }
 
@@ -533,23 +588,32 @@ public class MainActivity extends Activity {
                 "00:00",
                 getString(R.string.remaining_time),
                 formatEndTime(endTimeMillis),
+                getString(R.string.degrees_celsius_decimal, (float) targetTemp),
+                getString(R.string.current_temperature),
                 visualMode == VISUAL_VR2 ? 1f : 0f,
                 true,
                 true
         );
         setStatus(getString(R.string.alarm_ringing));
         preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
+        TimerNotificationHelper.cancel(this);
     }
 
     private void updateRunningTimerCircle(long remainingMillis) {
         float progress = totalDurationMillis > 0
                 ? (float) remainingMillis / (float) totalDurationMillis
                 : 0f;
-        float visibleProgress = visualMode == VISUAL_VR2 ? 1f - progress : progress;
+        float visibleProgress = 1f - Math.max(0f, Math.min(1f, progress));
+        float elapsedProgress = totalDurationMillis > 0
+                ? visibleProgress
+                : 0f;
+        double currentBeerTemp = calculateCurrentBeerTemperature(elapsedProgress);
         timerCircle.setTimerState(
                 formatDuration(remainingMillis),
                 getString(R.string.remaining_time),
                 formatEndTime(endTimeMillis),
+                getString(R.string.degrees_celsius_decimal, (float) currentBeerTemp),
+                getString(R.string.current_temperature),
                 visibleProgress,
                 true,
                 true
@@ -559,6 +623,7 @@ public class MainActivity extends Activity {
     private void updateIdleDisplay() {
         updateTemperatureValues();
         updateVolumeButtons();
+        updateDeviceModeButtons();
         setControlsForRunningState();
 
         int minutes = calculateCoolingMinutes();
@@ -573,6 +638,8 @@ public class MainActivity extends Activity {
                 getString(R.string.minutes_short, minutes),
                 getString(R.string.cooling_time),
                 formatEndTime(estimatedEndTime),
+                "",
+                "",
                 visualMode == VISUAL_VR2 ? 0f : 1f,
                 false,
                 true
@@ -599,6 +666,13 @@ public class MainActivity extends Activity {
         styleVolumeButton(volumeLargeButton, volumeIndex == 2);
     }
 
+    private void updateDeviceModeButtons() {
+        boolean freezerSelected = deviceTemp == FREEZER_TEMP && deviceMode == DEVICE_FREEZER;
+        boolean fridgeSelected = deviceTemp == FRIDGE_TEMP && deviceMode == DEVICE_FRIDGE;
+        styleVolumeButton(freezerButton, freezerSelected);
+        styleVolumeButton(fridgeButton, fridgeSelected);
+    }
+
     private void styleVolumeButton(Button button, boolean selected) {
         button.setBackgroundResource(selected
                 ? (visualMode == VISUAL_VR2 ? R.drawable.bg_segment_selected_vr2 : R.drawable.bg_segment_selected)
@@ -612,6 +686,7 @@ public class MainActivity extends Activity {
         boolean editable = !running;
         Button[] editButtons = new Button[]{
                 volumeSmallButton, volumeMediumButton, volumeLargeButton,
+                freezerButton, fridgeButton,
                 startMinusButton, startPlusButton, targetMinusButton, targetPlusButton,
                 deviceMinusButton, devicePlusButton
         };
@@ -640,9 +715,19 @@ public class MainActivity extends Activity {
             return -1;
         }
 
-        double ratio = (targetTemp - deviceTemp) / (double) (startTemp - deviceTemp);
-        double baseMinutes = -Math.log(ratio) / 0.028;
+        double thetaTarget = (targetTemp - deviceTemp) / (double) (startTemp - deviceTemp);
+        double dimensionlessTime = 4.0 * (Math.pow(thetaTarget, -CONVECTION_EXPONENT) - 1.0);
+        double baseMinutes = dimensionlessTime / COOLING_RATE;
         return Math.max(1, (int) Math.ceil(baseMinutes * volumeFactors[volumeIndex]));
+    }
+
+    private double calculateCurrentBeerTemperature(float elapsedProgress) {
+        double totalMinutes = totalDurationMillis / 60000.0;
+        double elapsedMinutes = Math.max(0.0, totalMinutes * Math.max(0f, Math.min(1f, elapsedProgress)));
+        double dimensionlessTime = COOLING_RATE * elapsedMinutes / volumeFactors[volumeIndex];
+        double theta = Math.pow(4.0 / (dimensionlessTime + 4.0), 4.0);
+        double temperature = deviceTemp + (startTemp - deviceTemp) * theta;
+        return Math.max(targetTemp, Math.min(startTemp, temperature));
     }
 
     private String formatDuration(long millis) {
@@ -656,9 +741,12 @@ public class MainActivity extends Activity {
     }
 
     private String formatEndTime(long targetTimeMillis) {
-        String time = new SimpleDateFormat("HH:mm", Locale.GERMANY)
+        return getString(R.string.ends_at, formatTime(this, targetTimeMillis));
+    }
+
+    static String formatTime(Context context, long targetTimeMillis) {
+        return new SimpleDateFormat("HH:mm", Locale.GERMANY)
                 .format(new Date(targetTimeMillis));
-        return getString(R.string.ends_at, time);
     }
 
     private int pendingIntentFlags(int baseFlags) {
@@ -682,17 +770,13 @@ public class MainActivity extends Activity {
 
     private void enableFullscreen() {
         Window window = getWindow();
+        WindowCompat.setDecorFitsSystemWindows(window, false);
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        window.setStatusBarColor(Color.TRANSPARENT);
-        window.setNavigationBarColor(Color.TRANSPARENT);
-        window.getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        );
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(window, window.getDecorView());
+        controller.hide(WindowInsetsCompat.Type.systemBars());
+        controller.setSystemBarsBehavior(
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
     }
 
     @Override

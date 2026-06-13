@@ -45,4 +45,10 @@
     <string name="alarm_channel_description">Obavijesti za BeerCHILLER alarme hlađenja</string>
     <string name="check_inputs_short">Provjeri</string>
     <string name="check_inputs">Provjeri vrijednosti</string>
+    <string name="timer_channel_name">BeerCHILLER timer</string>
+    <string name="timer_channel_description">Prikazuje aktivni timer hlađenja</string>
+    <string name="freezer">Zamrzivač</string>
+    <string name="fridge">Hladnjak</string>
+    <string name="current_temperature">Trenutačna temperatura</string>
+    <string name="degrees_celsius_decimal">%1$.1f °C</string>
 </resources>

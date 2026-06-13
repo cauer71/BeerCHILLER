@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="46dp"
+    android:layout_height="42dp"
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
@@ -18,37 +18,37 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:gravity="center_vertical"
-        android:paddingRight="10dp"
-        android:maxLines="2"
-        android:text="@string/device_temperature"
-        android:textColor="#123B4A"
         android:autoSizeMaxTextSize="12sp"
         android:autoSizeMinTextSize="7sp"
         android:autoSizeStepGranularity="1sp"
         android:autoSizeTextType="uniform"
+        android:gravity="center_vertical"
+        android:maxLines="2"
+        android:paddingRight="10dp"
+        android:text="@string/device_temperature"
+        android:textColor="#123B4A"
         android:textSize="12sp"
         android:textStyle="bold" />
 
     <Button
         android:id="@+id/deviceMinusButton"
-        android:layout_width="34dp"
-        android:layout_height="34dp"
+        android:layout_width="33dp"
+        android:layout_height="33dp"
         android:background="@drawable/bg_step_button"
-        android:elevation="4dp"
+        android:elevation="5dp"
         android:minHeight="0dp"
         android:minWidth="0dp"
         android:text="-"
         android:textColor="#123B4A"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/deviceTempValue"
-        android:layout_width="72dp"
-        android:layout_height="34dp"
-        android:layout_marginLeft="6dp"
-        android:layout_marginRight="6dp"
+        android:layout_width="78dp"
+        android:layout_height="33dp"
+        android:layout_marginLeft="7dp"
+        android:layout_marginRight="7dp"
         android:background="@drawable/bg_value_chip"
         android:elevation="2dp"
         android:gravity="center"
@@ -59,14 +59,14 @@
 
     <Button
         android:id="@+id/devicePlusButton"
-        android:layout_width="34dp"
-        android:layout_height="34dp"
+        android:layout_width="33dp"
+        android:layout_height="33dp"
         android:background="@drawable/bg_step_button"
-        android:elevation="4dp"
+        android:elevation="5dp"
         android:minHeight="0dp"
         android:minWidth="0dp"
         android:text="+"
         android:textColor="#123B4A"
-        android:textSize="20sp"
+        android:textSize="18sp"
         android:textStyle="bold" />
 </LinearLayout>

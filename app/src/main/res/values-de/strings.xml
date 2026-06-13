@@ -45,4 +45,10 @@
     <string name="alarm_channel_description">Benachrichtigungen für BierCHILLER Kühlalarme</string>
     <string name="check_inputs_short">Prüfen</string>
     <string name="check_inputs">Eingaben prüfen</string>
+    <string name="timer_channel_name">BierCHILLER Timer</string>
+    <string name="timer_channel_description">Zeigt den laufenden Kühl-Timer</string>
+    <string name="freezer">Gefrierschrank</string>
+    <string name="fridge">Kühlschrank</string>
+    <string name="current_temperature">Aktuelle Temperatur</string>
+    <string name="degrees_celsius_decimal">%1$.1f °C</string>
 </resources>

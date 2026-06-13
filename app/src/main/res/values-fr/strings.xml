@@ -45,4 +45,10 @@
     <string name="alarm_channel_description">Notifications pour les alarmes de refroidissement BeerCHILLER</string>
     <string name="check_inputs_short">Vérifier</string>
     <string name="check_inputs">Vérifier les valeurs</string>
+    <string name="timer_channel_name">Timer BeerCHILLER</string>
+    <string name="timer_channel_description">Affiche le timer de refroidissement en cours</string>
+    <string name="freezer">Congélateur</string>
+    <string name="fridge">Réfrigérateur</string>
+    <string name="current_temperature">Température actuelle</string>
+    <string name="degrees_celsius_decimal">%1$.1f °C</string>
 </resources>

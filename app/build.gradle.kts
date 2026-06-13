@@ -3,16 +3,20 @@ plugins {
 }
 
 android {
-    namespace = "com.example.helloworld"
-    compileSdk = 35
+    namespace = "com.bierchiller.app"
+    compileSdk {
+        version = release(36) {
+            minorApiLevel = 1
+        }
+    }
     val releaseKeystore = file("bierchiller-release.keystore")
 
     defaultConfig {
         applicationId = "com.bierchiller.app"
         minSdk = 23
-        targetSdk = 35
-        versionCode = 10334
-        versionName = "1.3.32"
+        targetSdk = 36
+        versionCode = 10344
+        versionName = "1.3.44"
     }
 
     buildFeatures {
@@ -55,5 +59,5 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 dependencies {
-    implementation("androidx.core:core:1.13.1")
+    implementation("androidx.core:core:1.17.0")
 }

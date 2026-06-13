@@ -45,4 +45,10 @@
     <string name="alarm_channel_description">Oznámení pro alarmy chlazení BeerCHILLER</string>
     <string name="check_inputs_short">Zkontrolovat</string>
     <string name="check_inputs">Zkontrolujte hodnoty</string>
+    <string name="timer_channel_name">Timer BeerCHILLER</string>
+    <string name="timer_channel_description">Zobrazuje běžící časovač chlazení</string>
+    <string name="freezer">Mrazák</string>
+    <string name="fridge">Lednice</string>
+    <string name="current_temperature">Aktuální teplota</string>
+    <string name="degrees_celsius_decimal">%1$.1f °C</string>
 </resources>
