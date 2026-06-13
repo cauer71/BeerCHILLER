@@ -72,29 +72,3 @@ The current release artifacts are generated locally and live in these paths:
 - AAB: `app/build/outputs/bundle/release/app-release.aab`
 
 These files are recreated on each release build and are not meant to be edited by hand.
-
-## Publish To Google Play
-
-The repo includes `scripts/upload_play_bundle.py` for the Google Play Developer API.
-
-Prerequisites:
-
-- A Google Play service account JSON key.
-- The service account must be added in Play Console with permission to release to the target track.
-- Play App Signing must be enabled for the app.
-
-Example:
-
-```powershell
-python .\scripts\upload_play_bundle.py `
-  --service-account C:\path\to\play-service-account.json `
-  --aab .\app\build\outputs\bundle\release\app-release.aab `
-  --track internal
-```
-
-Useful flags:
-
-- `--track production|internal|closed|open`
-- `--status completed|inProgress|draft|halted`
-- `--release-name "1.3.44"`
-- `--changes-not-sent-for-review`
