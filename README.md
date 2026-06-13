@@ -64,27 +64,14 @@ Practical deviations can occur because domestic freezers cycle, air movement var
 - Google Play compatible package name: `com.bierchiller.app`.
 - Release builds target the current Android SDK line used by the project.
 
-## Build
+## Release Artifacts
 
-Use the local Android toolchain in `toolchain/` or a standard Android Studio setup.
+The current release artifacts are generated locally and live in these paths:
 
-Build the release APK:
+- APK: `app/build/outputs/apk/release/app-release.apk`
+- AAB: `app/build/outputs/bundle/release/app-release.aab`
 
-```powershell
-.\toolchain\gradle-9.1.0\gradle-9.1.0\bin\gradle.bat :app:assembleRelease
-```
-
-Build the release Android App Bundle:
-
-```powershell
-.\toolchain\gradle-9.1.0\gradle-9.1.0\bin\gradle.bat :app:bundleRelease
-```
-
-The generated Play Console bundle is written to:
-
-```text
-app/build/outputs/bundle/release/app-release.aab
-```
+These files are recreated on each release build and are not meant to be edited by hand.
 
 ## Publish To Google Play
 
