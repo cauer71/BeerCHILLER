@@ -49,6 +49,10 @@
     <string name="timer_channel_description">Zeigt den laufenden Kühl-Timer</string>
     <string name="freezer">Gefrierschrank</string>
     <string name="fridge">Kühlschrank</string>
+    <string name="container_bottle">Flasche</string>
+    <string name="container_can">Dose</string>
+    <string name="orientation_lying">liegend</string>
+    <string name="orientation_standing">stehend</string>
     <string name="current_temperature">Aktuelle Temperatur</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
 </resources>

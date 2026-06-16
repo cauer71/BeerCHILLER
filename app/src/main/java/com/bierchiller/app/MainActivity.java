@@ -44,21 +44,33 @@ public class MainActivity extends Activity {
     private static final String KEY_DEVICE_TEMP = "deviceTemp";
     private static final String KEY_DEVICE_MODE = "deviceMode";
     private static final String KEY_VOLUME_INDEX = "volumeIndex";
+    private static final String KEY_CONTAINER_TYPE = "containerType";
+    private static final String KEY_ORIENTATION = "orientation";
     private static final int ALARM_REQUEST_CODE = 1001;
     private static final int SHOW_REQUEST_CODE = 1002;
     private static final int VISUAL_CLASSIC = 0;
     private static final int VISUAL_VR2 = 1;
     private static final int DEVICE_FREEZER = 0;
     private static final int DEVICE_FRIDGE = 1;
+    private static final int CONTAINER_BOTTLE = 0;
+    private static final int CONTAINER_CAN = 1;
+    private static final int ORIENTATION_LYING = 0;
+    private static final int ORIENTATION_STANDING = 1;
     private static final int FREEZER_TEMP = -14;
     private static final int FRIDGE_TEMP = 4;
-    private static final double COOLING_RATE = 0.028;
+    private static final int VOLUME_SMALL = 0;
+    private static final int VOLUME_MEDIUM = 1;
+    private static final int VOLUME_LARGE = 2;
+    private static final double BEER_HEAT_CAPACITY = 4200.0;
+    private static final double AIR_THERMAL_CONDUCTIVITY = 0.026;
+    private static final double AIR_KINEMATIC_VISCOSITY = 15.1e-6;
+    private static final double AIR_THERMAL_DIFFUSIVITY = 21.8e-6;
+    private static final double GRAVITY = 9.81;
+    private static final double STANDING_FACTOR = 1.20;
     private static final double CONVECTION_EXPONENT = 0.25;
     private static final String[] LANGUAGE_CODES = new String[]{
             LocaleHelper.SYSTEM_LANGUAGE, "de", "en", "it", "fr", "es", "pt", "nl", "pl", "cs", "hr"
     };
-
-    private final double[] volumeFactors = new double[]{0.82, 1.0, 1.7};
 
     private TimerCircleView timerCircle;
     private ImageView backgroundImage;
@@ -70,9 +82,13 @@ public class MainActivity extends Activity {
     private TextView startTempLabel;
     private TextView targetTempLabel;
     private TextView deviceTempLabel;
+    private Button bottleButton;
+    private Button canButton;
     private Button volumeSmallButton;
     private Button volumeMediumButton;
     private Button volumeLargeButton;
+    private Button lyingButton;
+    private Button standingButton;
     private Button freezerButton;
     private Button fridgeButton;
     private View startButton;
@@ -99,8 +115,10 @@ public class MainActivity extends Activity {
     private int startTemp = 22;
     private int targetTemp = 6;
     private int deviceTemp = FREEZER_TEMP;
-    private int volumeIndex = 1;
+    private int volumeIndex = VOLUME_MEDIUM;
     private int deviceMode = DEVICE_FREEZER;
+    private int containerType = CONTAINER_BOTTLE;
+    private int orientation = ORIENTATION_LYING;
     private boolean running;
     private int visualMode;
     private AlarmManager alarmManager;
@@ -127,9 +145,13 @@ public class MainActivity extends Activity {
         startTempLabel = findViewById(R.id.startTempLabel);
         targetTempLabel = findViewById(R.id.targetTempLabel);
         deviceTempLabel = findViewById(R.id.deviceTempLabel);
+        bottleButton = findViewById(R.id.bottleButton);
+        canButton = findViewById(R.id.canButton);
         volumeSmallButton = findViewById(R.id.volumeSmallButton);
         volumeMediumButton = findViewById(R.id.volumeMediumButton);
         volumeLargeButton = findViewById(R.id.volumeLargeButton);
+        lyingButton = findViewById(R.id.lyingButton);
+        standingButton = findViewById(R.id.standingButton);
         freezerButton = findViewById(R.id.freezerButton);
         fridgeButton = findViewById(R.id.fridgeButton);
         startButton = findViewById(R.id.startButton);
@@ -179,9 +201,13 @@ public class MainActivity extends Activity {
     }
 
     private void wireControls() {
+        bottleButton.setOnClickListener(v -> setContainerType(CONTAINER_BOTTLE));
+        canButton.setOnClickListener(v -> setContainerType(CONTAINER_CAN));
         volumeSmallButton.setOnClickListener(v -> setVolumeIndex(0));
         volumeMediumButton.setOnClickListener(v -> setVolumeIndex(1));
         volumeLargeButton.setOnClickListener(v -> setVolumeIndex(2));
+        lyingButton.setOnClickListener(v -> setOrientation(ORIENTATION_LYING));
+        standingButton.setOnClickListener(v -> setOrientation(ORIENTATION_STANDING));
         freezerButton.setOnClickListener(v -> setDeviceMode(DEVICE_FREEZER));
         fridgeButton.setOnClickListener(v -> setDeviceMode(DEVICE_FRIDGE));
 
@@ -234,7 +260,7 @@ public class MainActivity extends Activity {
         visualMode = mode;
         preferences.edit().putInt(KEY_VISUAL_MODE, mode).apply();
         applyVisualMode();
-        updateVolumeButtons();
+        updateSelectionButtons();
         updateDeviceModeButtons();
         setControlsForRunningState();
         if (!running) {
@@ -385,7 +411,32 @@ public class MainActivity extends Activity {
         if (running) {
             return;
         }
-        volumeIndex = Math.max(0, Math.min(index, volumeFactors.length - 1));
+        int requestedVolume = Math.max(VOLUME_SMALL, Math.min(index, VOLUME_LARGE));
+        if (containerType == CONTAINER_CAN && requestedVolume == VOLUME_LARGE) {
+            requestedVolume = VOLUME_MEDIUM;
+        }
+        volumeIndex = requestedVolume;
+        saveInputPreferences();
+        updateIdleDisplay();
+    }
+
+    private void setContainerType(int type) {
+        if (running) {
+            return;
+        }
+        containerType = type == CONTAINER_CAN ? CONTAINER_CAN : CONTAINER_BOTTLE;
+        if (containerType == CONTAINER_CAN && volumeIndex == VOLUME_LARGE) {
+            volumeIndex = VOLUME_MEDIUM;
+        }
+        saveInputPreferences();
+        updateIdleDisplay();
+    }
+
+    private void setOrientation(int requestedOrientation) {
+        if (running) {
+            return;
+        }
+        orientation = requestedOrientation == ORIENTATION_STANDING ? ORIENTATION_STANDING : ORIENTATION_LYING;
         saveInputPreferences();
         updateIdleDisplay();
     }
@@ -438,12 +489,19 @@ public class MainActivity extends Activity {
         deviceTemp = preferences.getInt(KEY_DEVICE_TEMP, deviceTemp);
         deviceMode = preferences.getInt(KEY_DEVICE_MODE, deviceTemp == FRIDGE_TEMP ? DEVICE_FRIDGE : DEVICE_FREEZER);
         volumeIndex = preferences.getInt(KEY_VOLUME_INDEX, volumeIndex);
+        containerType = preferences.getInt(KEY_CONTAINER_TYPE, containerType);
+        orientation = preferences.getInt(KEY_ORIENTATION, orientation);
 
         startTemp = clamp(startTemp, -5, 40);
         targetTemp = clamp(targetTemp, -5, 20);
         deviceTemp = clamp(deviceTemp, -30, 5);
         deviceMode = deviceMode == DEVICE_FRIDGE ? DEVICE_FRIDGE : DEVICE_FREEZER;
-        volumeIndex = Math.max(0, Math.min(volumeIndex, volumeFactors.length - 1));
+        containerType = containerType == CONTAINER_CAN ? CONTAINER_CAN : CONTAINER_BOTTLE;
+        orientation = orientation == ORIENTATION_STANDING ? ORIENTATION_STANDING : ORIENTATION_LYING;
+        volumeIndex = Math.max(VOLUME_SMALL, Math.min(volumeIndex, VOLUME_LARGE));
+        if (containerType == CONTAINER_CAN && volumeIndex == VOLUME_LARGE) {
+            volumeIndex = VOLUME_MEDIUM;
+        }
     }
 
     private void saveInputPreferences() {
@@ -453,12 +511,14 @@ public class MainActivity extends Activity {
                 .putInt(KEY_DEVICE_TEMP, deviceTemp)
                 .putInt(KEY_DEVICE_MODE, deviceMode)
                 .putInt(KEY_VOLUME_INDEX, volumeIndex)
+                .putInt(KEY_CONTAINER_TYPE, containerType)
+                .putInt(KEY_ORIENTATION, orientation)
                 .apply();
     }
 
     private void startTimerFromInputs() {
         int minutes = calculateCoolingMinutes();
-        if (minutes < 1) {
+        if (minutes < 0) {
             showInvalidInputs();
             return;
         }
@@ -622,7 +682,7 @@ public class MainActivity extends Activity {
 
     private void updateIdleDisplay() {
         updateTemperatureValues();
-        updateVolumeButtons();
+        updateSelectionButtons();
         updateDeviceModeButtons();
         setControlsForRunningState();
 
@@ -660,10 +720,14 @@ public class MainActivity extends Activity {
         deviceTempValue.setText(getString(R.string.degrees_celsius, deviceTemp));
     }
 
-    private void updateVolumeButtons() {
+    private void updateSelectionButtons() {
+        styleVolumeButton(bottleButton, containerType == CONTAINER_BOTTLE);
+        styleVolumeButton(canButton, containerType == CONTAINER_CAN);
         styleVolumeButton(volumeSmallButton, volumeIndex == 0);
         styleVolumeButton(volumeMediumButton, volumeIndex == 1);
         styleVolumeButton(volumeLargeButton, volumeIndex == 2);
+        styleVolumeButton(lyingButton, orientation == ORIENTATION_LYING);
+        styleVolumeButton(standingButton, orientation == ORIENTATION_STANDING);
     }
 
     private void updateDeviceModeButtons() {
@@ -685,15 +749,18 @@ public class MainActivity extends Activity {
     private void setControlsForRunningState() {
         boolean editable = !running;
         Button[] editButtons = new Button[]{
+                bottleButton, canButton,
                 volumeSmallButton, volumeMediumButton, volumeLargeButton,
+                lyingButton, standingButton,
                 freezerButton, fridgeButton,
                 startMinusButton, startPlusButton, targetMinusButton, targetPlusButton,
                 deviceMinusButton, devicePlusButton
         };
 
         for (Button button : editButtons) {
-            button.setEnabled(editable);
-            button.setAlpha(editable ? 1f : 0.55f);
+            boolean available = button != volumeLargeButton || containerType != CONTAINER_CAN;
+            button.setEnabled(editable && available);
+            button.setAlpha(editable && available ? 1f : 0.55f);
         }
 
         startButton.setEnabled(editable);
@@ -711,23 +778,138 @@ public class MainActivity extends Activity {
     }
 
     private int calculateCoolingMinutes() {
-        if (targetTemp >= startTemp || deviceTemp >= targetTemp) {
+        CoolingResult result = calculateCoolingResult();
+        if (!result.valid) {
             return -1;
         }
-
-        double thetaTarget = (targetTemp - deviceTemp) / (double) (startTemp - deviceTemp);
-        double dimensionlessTime = 4.0 * (Math.pow(thetaTarget, -CONVECTION_EXPONENT) - 1.0);
-        double baseMinutes = dimensionlessTime / COOLING_RATE;
-        return Math.max(1, (int) Math.ceil(baseMinutes * volumeFactors[volumeIndex]));
+        if (result.seconds <= 0.0) {
+            return 0;
+        }
+        return Math.max(1, (int) Math.ceil(result.seconds / 60.0));
     }
 
     private double calculateCurrentBeerTemperature(float elapsedProgress) {
-        double totalMinutes = totalDurationMillis / 60000.0;
-        double elapsedMinutes = Math.max(0.0, totalMinutes * Math.max(0f, Math.min(1f, elapsedProgress)));
-        double dimensionlessTime = COOLING_RATE * elapsedMinutes / volumeFactors[volumeIndex];
+        CoolingResult result = calculateCoolingResult();
+        if (!result.valid || result.seconds <= 0.0) {
+            return targetTemp;
+        }
+        double elapsedSeconds = Math.max(0.0, result.seconds * Math.max(0f, Math.min(1f, elapsedProgress)));
+        double dimensionlessTime = elapsedSeconds * result.hMax * result.area / result.thermalCapacity;
         double theta = Math.pow(4.0 / (dimensionlessTime + 4.0), 4.0);
         double temperature = deviceTemp + (startTemp - deviceTemp) * theta;
         return Math.max(targetTemp, Math.min(startTemp, temperature));
+    }
+
+    private CoolingResult calculateCoolingResult() {
+        if (deviceTemp <= -273.15 || targetTemp <= deviceTemp) {
+            return CoolingResult.invalid();
+        }
+        if (targetTemp >= startTemp) {
+            return new CoolingResult(true, 0.0, 0.0, 0.0, 0.0, 1.0);
+        }
+
+        ContainerPreset preset = selectedContainerPreset();
+        if (!preset.isValid()) {
+            return CoolingResult.invalid();
+        }
+
+        double deltaStart = startTemp - deviceTemp;
+        double thetaTarget = (targetTemp - deviceTemp) / deltaStart;
+        if (thetaTarget <= 0.0 || thetaTarget >= 1.0) {
+            return CoolingResult.invalid();
+        }
+
+        double airTemperatureK = deviceTemp + 273.15;
+        double characteristicLength = Math.PI * preset.diameterMeters / 2.0;
+        double area = Math.PI * preset.diameterMeters * preset.lengthMeters;
+        double thermalCapacity = preset.beerMassKg * BEER_HEAT_CAPACITY
+                + preset.containerMassKg * preset.containerHeatCapacity;
+        double hMax = (AIR_THERMAL_CONDUCTIVITY / characteristicLength)
+                * 0.402
+                * Math.pow((GRAVITY * Math.pow(characteristicLength, 3.0))
+                / (airTemperatureK * AIR_KINEMATIC_VISCOSITY * AIR_THERMAL_DIFFUSIVITY), CONVECTION_EXPONENT)
+                * Math.pow(deltaStart, CONVECTION_EXPONENT);
+        if (orientation == ORIENTATION_STANDING) {
+            hMax *= STANDING_FACTOR;
+        }
+
+        double dimensionlessTime = 4.0 * (Math.pow(thetaTarget, -CONVECTION_EXPONENT) - 1.0);
+        double seconds = (thermalCapacity / (hMax * area)) * dimensionlessTime;
+        if (!Double.isFinite(seconds) || seconds < 0.0) {
+            return CoolingResult.invalid();
+        }
+        return new CoolingResult(true, seconds, hMax, area, thermalCapacity, thetaTarget);
+    }
+
+    private ContainerPreset selectedContainerPreset() {
+        if (containerType == CONTAINER_CAN) {
+            if (volumeIndex == VOLUME_SMALL) {
+                return new ContainerPreset(CONTAINER_CAN, 0.33, 0.33, 0.015, 900.0, 0.066, 0.115);
+            }
+            return new ContainerPreset(CONTAINER_CAN, 0.5, 0.5, 0.018, 900.0, 0.066, 0.168);
+        }
+
+        if (volumeIndex == VOLUME_SMALL) {
+            return new ContainerPreset(CONTAINER_BOTTLE, 0.33, 0.33, 0.20, 840.0, 0.062, 0.185);
+        }
+        if (volumeIndex == VOLUME_LARGE) {
+            return new ContainerPreset(CONTAINER_BOTTLE, 1.0, 1.0, 0.45, 840.0, 0.085, 0.27);
+        }
+        return new ContainerPreset(CONTAINER_BOTTLE, 0.5, 0.5, 0.3, 840.0, 0.07, 0.21);
+    }
+
+    private static class ContainerPreset {
+        final int containerType;
+        final double volumeLiters;
+        final double beerMassKg;
+        final double containerMassKg;
+        final double containerHeatCapacity;
+        final double diameterMeters;
+        final double lengthMeters;
+
+        ContainerPreset(int containerType, double volumeLiters, double beerMassKg,
+                        double containerMassKg, double containerHeatCapacity,
+                        double diameterMeters, double lengthMeters) {
+            this.containerType = containerType;
+            this.volumeLiters = volumeLiters;
+            this.beerMassKg = beerMassKg;
+            this.containerMassKg = containerMassKg;
+            this.containerHeatCapacity = containerHeatCapacity;
+            this.diameterMeters = diameterMeters;
+            this.lengthMeters = lengthMeters;
+        }
+
+        boolean isValid() {
+            return volumeLiters > 0.0
+                    && beerMassKg > 0.0
+                    && containerMassKg > 0.0
+                    && containerHeatCapacity > 0.0
+                    && diameterMeters > 0.0
+                    && lengthMeters > 0.0;
+        }
+    }
+
+    private static class CoolingResult {
+        final boolean valid;
+        final double seconds;
+        final double hMax;
+        final double area;
+        final double thermalCapacity;
+        final double thetaTarget;
+
+        CoolingResult(boolean valid, double seconds, double hMax, double area,
+                      double thermalCapacity, double thetaTarget) {
+            this.valid = valid;
+            this.seconds = seconds;
+            this.hMax = hMax;
+            this.area = area;
+            this.thermalCapacity = thermalCapacity;
+            this.thetaTarget = thetaTarget;
+        }
+
+        static CoolingResult invalid() {
+            return new CoolingResult(false, 0.0, 0.0, 0.0, 0.0, 0.0);
+        }
     }
 
     private String formatDuration(long millis) {

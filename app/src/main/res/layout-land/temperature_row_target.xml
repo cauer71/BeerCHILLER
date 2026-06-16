@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="42dp"
+    android:layout_height="36dp"
     android:gravity="center_vertical"
     android:orientation="horizontal">
 
@@ -32,8 +32,8 @@
 
     <Button
         android:id="@+id/targetMinusButton"
-        android:layout_width="33dp"
-        android:layout_height="33dp"
+        android:layout_width="31dp"
+        android:layout_height="31dp"
         android:background="@drawable/bg_step_button"
         android:elevation="5dp"
         android:minHeight="0dp"
@@ -46,7 +46,7 @@
     <TextView
         android:id="@+id/targetTempValue"
         android:layout_width="78dp"
-        android:layout_height="33dp"
+        android:layout_height="31dp"
         android:layout_marginLeft="7dp"
         android:layout_marginRight="7dp"
         android:background="@drawable/bg_value_chip"
@@ -59,8 +59,8 @@
 
     <Button
         android:id="@+id/targetPlusButton"
-        android:layout_width="33dp"
-        android:layout_height="33dp"
+        android:layout_width="31dp"
+        android:layout_height="31dp"
         android:background="@drawable/bg_step_button"
         android:elevation="5dp"
         android:minHeight="0dp"

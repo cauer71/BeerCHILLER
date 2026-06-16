@@ -49,6 +49,10 @@
     <string name="timer_channel_description">Shows the running cooling timer</string>
     <string name="freezer">Freezer</string>
     <string name="fridge">Fridge</string>
+    <string name="container_bottle">Bottle</string>
+    <string name="container_can">Can</string>
+    <string name="orientation_lying">Lying</string>
+    <string name="orientation_standing">Standing</string>
     <string name="current_temperature">Current temperature</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
 </resources>

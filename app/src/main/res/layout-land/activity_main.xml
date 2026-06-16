@@ -122,14 +122,85 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="34dp"
-                        android:layout_marginBottom="8dp"
+                        android:layout_height="30dp"
+                        android:layout_marginBottom="4dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/bottleButton"
+                            android:layout_width="0dp"
+                            android:layout_height="30dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_segment_selected"
+                            android:elevation="3dp"
+                            android:minHeight="0dp"
+                            android:minWidth="0dp"
+                            android:text="@string/container_bottle"
+                            android:textAllCaps="false"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <Button
+                            android:id="@+id/canButton"
+                            android:layout_width="0dp"
+                            android:layout_height="30dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_segment_unselected"
+                            android:elevation="3dp"
+                            android:minHeight="0dp"
+                            android:minWidth="0dp"
+                            android:text="@string/container_can"
+                            android:textAllCaps="false"
+                            android:textColor="#123B4A"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <Button
+                            android:id="@+id/lyingButton"
+                            android:layout_width="0dp"
+                            android:layout_height="30dp"
+                            android:layout_marginStart="16dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_segment_selected"
+                            android:elevation="3dp"
+                            android:minHeight="0dp"
+                            android:minWidth="0dp"
+                            android:text="@string/orientation_lying"
+                            android:textAllCaps="false"
+                            android:textColor="#FFFFFF"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <Button
+                            android:id="@+id/standingButton"
+                            android:layout_width="0dp"
+                            android:layout_height="30dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_segment_unselected"
+                            android:elevation="3dp"
+                            android:minHeight="0dp"
+                            android:minWidth="0dp"
+                            android:text="@string/orientation_standing"
+                            android:textAllCaps="false"
+                            android:textColor="#123B4A"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="30dp"
+                        android:layout_marginTop="0dp"
+                        android:layout_marginBottom="4dp"
                         android:orientation="horizontal">
 
                         <Button
                             android:id="@+id/volumeSmallButton"
                             android:layout_width="0dp"
-                            android:layout_height="34dp"
+                            android:layout_height="30dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_segment_unselected"
                             android:elevation="3dp"
@@ -138,13 +209,13 @@
                             android:text="0,33 l"
                             android:textAllCaps="false"
                             android:textColor="#123B4A"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <Button
                             android:id="@+id/volumeMediumButton"
                             android:layout_width="0dp"
-                            android:layout_height="34dp"
+                            android:layout_height="30dp"
                             android:layout_marginStart="18dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_segment_selected"
@@ -154,13 +225,13 @@
                             android:text="0,5 l"
                             android:textAllCaps="false"
                             android:textColor="#FFFFFF"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <Button
                             android:id="@+id/volumeLargeButton"
                             android:layout_width="0dp"
-                            android:layout_height="34dp"
+                            android:layout_height="30dp"
                             android:layout_marginStart="18dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_segment_unselected"
@@ -170,21 +241,21 @@
                             android:text="1,0 l"
                             android:textAllCaps="false"
                             android:textColor="#123B4A"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="34dp"
+                        android:layout_height="30dp"
                         android:layout_marginTop="0dp"
-                        android:layout_marginBottom="8dp"
+                        android:layout_marginBottom="5dp"
                         android:orientation="horizontal">
 
                         <Button
                             android:id="@+id/freezerButton"
                             android:layout_width="0dp"
-                            android:layout_height="34dp"
+                            android:layout_height="30dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_segment_selected"
                             android:elevation="3dp"
@@ -193,13 +264,13 @@
                             android:text="@string/freezer"
                             android:textAllCaps="false"
                             android:textColor="#FFFFFF"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
 
                         <Button
                             android:id="@+id/fridgeButton"
                             android:layout_width="0dp"
-                            android:layout_height="34dp"
+                            android:layout_height="30dp"
                             android:layout_marginStart="18dp"
                             android:layout_weight="1"
                             android:background="@drawable/bg_segment_unselected"
@@ -209,13 +280,13 @@
                             android:text="@string/fridge"
                             android:textAllCaps="false"
                             android:textColor="#123B4A"
-                            android:textSize="13sp"
+                            android:textSize="12sp"
                             android:textStyle="bold" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="128dp"
+                        android:layout_height="110dp"
                         android:layout_marginTop="0dp"
                         android:orientation="vertical">
 
