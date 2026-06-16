@@ -2,7 +2,9 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8FBFA">
+    android:background="#F8FBFA"
+    android:clipChildren="false"
+    android:clipToPadding="false">
 
     <ImageView
         android:id="@+id/backgroundImage"
@@ -23,6 +25,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:orientation="vertical"
         android:paddingLeft="12dp"
         android:paddingTop="22dp"
@@ -91,87 +95,112 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="36dp"
+            android:layout_height="42dp"
             android:layout_marginTop="4dp"
+            android:clipToPadding="false"
             android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/bottleButton"
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="36dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:background="@drawable/bg_segment_selected"
-                android:elevation="3dp"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="@string/container_bottle"
-                android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:background="@drawable/bg_segment_group"
+                android:clipToPadding="false"
+                android:elevation="2dp"
+                android:orientation="horizontal"
+                android:padding="3dp">
 
-            <Button
-                android:id="@+id/canButton"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_segment_unselected"
-                android:elevation="3dp"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="@string/container_can"
-                android:textAllCaps="false"
-                android:textColor="#123B4A"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                <Button
+                    android:id="@+id/bottleButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_segment_selected"
+                    android:elevation="0dp"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:text="@string/container_bottle"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/lyingButton"
+                <Button
+                    android:id="@+id/canButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_segment_unselected"
+                    android:elevation="0dp"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:text="@string/container_can"
+                    android:textAllCaps="false"
+                    android:textColor="#123B4A"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="36dp"
+                android:layout_height="match_parent"
                 android:layout_marginStart="14dp"
                 android:layout_weight="1"
-                android:background="@drawable/bg_segment_selected"
-                android:elevation="3dp"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="@string/orientation_lying"
-                android:textAllCaps="false"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:background="@drawable/bg_segment_group"
+                android:clipToPadding="false"
+                android:elevation="2dp"
+                android:orientation="horizontal"
+                android:padding="3dp">
 
-            <Button
-                android:id="@+id/standingButton"
-                android:layout_width="0dp"
-                android:layout_height="36dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_segment_unselected"
-                android:elevation="3dp"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="@string/orientation_standing"
-                android:textAllCaps="false"
-                android:textColor="#123B4A"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                <Button
+                    android:id="@+id/lyingButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_segment_selected"
+                    android:elevation="0dp"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:text="@string/orientation_lying"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/standingButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_segment_unselected"
+                    android:elevation="0dp"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    android:text="@string/orientation_standing"
+                    android:textAllCaps="false"
+                    android:textColor="#123B4A"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="38dp"
+            android:layout_height="44dp"
             android:layout_marginTop="6dp"
-            android:orientation="horizontal">
+            android:background="@drawable/bg_segment_group"
+            android:clipToPadding="false"
+            android:elevation="2dp"
+            android:orientation="horizontal"
+            android:padding="3dp">
 
             <Button
                 android:id="@+id/volumeSmallButton"
                 android:layout_width="0dp"
-                android:layout_height="38dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/bg_segment_unselected"
-                android:elevation="3dp"
+                android:elevation="0dp"
                 android:minHeight="0dp"
                 android:minWidth="0dp"
                 android:text="0,33 l"
@@ -183,11 +212,10 @@
             <Button
                 android:id="@+id/volumeMediumButton"
                 android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginStart="8dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/bg_segment_selected"
-                android:elevation="3dp"
+                android:elevation="0dp"
                 android:minHeight="0dp"
                 android:minWidth="0dp"
                 android:text="0,5 l"
@@ -199,11 +227,10 @@
             <Button
                 android:id="@+id/volumeLargeButton"
                 android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_marginStart="8dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/bg_segment_unselected"
-                android:elevation="3dp"
+                android:elevation="0dp"
                 android:minHeight="0dp"
                 android:minWidth="0dp"
                 android:text="1,0 l"
