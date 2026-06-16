@@ -122,7 +122,8 @@ public class TimerCircleView extends View {
 
         float stroke = dp(12);
         boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-        float sizeScale = landscape ? 1.0f : 0.88f;
+        boolean vr2 = visualMode == 1;
+        float sizeScale = landscape ? (vr2 ? 1.0f : 0.80f) : (vr2 ? 0.96f : 0.88f);
         float size = (Math.min(getWidth(), getHeight()) - stroke - dp(4)) * sizeScale;
         if (size <= 0f) {
             return;
@@ -132,7 +133,6 @@ public class TimerCircleView extends View {
         float top = (getHeight() - size) / 2f;
         RectF oval = new RectF(left, top, left + size, top + size);
         float centerX = getWidth() / 2f;
-        boolean vr2 = visualMode == 1;
         float centerY = getHeight() / 2f + (vr2 ? dp(14) : -dp(8));
         oval.offset(0, centerY - getHeight() / 2f);
         float radius = size / 2f;
