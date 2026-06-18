@@ -24,7 +24,7 @@
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Otevřít menu</string>
     <string name="menu_classic_ui">Classic UI</string>
-    <string name="menu_vr2_mode">Režim VR2</string>
+    <string name="menu_vr3_mode">Režim VR3</string>
     <string name="menu_language">Jazyk</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Vybrat jazyk</string>
@@ -50,5 +50,14 @@
     <string name="freezer">Mrazák</string>
     <string name="fridge">Lednice</string>
     <string name="current_temperature">Aktuální teplota</string>
+    <string name="current_temperature_short">Teplota</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
+    <string name="menu_calculation_model">Výpočetní model</string>
+    <string name="container_bottle">Láhev</string>
+    <string name="container_can">Plechovka</string>
+    <string name="orientation_lying">Vleže</string>
+    <string name="orientation_standing">Vestoje</string>
+    <string name="calculation_model_title">Výpočetní model</string>
+    <string name="back">Zpět</string>
+    <string name="help_load_error">Stránku nápovědy se nepodařilo načíst. Zkuste to znovu po aktualizaci aplikace.</string>
 </resources>

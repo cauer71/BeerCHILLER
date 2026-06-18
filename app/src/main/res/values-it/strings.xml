@@ -24,7 +24,7 @@
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Apri menu</string>
     <string name="menu_classic_ui">Classic UI</string>
-    <string name="menu_vr2_mode">Modalità VR2</string>
+    <string name="menu_vr3_mode">Modalità VR3</string>
     <string name="menu_language">Lingua</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Scegli lingua</string>
@@ -50,5 +50,14 @@
     <string name="freezer">Congelatore</string>
     <string name="fridge">Frigorifero</string>
     <string name="current_temperature">Temperatura attuale</string>
+    <string name="current_temperature_short">Temperatura</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
+    <string name="menu_calculation_model">Modello di calcolo</string>
+    <string name="container_bottle">Bottiglia</string>
+    <string name="container_can">Lattina</string>
+    <string name="orientation_lying">Sdraiata</string>
+    <string name="orientation_standing">In piedi</string>
+    <string name="calculation_model_title">Modello di calcolo</string>
+    <string name="back">Indietro</string>
+    <string name="help_load_error">Impossibile caricare la pagina di aiuto. Riprova dopo aver aggiornato l’app.</string>
 </resources>

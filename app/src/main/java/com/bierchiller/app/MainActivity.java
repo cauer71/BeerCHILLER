@@ -1,5 +1,6 @@
 package com.bierchiller.app;
 
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlarmManager;
@@ -20,15 +21,20 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.PathInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.dynamicanimation.animation.DynamicAnimation;
+import androidx.dynamicanimation.animation.SpringAnimation;
+import androidx.dynamicanimation.animation.SpringForce;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -46,10 +52,11 @@ public class MainActivity extends Activity {
     private static final String KEY_VOLUME_INDEX = "volumeIndex";
     private static final String KEY_CONTAINER_TYPE = "containerType";
     private static final String KEY_ORIENTATION = "orientation";
+    static final String KEY_ALARM_DISMISSED = "alarmDismissed";
     private static final int ALARM_REQUEST_CODE = 1001;
     private static final int SHOW_REQUEST_CODE = 1002;
     private static final int VISUAL_CLASSIC = 0;
-    private static final int VISUAL_VR2 = 1;
+    private static final int VISUAL_VR3 = 1;
     private static final int DEVICE_FREEZER = 0;
     private static final int DEVICE_FRIDGE = 1;
     private static final int CONTAINER_BOTTLE = 0;
@@ -66,8 +73,11 @@ public class MainActivity extends Activity {
     private static final double AIR_KINEMATIC_VISCOSITY = 15.1e-6;
     private static final double AIR_THERMAL_DIFFUSIVITY = 21.8e-6;
     private static final double GRAVITY = 9.81;
-    private static final double STANDING_FACTOR = 1.20;
     private static final double CONVECTION_EXPONENT = 0.25;
+    private static final double REFERENCE_START_TEMP = 39.5;
+    private static final double REFERENCE_TARGET_TEMP = 8.0;
+    private static final double REFERENCE_DEVICE_TEMP = -17.5;
+    private static final double REFERENCE_MEASURED_SECONDS = 54.4 * 60.0;
     private static final String[] LANGUAGE_CODES = new String[]{
             LocaleHelper.SYSTEM_LANGUAGE, "de", "en", "it", "fr", "es", "pt", "nl", "pl", "cs", "hr"
     };
@@ -76,6 +86,9 @@ public class MainActivity extends Activity {
     private ImageView backgroundImage;
     private View backgroundOverlay;
     private View controlPanel;
+    private View selectionTopRow;
+    private View volumeRow;
+    private View bottomButtonRow;
     private TextView startTempValue;
     private TextView targetTempValue;
     private TextView deviceTempValue;
@@ -120,6 +133,19 @@ public class MainActivity extends Activity {
     private int containerType = CONTAINER_BOTTLE;
     private int orientation = ORIENTATION_LYING;
     private boolean running;
+    private boolean vr3ControlsCollapsed;
+    private ValueAnimator vr3Animator;
+    private int vr3SelectionHeight;
+    private int vr3VolumeHeight;
+    private int vr3ControlHeight;
+    private int vr3BottomRowHeight;
+    private float vr3StartWeight;
+    private float vr3StopWeight;
+    private int vr3StopLeftMargin;
+    private Button selectedContainerButton;
+    private Button selectedOrientationButton;
+    private Button selectedVolumeButton;
+    private Button selectedDeviceButton;
     private int visualMode;
     private AlarmManager alarmManager;
     private SharedPreferences preferences;
@@ -139,6 +165,9 @@ public class MainActivity extends Activity {
         backgroundImage = findViewById(R.id.backgroundImage);
         backgroundOverlay = findViewById(R.id.backgroundOverlay);
         controlPanel = findViewById(R.id.controlPanel);
+        selectionTopRow = findViewById(R.id.selectionTopRow);
+        volumeRow = findViewById(R.id.volumeRow);
+        bottomButtonRow = findViewById(R.id.bottomButtonRow);
         startTempValue = findViewById(R.id.startTempValue);
         targetTempValue = findViewById(R.id.targetTempValue);
         deviceTempValue = findViewById(R.id.deviceTempValue);
@@ -228,25 +257,30 @@ public class MainActivity extends Activity {
             popupMenu.getMenu().add(0, 1, 0, R.string.menu_classic_ui)
                     .setCheckable(true)
                     .setChecked(visualMode == VISUAL_CLASSIC);
-            popupMenu.getMenu().add(0, 2, 1, R.string.menu_vr2_mode)
+            popupMenu.getMenu().add(0, 2, 1, R.string.menu_vr3_mode)
                     .setCheckable(true)
-                    .setChecked(visualMode == VISUAL_VR2);
-            popupMenu.getMenu().add(0, 3, 2, R.string.menu_language);
-            popupMenu.getMenu().add(0, 4, 3, R.string.menu_info);
+                    .setChecked(visualMode == VISUAL_VR3);
+            popupMenu.getMenu().add(0, 3, 2, R.string.menu_calculation_model);
+            popupMenu.getMenu().add(0, 4, 3, R.string.menu_language);
+            popupMenu.getMenu().add(0, 5, 4, R.string.menu_info);
             popupMenu.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == 1) {
-                    setVisualMode(visualMode == VISUAL_CLASSIC ? VISUAL_VR2 : VISUAL_CLASSIC);
+                    setVisualMode(VISUAL_CLASSIC);
                     return true;
                 }
                 if (item.getItemId() == 2) {
-                    setVisualMode(visualMode == VISUAL_VR2 ? VISUAL_CLASSIC : VISUAL_VR2);
+                    setVisualMode(VISUAL_VR3);
                     return true;
                 }
                 if (item.getItemId() == 3) {
-                    showLanguageDialog();
+                    startActivity(new Intent(this, HelpActivity.class));
                     return true;
                 }
                 if (item.getItemId() == 4) {
+                    showLanguageDialog();
+                    return true;
+                }
+                if (item.getItemId() == 5) {
                     showInfoDialog();
                     return true;
                 }
@@ -272,64 +306,69 @@ public class MainActivity extends Activity {
 
     private void applyVisualMode() {
         boolean visualBackground = visualMode != VISUAL_CLASSIC;
-        boolean vr2 = visualMode == VISUAL_VR2;
+        boolean vrStyle = isVrStyle();
         backgroundImage.setVisibility(visualBackground ? View.VISIBLE : View.GONE);
         applyBackgroundScale();
-        backgroundOverlay.setVisibility(visualBackground && !vr2 ? View.VISIBLE : View.GONE);
-        if (!vr2) {
+        backgroundOverlay.setVisibility(visualBackground && !vrStyle ? View.VISIBLE : View.GONE);
+        if (!vrStyle) {
             backgroundOverlay.setBackgroundResource(R.drawable.bg_beer_overlay);
         }
         timerCircle.setVisualMode(visualMode);
-        headerLogoIcon.setImageResource(vr2 ? R.drawable.ic_hops_vr2 : R.drawable.ic_snowflake);
-        headerBeerText.setTextColor(Color.parseColor(vr2 ? "#4A2509" : "#E8B923"));
-        headerChillerText.setTextColor(Color.parseColor(vr2 ? "#D99C00" : "#123B4A"));
-        menuButton.setColorFilter(Color.parseColor(vr2 ? "#4A2509" : "#123B4A"), PorterDuff.Mode.SRC_IN);
-        controlPanel.setBackgroundResource(vr2 ? R.drawable.bg_control_panel_vr2 : R.drawable.bg_control_panel);
-        startButton.setBackgroundResource(vr2 ? R.drawable.bg_primary_button_vr2 : R.drawable.bg_primary_button);
-        stopButton.setBackgroundResource(vr2 ? R.drawable.bg_secondary_button_vr2 : R.drawable.bg_secondary_button);
-        int iconVisibility = vr2 ? View.VISIBLE : View.GONE;
+        headerLogoIcon.setImageResource(vrStyle ? R.drawable.ic_hops_vr2 : R.drawable.ic_snowflake);
+        headerBeerText.setTextColor(Color.parseColor(vrStyle ? "#4A2509" : "#E8B923"));
+        headerChillerText.setTextColor(Color.parseColor(vrStyle ? "#D99C00" : "#123B4A"));
+        menuButton.setColorFilter(Color.parseColor(vrStyle ? "#4A2509" : "#123B4A"), PorterDuff.Mode.SRC_IN);
+        controlPanel.setBackgroundResource(vrStyle ? R.drawable.bg_control_panel_vr2 : R.drawable.bg_control_panel);
+        startButton.setBackgroundResource(vrStyle ? R.drawable.bg_primary_button_vr2 : R.drawable.bg_primary_button);
+        stopButton.setBackgroundResource(vrStyle ? R.drawable.bg_secondary_button_vr2 : R.drawable.bg_secondary_button);
+        int iconVisibility = vrStyle ? View.VISIBLE : View.GONE;
         startTempIcon.setVisibility(iconVisibility);
         targetTempIcon.setVisibility(iconVisibility);
         deviceTempIcon.setVisibility(iconVisibility);
         tintStartButton(visualBackground ? Color.WHITE : Color.parseColor("#102A33"));
-        styleTemperatureControls(vr2);
+        styleTemperatureControls(vrStyle);
+        applyVr3RunningLayout(false);
     }
 
     private int readVisualModePreference() {
         Object stored = preferences.getAll().get(KEY_VISUAL_MODE);
         if (stored instanceof Integer) {
             int mode = (Integer) stored;
-            return mode == VISUAL_CLASSIC ? VISUAL_CLASSIC : VISUAL_VR2;
+            return mode == VISUAL_CLASSIC ? VISUAL_CLASSIC : VISUAL_VR3;
         }
         if (stored instanceof Boolean) {
-            return (Boolean) stored ? VISUAL_VR2 : VISUAL_CLASSIC;
+            return (Boolean) stored ? VISUAL_VR3 : VISUAL_CLASSIC;
         }
-        return VISUAL_VR2;
+        return VISUAL_VR3;
     }
 
-    private void styleTemperatureControls(boolean vr2) {
-        int buttonBackground = vr2 ? R.drawable.bg_step_button_vr2 : R.drawable.bg_step_button;
-        int valueBackground = vr2 ? R.drawable.bg_value_chip_vr2 : R.drawable.bg_value_chip;
+    private boolean isVrStyle() {
+        return visualMode == VISUAL_VR3;
+    }
+
+    private void styleTemperatureControls(boolean vrStyle) {
+        int buttonBackground = vrStyle ? R.drawable.bg_step_button_vr2 : R.drawable.bg_step_button;
+        int valueBackground = vrStyle ? R.drawable.bg_value_chip_vr2 : R.drawable.bg_value_chip;
         Button[] stepButtons = new Button[]{
                 startMinusButton, startPlusButton, targetMinusButton, targetPlusButton,
                 deviceMinusButton, devicePlusButton
         };
         for (Button button : stepButtons) {
             button.setBackgroundResource(buttonBackground);
-            button.setTextColor(Color.parseColor(vr2 ? "#4A2509" : "#123B4A"));
+            button.setTextColor(Color.parseColor(vrStyle ? "#4A2509" : "#123B4A"));
         }
         TextView[] valueChips = new TextView[]{startTempValue, targetTempValue, deviceTempValue};
         for (TextView valueChip : valueChips) {
             valueChip.setBackgroundResource(valueBackground);
-            valueChip.setTextColor(Color.parseColor(vr2 ? "#4A2509" : "#123B4A"));
+            valueChip.setTextColor(Color.parseColor(vrStyle ? "#4A2509" : "#123B4A"));
         }
         TextView[] labels = new TextView[]{startTempLabel, targetTempLabel, deviceTempLabel};
         for (TextView label : labels) {
-            label.setTextColor(Color.parseColor(vr2 ? "#4A2509" : "#123B4A"));
+            label.setTextColor(Color.parseColor(vrStyle ? "#4A2509" : "#123B4A"));
             label.setSingleLine(false);
             label.setMaxLines(2);
             label.setGravity(android.view.Gravity.CENTER_VERTICAL);
-            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, vr2 ? 9.5f : 12f);
+            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, vrStyle ? 9.5f : 12f);
         }
     }
 
@@ -524,6 +563,7 @@ public class MainActivity extends Activity {
         }
 
         stopTimer(false);
+        preferences.edit().remove(KEY_ALARM_DISMISSED).apply();
         totalDurationMillis = minutes * 60_000L;
         endTimeMillis = System.currentTimeMillis() + totalDurationMillis;
         preferences.edit()
@@ -649,8 +689,8 @@ public class MainActivity extends Activity {
                 getString(R.string.remaining_time),
                 formatEndTime(endTimeMillis),
                 getString(R.string.degrees_celsius_decimal, (float) targetTemp),
-                getString(R.string.current_temperature),
-                visualMode == VISUAL_VR2 ? 1f : 0f,
+                getString(R.string.current_temperature_short),
+                isVrStyle() ? 1f : 0f,
                 true,
                 true
         );
@@ -673,7 +713,7 @@ public class MainActivity extends Activity {
                 getString(R.string.remaining_time),
                 formatEndTime(endTimeMillis),
                 getString(R.string.degrees_celsius_decimal, (float) currentBeerTemp),
-                getString(R.string.current_temperature),
+                getString(R.string.current_temperature_short),
                 visibleProgress,
                 true,
                 true
@@ -700,7 +740,7 @@ public class MainActivity extends Activity {
                 formatEndTime(estimatedEndTime),
                 "",
                 "",
-                visualMode == VISUAL_VR2 ? 0f : 1f,
+                isVrStyle() ? 0f : 1f,
                 false,
                 true
         );
@@ -721,29 +761,88 @@ public class MainActivity extends Activity {
     }
 
     private void updateSelectionButtons() {
-        styleVolumeButton(bottleButton, containerType == CONTAINER_BOTTLE);
-        styleVolumeButton(canButton, containerType == CONTAINER_CAN);
-        styleVolumeButton(volumeSmallButton, volumeIndex == 0);
-        styleVolumeButton(volumeMediumButton, volumeIndex == 1);
-        styleVolumeButton(volumeLargeButton, volumeIndex == 2);
-        styleVolumeButton(lyingButton, orientation == ORIENTATION_LYING);
-        styleVolumeButton(standingButton, orientation == ORIENTATION_STANDING);
+        Button newContainerButton = containerType == CONTAINER_BOTTLE ? bottleButton : canButton;
+        styleSegmentGroup(new Button[]{bottleButton, canButton}, newContainerButton, selectedContainerButton);
+        selectedContainerButton = newContainerButton;
+
+        Button newVolumeButton = volumeIndex == VOLUME_SMALL
+                ? volumeSmallButton
+                : (volumeIndex == VOLUME_MEDIUM ? volumeMediumButton : volumeLargeButton);
+        styleSegmentGroup(
+                new Button[]{volumeSmallButton, volumeMediumButton, volumeLargeButton},
+                newVolumeButton,
+                selectedVolumeButton
+        );
+        selectedVolumeButton = newVolumeButton;
+
+        Button newOrientationButton = orientation == ORIENTATION_LYING ? lyingButton : standingButton;
+        styleSegmentGroup(new Button[]{lyingButton, standingButton}, newOrientationButton, selectedOrientationButton);
+        selectedOrientationButton = newOrientationButton;
     }
 
     private void updateDeviceModeButtons() {
         boolean freezerSelected = deviceTemp == FREEZER_TEMP && deviceMode == DEVICE_FREEZER;
         boolean fridgeSelected = deviceTemp == FRIDGE_TEMP && deviceMode == DEVICE_FRIDGE;
-        styleVolumeButton(freezerButton, freezerSelected);
-        styleVolumeButton(fridgeButton, fridgeSelected);
+        Button newDeviceButton = freezerSelected || !fridgeSelected ? freezerButton : fridgeButton;
+        styleSegmentGroup(new Button[]{freezerButton, fridgeButton}, newDeviceButton, selectedDeviceButton);
+        selectedDeviceButton = newDeviceButton;
     }
 
     private void styleVolumeButton(Button button, boolean selected) {
         button.setBackgroundResource(selected
-                ? (visualMode == VISUAL_VR2 ? R.drawable.bg_segment_selected_vr2 : R.drawable.bg_segment_selected)
-                : (visualMode == VISUAL_VR2 ? R.drawable.bg_segment_unselected_vr2 : R.drawable.bg_segment_unselected));
+                ? (isVrStyle() ? R.drawable.bg_segment_selected_vr2 : R.drawable.bg_segment_selected)
+                : (isVrStyle() ? R.drawable.bg_segment_unselected_vr2 : R.drawable.bg_segment_unselected));
         button.setTextColor(selected
                 ? Color.WHITE
-                : Color.parseColor(visualMode == VISUAL_VR2 ? "#4A2509" : "#123B4A"));
+                : Color.parseColor(isVrStyle() ? "#4A2509" : "#123B4A"));
+    }
+
+    private void styleSegmentGroup(Button[] buttons, Button selectedButton, Button previousSelectedButton) {
+        for (Button button : buttons) {
+            styleVolumeButton(button, button == selectedButton);
+        }
+        if (shouldAnimateSegmentPill() && previousSelectedButton != null && previousSelectedButton != selectedButton) {
+            animateSelectedSegmentPill(previousSelectedButton, selectedButton);
+        } else {
+            selectedButton.setTranslationX(0f);
+            selectedButton.setScaleX(1f);
+            selectedButton.setScaleY(1f);
+        }
+    }
+
+    private boolean shouldAnimateSegmentPill() {
+        return true;
+    }
+
+    private void animateSelectedSegmentPill(Button previousButton, Button selectedButton) {
+        int previousCenter = previousButton.getLeft() + previousButton.getWidth() / 2;
+        int selectedCenter = selectedButton.getLeft() + selectedButton.getWidth() / 2;
+        if (previousCenter == selectedCenter || previousButton.getWidth() == 0 || selectedButton.getWidth() == 0) {
+            selectedButton.post(() -> animateSelectedSegmentPill(previousButton, selectedButton));
+            return;
+        }
+
+        selectedButton.animate().cancel();
+        selectedButton.setTranslationX(previousCenter - selectedCenter);
+        selectedButton.setScaleX(0.98f);
+        selectedButton.setScaleY(0.99f);
+
+        SpringAnimation move = new SpringAnimation(selectedButton, DynamicAnimation.TRANSLATION_X, 0f);
+        SpringForce moveSpring = new SpringForce(0f);
+        moveSpring.setDampingRatio(0.92f);
+        moveSpring.setStiffness(SpringForce.STIFFNESS_MEDIUM);
+        move.setSpring(moveSpring);
+        move.start();
+
+        SpringAnimation scaleX = new SpringAnimation(selectedButton, DynamicAnimation.SCALE_X, 1f);
+        SpringAnimation scaleY = new SpringAnimation(selectedButton, DynamicAnimation.SCALE_Y, 1f);
+        SpringForce scaleSpring = new SpringForce(1f);
+        scaleSpring.setDampingRatio(SpringForce.DAMPING_RATIO_NO_BOUNCY);
+        scaleSpring.setStiffness(SpringForce.STIFFNESS_MEDIUM);
+        scaleX.setSpring(scaleSpring);
+        scaleY.setSpring(scaleSpring);
+        scaleX.start();
+        scaleY.start();
     }
 
     private void setControlsForRunningState() {
@@ -768,13 +867,181 @@ public class MainActivity extends Activity {
         stopButton.setEnabled(running);
         stopButton.setAlpha(1f);
         stopButton.setTextColor(running
-                ? Color.parseColor(visualMode == VISUAL_VR2 ? "#4A2509" : "#123B4A")
+                ? Color.parseColor(isVrStyle() ? "#4A2509" : "#123B4A")
                 : Color.parseColor("#7D9092"));
+        applyVr3RunningLayout(true);
+    }
+
+    // Portrait running animation shared by Classic and VR3.
+    private void applyVr3RunningLayout(boolean animate) {
+        boolean portrait = getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE;
+        if (!portrait) {
+            if (vr3ControlsCollapsed) {
+                captureVr3OriginalSizes();
+                applyVr3Progress(0f);
+                vr3ControlsCollapsed = false;
+            }
+            return;
+        }
+        boolean collapse = running;
+        if (!collapse && !vr3ControlsCollapsed) {
+            return;
+        }
+        if (vr3ControlsCollapsed == collapse
+                && timerCircle.getScaleX() == (collapse ? 1.18f : 1f)
+                && viewHeight(controlPanel) == (collapse ? 0 : originalVr3Height(controlPanel))) {
+            return;
+        }
+
+        captureVr3OriginalSizes();
+        if (vr3Animator != null) {
+            vr3Animator.cancel();
+        }
+
+        float startProgress = currentVr3CollapseProgress();
+        float endProgress = collapse ? 1f : 0f;
+        vr3ControlsCollapsed = collapse;
+        if (!animate) {
+            applyVr3Progress(endProgress);
+            applyVr3FinalLayout(collapse);
+            return;
+        }
+
+        vr3Animator = ValueAnimator.ofFloat(startProgress, endProgress);
+        vr3Animator.setDuration(600L);
+        vr3Animator.setInterpolator(new PathInterpolator(0.2f, 0f, 0f, 1f));
+        vr3Animator.addUpdateListener(animation -> applyVr3Progress((float) animation.getAnimatedValue()));
+        vr3Animator.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(android.animation.Animator animation) {
+                applyVr3Progress(endProgress);
+                applyVr3FinalLayout(collapse);
+            }
+        });
+        vr3Animator.start();
+    }
+
+    private void captureVr3OriginalSizes() {
+        if (vr3SelectionHeight <= 0) {
+            vr3SelectionHeight = Math.max(selectionTopRow.getHeight(), dpInt(42));
+        }
+        if (vr3VolumeHeight <= 0) {
+            vr3VolumeHeight = Math.max(volumeRow.getHeight(), dpInt(44));
+        }
+        if (vr3ControlHeight <= 0) {
+            vr3ControlHeight = Math.max(controlPanel.getHeight(), dpInt(226));
+        }
+        if (vr3BottomRowHeight <= 0) {
+            vr3BottomRowHeight = Math.max(bottomButtonRow.getHeight(), dpInt(62));
+        }
+        if (vr3StartWeight <= 0f) {
+            vr3StartWeight = ((LinearLayout.LayoutParams) startButton.getLayoutParams()).weight;
+        }
+        if (vr3StopWeight <= 0f) {
+            LinearLayout.LayoutParams stopParams = (LinearLayout.LayoutParams) stopButton.getLayoutParams();
+            vr3StopWeight = stopParams.weight;
+            vr3StopLeftMargin = stopParams.leftMargin;
+        }
+    }
+
+    private float currentVr3CollapseProgress() {
+        if (timerCircle.getScaleX() > 1f) {
+            return Math.max(0f, Math.min(1f, (timerCircle.getScaleX() - 1f) / 0.18f));
+        }
+        return vr3ControlsCollapsed ? 1f : 0f;
+    }
+
+    private int originalVr3Height(View view) {
+        if (view == selectionTopRow) {
+            return vr3SelectionHeight;
+        }
+        if (view == volumeRow) {
+            return vr3VolumeHeight;
+        }
+        if (view == controlPanel) {
+            return vr3ControlHeight;
+        }
+        if (view == bottomButtonRow) {
+            return vr3BottomRowHeight;
+        }
+        return view.getHeight();
+    }
+
+    private int viewHeight(View view) {
+        return view.getLayoutParams() != null ? view.getLayoutParams().height : view.getHeight();
+    }
+
+    private void applyVr3Progress(float progress) {
+        float clamped = Math.max(0f, Math.min(1f, progress));
+
+        setViewHeight(selectionTopRow, Math.round(vr3SelectionHeight * (1f - clamped)));
+        setViewHeight(volumeRow, Math.round(vr3VolumeHeight * (1f - clamped)));
+        setViewHeight(controlPanel, Math.round(vr3ControlHeight * (1f - clamped)));
+        setViewHeight(bottomButtonRow, vr3BottomRowHeight);
+
+        float controlsAlpha = 1f - clamped;
+        selectionTopRow.setAlpha(controlsAlpha);
+        volumeRow.setAlpha(controlsAlpha);
+        controlPanel.setAlpha(controlsAlpha);
+        selectionTopRow.setTranslationY(dp(56) * clamped);
+        volumeRow.setTranslationY(dp(70) * clamped);
+        controlPanel.setTranslationY(dp(86) * clamped);
+        selectionTopRow.setScaleY(1f - 0.12f * clamped);
+        volumeRow.setScaleY(1f - 0.12f * clamped);
+        controlPanel.setScaleY(1f - 0.08f * clamped);
+        startButton.setAlpha(controlsAlpha);
+        startButton.setTranslationX(-dp(72) * clamped);
+        startButton.setScaleX(1f - 0.18f * clamped);
+        startButton.setScaleY(1f - 0.08f * clamped);
+
+        LinearLayout.LayoutParams startParams = (LinearLayout.LayoutParams) startButton.getLayoutParams();
+        LinearLayout.LayoutParams stopParams = (LinearLayout.LayoutParams) stopButton.getLayoutParams();
+        startParams.weight = vr3StartWeight * (1f - clamped);
+        stopParams.weight = vr3StopWeight + vr3StartWeight * clamped;
+        stopParams.leftMargin = Math.round(vr3StopLeftMargin * (1f - clamped));
+        startButton.setLayoutParams(startParams);
+        stopButton.setLayoutParams(stopParams);
+
+        timerCircle.setScaleX(1f + 0.18f * clamped);
+        timerCircle.setScaleY(1f + 0.18f * clamped);
+        timerCircle.setTranslationY(dp(16) * clamped);
+    }
+
+    private void applyVr3FinalLayout(boolean collapsed) {
+        setViewHeight(selectionTopRow, collapsed ? 0 : vr3SelectionHeight);
+        setViewHeight(volumeRow, collapsed ? 0 : vr3VolumeHeight);
+        setViewHeight(controlPanel, collapsed ? 0 : vr3ControlHeight);
+        setViewHeight(bottomButtonRow, vr3BottomRowHeight);
+
+        LinearLayout.LayoutParams startParams = (LinearLayout.LayoutParams) startButton.getLayoutParams();
+        LinearLayout.LayoutParams stopParams = (LinearLayout.LayoutParams) stopButton.getLayoutParams();
+        startParams.weight = collapsed ? 0f : vr3StartWeight;
+        stopParams.weight = collapsed ? vr3StopWeight + vr3StartWeight : vr3StopWeight;
+        stopParams.leftMargin = collapsed ? 0 : vr3StopLeftMargin;
+        startButton.setLayoutParams(startParams);
+        stopButton.setLayoutParams(stopParams);
+    }
+
+    private void setViewHeight(View view, int height) {
+        android.view.ViewGroup.LayoutParams params = view.getLayoutParams();
+        if (params == null) {
+            return;
+        }
+        params.height = Math.max(0, height);
+        view.setLayoutParams(params);
     }
 
     private void tintStartButton(int color) {
         startButtonText.setTextColor(color);
         startButtonIcon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+    }
+
+    private float dp(float value) {
+        return value * getResources().getDisplayMetrics().density;
+    }
+
+    private int dpInt(float value) {
+        return Math.round(dp(value));
     }
 
     private int calculateCoolingMinutes() {
@@ -794,7 +1061,8 @@ public class MainActivity extends Activity {
             return targetTemp;
         }
         double elapsedSeconds = Math.max(0.0, result.seconds * Math.max(0f, Math.min(1f, elapsedProgress)));
-        double dimensionlessTime = elapsedSeconds * result.hMax * result.area / result.thermalCapacity;
+        double modelElapsedSeconds = elapsedSeconds * result.freezerCalibrationFactor;
+        double dimensionlessTime = modelElapsedSeconds * result.hMax * result.area / result.thermalCapacity;
         double theta = Math.pow(4.0 / (dimensionlessTime + 4.0), 4.0);
         double temperature = deviceTemp + (startTemp - deviceTemp) * theta;
         return Math.max(targetTemp, Math.min(startTemp, temperature));
@@ -805,7 +1073,7 @@ public class MainActivity extends Activity {
             return CoolingResult.invalid();
         }
         if (targetTemp >= startTemp) {
-            return new CoolingResult(true, 0.0, 0.0, 0.0, 0.0, 1.0);
+            return new CoolingResult(true, 0.0, 0.0, 0.0, 0.0, 1.0, freezerCalibrationFactor());
         }
 
         ContainerPreset preset = selectedContainerPreset();
@@ -813,49 +1081,104 @@ public class MainActivity extends Activity {
             return CoolingResult.invalid();
         }
 
-        double deltaStart = startTemp - deviceTemp;
-        double thetaTarget = (targetTemp - deviceTemp) / deltaStart;
-        if (thetaTarget <= 0.0 || thetaTarget >= 1.0) {
+        CoolingModel model = calculateCoolingModelSeconds(
+                startTemp,
+                targetTemp,
+                deviceTemp,
+                preset
+        );
+        if (!model.valid) {
             return CoolingResult.invalid();
         }
 
-        double airTemperatureK = deviceTemp + 273.15;
+        double freezerCalibrationFactor = freezerCalibrationFactor();
+        double seconds = model.seconds / freezerCalibrationFactor;
+        if (!Double.isFinite(seconds) || seconds < 0.0 || !Double.isFinite(freezerCalibrationFactor)) {
+            return CoolingResult.invalid();
+        }
+        return new CoolingResult(
+                true,
+                seconds,
+                model.hMax,
+                model.area,
+                model.thermalCapacity,
+                model.thetaTarget,
+                freezerCalibrationFactor
+        );
+    }
+
+    private CoolingModel calculateCoolingModelSeconds(double startTempC, double targetTempC,
+                                                      double deviceTempC, ContainerPreset preset) {
+        if (deviceTempC <= -273.15 || targetTempC <= deviceTempC || preset == null || !preset.isValid()) {
+            return CoolingModel.invalid();
+        }
+        if (targetTempC >= startTempC) {
+            return new CoolingModel(true, 0.0, 0.0, 0.0, 0.0, 1.0);
+        }
+
+        double deltaStart = startTempC - deviceTempC;
+        double thetaTarget = (targetTempC - deviceTempC) / deltaStart;
+        if (thetaTarget <= 0.0 || thetaTarget >= 1.0) {
+            return CoolingModel.invalid();
+        }
+
+        double deviceTemperatureK = deviceTempC + 273.15;
         double characteristicLength = Math.PI * preset.diameterMeters / 2.0;
         double area = Math.PI * preset.diameterMeters * preset.lengthMeters;
+        if (preset.includeEndFaces) {
+            area += Math.PI * preset.diameterMeters * preset.diameterMeters / 2.0;
+        }
         double thermalCapacity = preset.beerMassKg * BEER_HEAT_CAPACITY
                 + preset.containerMassKg * preset.containerHeatCapacity;
         double hMax = (AIR_THERMAL_CONDUCTIVITY / characteristicLength)
                 * 0.402
                 * Math.pow((GRAVITY * Math.pow(characteristicLength, 3.0))
-                / (airTemperatureK * AIR_KINEMATIC_VISCOSITY * AIR_THERMAL_DIFFUSIVITY), CONVECTION_EXPONENT)
+                / (deviceTemperatureK * AIR_KINEMATIC_VISCOSITY * AIR_THERMAL_DIFFUSIVITY), CONVECTION_EXPONENT)
                 * Math.pow(deltaStart, CONVECTION_EXPONENT);
-        if (orientation == ORIENTATION_STANDING) {
-            hMax *= STANDING_FACTOR;
-        }
 
         double dimensionlessTime = 4.0 * (Math.pow(thetaTarget, -CONVECTION_EXPONENT) - 1.0);
         double seconds = (thermalCapacity / (hMax * area)) * dimensionlessTime;
         if (!Double.isFinite(seconds) || seconds < 0.0) {
-            return CoolingResult.invalid();
+            return CoolingModel.invalid();
         }
-        return new CoolingResult(true, seconds, hMax, area, thermalCapacity, thetaTarget);
+        return new CoolingModel(true, seconds, hMax, area, thermalCapacity, thetaTarget);
+    }
+
+    private double freezerCalibrationFactor() {
+        CoolingModel reference = calculateCoolingModelSeconds(
+                REFERENCE_START_TEMP,
+                REFERENCE_TARGET_TEMP,
+                REFERENCE_DEVICE_TEMP,
+                referenceBottlePreset()
+        );
+        if (!reference.valid || reference.seconds <= 0.0) {
+            return 1.0;
+        }
+        return reference.seconds / REFERENCE_MEASURED_SECONDS;
     }
 
     private ContainerPreset selectedContainerPreset() {
         if (containerType == CONTAINER_CAN) {
             if (volumeIndex == VOLUME_SMALL) {
-                return new ContainerPreset(CONTAINER_CAN, 0.33, 0.33, 0.015, 900.0, 0.066, 0.115);
+                return new ContainerPreset(CONTAINER_CAN, 0.33, 0.33, 0.015, 900.0, 0.066, 0.115, true);
             }
-            return new ContainerPreset(CONTAINER_CAN, 0.5, 0.5, 0.018, 900.0, 0.066, 0.168);
+            if (volumeIndex == VOLUME_MEDIUM) {
+                return new ContainerPreset(CONTAINER_CAN, 0.5, 0.5, 0.018, 900.0, 0.066, 0.168, true);
+            }
+            return ContainerPreset.invalid();
         }
 
         if (volumeIndex == VOLUME_SMALL) {
-            return new ContainerPreset(CONTAINER_BOTTLE, 0.33, 0.33, 0.20, 840.0, 0.062, 0.185);
+            return referenceBottlePreset();
         }
         if (volumeIndex == VOLUME_LARGE) {
-            return new ContainerPreset(CONTAINER_BOTTLE, 1.0, 1.0, 0.45, 840.0, 0.085, 0.27);
+            return new ContainerPreset(CONTAINER_BOTTLE, 1.0, 1.0, 0.65, 840.0, 0.085, 0.29, false);
         }
-        return new ContainerPreset(CONTAINER_BOTTLE, 0.5, 0.5, 0.3, 840.0, 0.07, 0.21);
+        return new ContainerPreset(CONTAINER_BOTTLE, 0.5, 0.5, 0.3, 840.0, 0.07, 0.21, false);
+    }
+
+    private ContainerPreset referenceBottlePreset() {
+        return new ContainerPreset(CONTAINER_BOTTLE, 0.33, 0.33, 0.214, 840.0, 0.061, 0.235, false);
     }
 
     private static class ContainerPreset {
@@ -866,10 +1189,11 @@ public class MainActivity extends Activity {
         final double containerHeatCapacity;
         final double diameterMeters;
         final double lengthMeters;
+        final boolean includeEndFaces;
 
         ContainerPreset(int containerType, double volumeLiters, double beerMassKg,
                         double containerMassKg, double containerHeatCapacity,
-                        double diameterMeters, double lengthMeters) {
+                        double diameterMeters, double lengthMeters, boolean includeEndFaces) {
             this.containerType = containerType;
             this.volumeLiters = volumeLiters;
             this.beerMassKg = beerMassKg;
@@ -877,6 +1201,11 @@ public class MainActivity extends Activity {
             this.containerHeatCapacity = containerHeatCapacity;
             this.diameterMeters = diameterMeters;
             this.lengthMeters = lengthMeters;
+            this.includeEndFaces = includeEndFaces;
+        }
+
+        static ContainerPreset invalid() {
+            return new ContainerPreset(-1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false);
         }
 
         boolean isValid() {
@@ -896,9 +1225,34 @@ public class MainActivity extends Activity {
         final double area;
         final double thermalCapacity;
         final double thetaTarget;
+        final double freezerCalibrationFactor;
 
         CoolingResult(boolean valid, double seconds, double hMax, double area,
-                      double thermalCapacity, double thetaTarget) {
+                      double thermalCapacity, double thetaTarget, double freezerCalibrationFactor) {
+            this.valid = valid;
+            this.seconds = seconds;
+            this.hMax = hMax;
+            this.area = area;
+            this.thermalCapacity = thermalCapacity;
+            this.thetaTarget = thetaTarget;
+            this.freezerCalibrationFactor = freezerCalibrationFactor;
+        }
+
+        static CoolingResult invalid() {
+            return new CoolingResult(false, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+        }
+    }
+
+    private static class CoolingModel {
+        final boolean valid;
+        final double seconds;
+        final double hMax;
+        final double area;
+        final double thermalCapacity;
+        final double thetaTarget;
+
+        CoolingModel(boolean valid, double seconds, double hMax, double area,
+                     double thermalCapacity, double thetaTarget) {
             this.valid = valid;
             this.seconds = seconds;
             this.hMax = hMax;
@@ -907,8 +1261,8 @@ public class MainActivity extends Activity {
             this.thetaTarget = thetaTarget;
         }
 
-        static CoolingResult invalid() {
-            return new CoolingResult(false, 0.0, 0.0, 0.0, 0.0, 0.0);
+        static CoolingModel invalid() {
+            return new CoolingModel(false, 0.0, 0.0, 0.0, 0.0, 0.0);
         }
     }
 
@@ -965,6 +1319,11 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         enableFullscreen();
+        if (preferences.getBoolean(KEY_ALARM_DISMISSED, false)) {
+            preferences.edit().remove(KEY_ALARM_DISMISSED).apply();
+            stopTimer(true);
+            return;
+        }
         if (running && endTimeMillis > System.currentTimeMillis()) {
             startUiCountdown(endTimeMillis);
         }

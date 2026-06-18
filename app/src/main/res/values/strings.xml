@@ -24,7 +24,8 @@
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Open menu</string>
     <string name="menu_classic_ui">Classic UI</string>
-    <string name="menu_vr2_mode">VR2 mode</string>
+    <string name="menu_vr3_mode">VR3 mode</string>
+    <string name="menu_calculation_model">Calculation model</string>
     <string name="menu_language">Language</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Choose language</string>
@@ -54,5 +55,9 @@
     <string name="orientation_lying">Lying</string>
     <string name="orientation_standing">Standing</string>
     <string name="current_temperature">Current temperature</string>
+    <string name="current_temperature_short">Temperature</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
+    <string name="calculation_model_title">Calculation model</string>
+    <string name="back">Back</string>
+    <string name="help_load_error">The help page could not be loaded. Please try again after updating the app.</string>
 </resources>

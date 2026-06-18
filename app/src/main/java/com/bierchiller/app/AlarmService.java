@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.AudioAttributes;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -19,6 +20,10 @@ import android.os.Vibrator;
 public class AlarmService extends Service {
     static final String ACTION_STOP = "com.bierchiller.app.STOP_ALARM";
 
+    private static final String PREFS = "bierchiller";
+    private static final String KEY_END_TIME = "endTimeMillis";
+    private static final String KEY_TOTAL_DURATION = "totalDurationMillis";
+    private static final String KEY_ALARM_DISMISSED = "alarmDismissed";
     private static final String CHANNEL_ID = "alarm_channel";
     private static final int NOTIFICATION_ID = 42;
 
@@ -33,6 +38,7 @@ public class AlarmService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && ACTION_STOP.equals(intent.getAction())) {
+            markAlarmDismissed();
             stopSelf();
             return START_NOT_STICKY;
         }
@@ -146,5 +152,15 @@ public class AlarmService extends Service {
         if (vibrator != null) {
             vibrator.cancel();
         }
+    }
+
+    private void markAlarmDismissed() {
+        SharedPreferences preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
+        preferences.edit()
+                .putBoolean(KEY_ALARM_DISMISSED, true)
+                .remove(KEY_END_TIME)
+                .remove(KEY_TOTAL_DURATION)
+                .apply();
+        TimerNotificationHelper.cancel(this);
     }
 }

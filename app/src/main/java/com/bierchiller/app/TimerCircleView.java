@@ -122,8 +122,8 @@ public class TimerCircleView extends View {
 
         float stroke = dp(12);
         boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-        boolean vr2 = visualMode == 1;
-        float sizeScale = landscape ? (vr2 ? 1.0f : 0.80f) : (vr2 ? 0.96f : 0.88f);
+        boolean vrStyle = visualMode == 1;
+        float sizeScale = landscape ? (vrStyle ? 1.0f : 0.80f) : (vrStyle ? 0.96f : 0.98f);
         float size = (Math.min(getWidth(), getHeight()) - stroke - dp(4)) * sizeScale;
         if (size <= 0f) {
             return;
@@ -133,11 +133,11 @@ public class TimerCircleView extends View {
         float top = (getHeight() - size) / 2f;
         RectF oval = new RectF(left, top, left + size, top + size);
         float centerX = getWidth() / 2f;
-        float centerY = getHeight() / 2f + (vr2 ? dp(14) : -dp(8));
+        float centerY = getHeight() / 2f + (vrStyle ? dp(14) : (landscape ? -dp(8) : 0f));
         oval.offset(0, centerY - getHeight() / 2f);
         float radius = size / 2f;
 
-        if (backgroundVisible && !vr2) {
+        if (backgroundVisible && !vrStyle) {
             float glowRadius = radius * 1.28f;
             glowPaint.setShader(new RadialGradient(
                     centerX,
@@ -153,7 +153,7 @@ public class TimerCircleView extends View {
             glowPaint.setShader(null);
         }
 
-        if (!vr2) {
+        if (!vrStyle) {
             fillPaint.setColor(backgroundVisible
                     ? Color.parseColor("#CCFFF6DA")
                     : Color.parseColor("#FFFFFFFF"));
@@ -165,18 +165,18 @@ public class TimerCircleView extends View {
             );
             canvas.drawCircle(centerX, centerY, radius - stroke / 2f, fillPaint);
         }
-        if (vr2) {
-            drawTicks(canvas, centerX, centerY, radius);
+        if (vrStyle || !backgroundVisible) {
+            drawTicks(canvas, centerX, centerY, radius, vrStyle);
         } else {
             trackPaint.setColor(backgroundVisible ? Color.parseColor("#F5E8A8") : Color.parseColor("#E7F2F7"));
             canvas.drawArc(oval, 0, 360, false, trackPaint);
         }
         progressPaint.setColor(valid
-                ? (vr2 ? Color.parseColor("#FFFFFFFF") : (running ? Color.parseColor("#E8B923") : Color.parseColor("#123B4A")))
+                ? (vrStyle ? Color.parseColor("#FFFFFFFF") : Color.parseColor("#123B4A"))
                 : Color.parseColor("#D56B5D"));
         RectF progressOval = oval;
         float progressRadius = radius;
-        if (vr2) {
+        if (vrStyle || !backgroundVisible) {
             float progressInset = dp(17);
             progressOval = new RectF(
                     oval.left + progressInset,
@@ -186,12 +186,14 @@ public class TimerCircleView extends View {
             );
             progressRadius = radius - progressInset;
         }
-        if (progress >= 0.999f) {
+        if (!running && !vrStyle && !backgroundVisible) {
+            // Classic idle state shows only the tick scale.
+        } else if (progress >= 0.999f) {
             canvas.drawCircle(centerX, centerY, progressRadius, progressPaint);
         } else if (progress > 0.001f) {
             canvas.drawArc(progressOval, -90, 360f * progress, false, progressPaint);
         }
-        if (backgroundVisible && valid && !vr2) {
+        if (backgroundVisible && valid && !vrStyle) {
             RectF highlightOval = new RectF(
                     oval.left + stroke * 0.95f,
                     oval.top + stroke * 0.95f,
@@ -202,8 +204,8 @@ public class TimerCircleView extends View {
         }
 
         float textMaxWidth = size * 0.56f;
-        mainTextPaint.setColor(vr2 ? Color.WHITE : Color.parseColor("#123B4A"));
-        if (vr2) {
+        mainTextPaint.setColor(vrStyle ? Color.WHITE : Color.parseColor("#123B4A"));
+        if (vrStyle) {
             mainTextPaint.setShadowLayer(dp(3), 0, dp(2), Color.parseColor("#99000000"));
             labelTextPaint.setShadowLayer(dp(2), 0, dp(1), Color.parseColor("#88000000"));
         } else {
@@ -211,10 +213,10 @@ public class TimerCircleView extends View {
             labelTextPaint.clearShadowLayer();
         }
         mainTextPaint.setTextSize(fitTextSize(mainTextPaint, mainText, Math.min(sp(52), size * 0.21f), sp(24), textMaxWidth));
-        labelTextPaint.setColor(vr2
+        labelTextPaint.setColor(vrStyle
                 ? Color.WHITE
                 : (backgroundVisible ? Color.parseColor("#123B4A") : Color.parseColor("#5F767B")));
-        String visibleLabelText = vr2 ? labelText.toUpperCase(Locale.getDefault()) : labelText;
+        String visibleLabelText = vrStyle ? labelText.toUpperCase(Locale.getDefault()) : labelText;
         labelTextPaint.setTextSize(fitTextSize(labelTextPaint, visibleLabelText, Math.min(sp(17), size * 0.08f), sp(9), textMaxWidth));
         Paint detailTextPaint = labelTextPaint;
         Paint temperatureTextPaint = mainTextPaint;
@@ -244,25 +246,17 @@ public class TimerCircleView extends View {
             canvas.drawText(temperatureText, centerX, tempBaseline, temperatureTextPaint);
 
             if (temperatureLabelText != null && !temperatureLabelText.isEmpty()) {
-                String visibleTemperatureLabel = compactTemperatureLabel(temperatureLabelText);
-                temperatureLabelPaint.setTextSize(fitTextSize(temperatureLabelPaint, visibleTemperatureLabel, Math.min(sp(11), size * 0.048f), sp(7), textMaxWidth));
+                temperatureLabelPaint.setTextSize(fitTextSize(temperatureLabelPaint, temperatureLabelText, Math.min(sp(11), size * 0.048f), sp(7), textMaxWidth));
                 Paint.FontMetrics tempLabelMetrics = temperatureLabelPaint.getFontMetrics();
                 float tempLabelBaseline = centerY + Math.min(dp(101), size * 0.32f)
                         - (tempLabelMetrics.ascent + tempLabelMetrics.descent) / 2f;
-                canvas.drawText(visibleTemperatureLabel, centerX, tempLabelBaseline, temperatureLabelPaint);
+                canvas.drawText(temperatureLabelText, centerX, tempLabelBaseline, temperatureLabelPaint);
             }
         }
     }
 
-    private String compactTemperatureLabel(String text) {
-        if (visualMode == 1 && text.toLowerCase(Locale.getDefault()).contains("temperatur")) {
-            return "Temperatur";
-        }
-        return text;
-    }
-
-    private void drawTicks(Canvas canvas, float centerX, float centerY, float radius) {
-        tickPaint.setColor(Color.parseColor("#DFF6F3"));
+    private void drawTicks(Canvas canvas, float centerX, float centerY, float radius, boolean vrStyle) {
+        tickPaint.setColor(Color.parseColor(vrStyle ? "#DFF6F3" : "#DCECEF"));
         float inner = radius - dp(24);
         float outer = radius - dp(11);
         for (int i = 0; i < 132; i++) {

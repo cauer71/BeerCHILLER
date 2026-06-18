@@ -24,7 +24,7 @@
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Otvori izbornik</string>
     <string name="menu_classic_ui">Classic UI</string>
-    <string name="menu_vr2_mode">VR2 način</string>
+    <string name="menu_vr3_mode">VR3 način</string>
     <string name="menu_language">Jezik</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Odabir jezika</string>
@@ -50,5 +50,14 @@
     <string name="freezer">Zamrzivač</string>
     <string name="fridge">Hladnjak</string>
     <string name="current_temperature">Trenutačna temperatura</string>
+    <string name="current_temperature_short">Temperatura</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
+    <string name="menu_calculation_model">Model izračuna</string>
+    <string name="container_bottle">Boca</string>
+    <string name="container_can">Limenka</string>
+    <string name="orientation_lying">Ležeći</string>
+    <string name="orientation_standing">Uspravno</string>
+    <string name="calculation_model_title">Model izračuna</string>
+    <string name="back">Natrag</string>
+    <string name="help_load_error">Stranicu pomoći nije moguće učitati. Pokušajte ponovno nakon ažuriranja aplikacije.</string>
 </resources>

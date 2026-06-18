@@ -7,6 +7,8 @@ __pycache__/
 *.pyc
 local.properties
 design-qa.md
+design-qa/
 app/bierchiller-release.keystore
+play-service-account.json
 .idea/
 *.iml

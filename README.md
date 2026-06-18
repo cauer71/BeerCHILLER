@@ -4,40 +4,57 @@ BierCHILLER is a native Android application for estimating the cooling time of b
 
 ## Scientific Model
 
-The cooling calculation is based on a lumped-capacitance approximation of a beer bottle. The beer and glass are treated as one thermally well-mixed body, while the surrounding refrigerator or freezer air is modeled as a constant-temperature reservoir.
+The cooling calculation is based on a lumped-capacitance approximation of a beer bottle or can. The drink and container are treated as one thermally well-mixed body, while the surrounding refrigerator or freezer air is modeled as a constant-temperature reservoir.
 
-The implemented model follows the free-convection derivation used for a horizontal cylindrical bottle:
+The implemented model follows the free-convection derivation used for a horizontal cylindrical container:
 
-```text
-theta = (T - T_L) / (T_a - T_L)
+$$
+\theta = \frac{T - T_L}{T_a - T_L}
+$$
 
-dtheta / dtau + theta^(5/4) = 0
+$$
+\frac{d\theta}{d\tau} + \theta^{5/4} = 0
+$$
 
-theta(tau) = (4 / (tau + 4))^4
-```
+$$
+\theta(\tau) = \left(\frac{4}{\tau + 4}\right)^4
+$$
 
 Where:
 
 - `T` is the current beer temperature.
 - `T_a` is the initial beer temperature.
 - `T_L` is the device temperature, such as freezer or refrigerator temperature.
-- `theta` is the dimensionless temperature difference.
-- `tau` is the dimensionless cooling time.
+- `\theta` is the dimensionless temperature difference.
+- `\tau` is the dimensionless cooling time.
 
 For a requested target temperature `T_e`, the target state is:
 
-```text
-theta_e = (T_e - T_L) / (T_a - T_L)
-tau_e = 4 * (theta_e^(-1/4) - 1)
-```
+$$
+\theta_e = \frac{T_e - T_L}{T_a - T_L}
+$$
 
-The app maps this dimensionless time to minutes through an empirically calibrated cooling-rate constant and bottle-size factors. This keeps the physically motivated curve shape from the free-convection model while allowing practical calibration for real household refrigerators, freezers, bottle sizes, bottle placement, airflow, and glass geometry.
+$$
+\tau_e = 4 \cdot \left(\theta_e^{-1/4} - 1\right)
+$$
+
+The app maps this dimensionless time to minutes through an empirically calibrated cooling-rate constant and container-size factors. This keeps the physically motivated curve shape from the free-convection model while allowing practical calibration for real household refrigerators, freezers, bottle sizes, can sizes, placement, airflow, and glass geometry.
 
 During an active timer, BierCHILLER uses the same curve to estimate and display the current beer temperature:
 
-```text
-T(t) = T_L + (T_a - T_L) * (4 / (tau + 4))^4
-```
+$$
+T(t) = T_L + (T_a - T_L) \cdot \left(\frac{4}{\tau + 4}\right)^4
+$$
+
+### Measured vs. Calculated
+
+The calibration target for the 0.33 l glass bottle is documented in the figure below.
+
+![Bierkühlung: Messung vs. berechnete Kurve](docs/images/cooling-curve-comparison.png)
+
+## Help Pages
+
+The in-app help section is localized and loaded from the matching markdown file in `app/src/main/assets/help/`. Each locale keeps the same structure and formulas, so the GitHub markdown stays readable and consistent while the Android app renders the formulas locally with KaTeX.
 
 ## Assumptions And Limits
 
@@ -61,6 +78,7 @@ Practical deviations can occur because domestic freezers cycle, air movement var
 - Portrait and landscape layouts.
 - Classic UI and beer-background visual mode.
 - Multilingual interface.
+- Localized in-app help pages with scientific model documentation.
 - Google Play compatible package name: `com.bierchiller.app`.
 - Release builds target the current Android SDK line used by the project.
 

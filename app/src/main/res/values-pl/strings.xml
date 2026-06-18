@@ -24,7 +24,7 @@
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Otwórz menu</string>
     <string name="menu_classic_ui">Classic UI</string>
-    <string name="menu_vr2_mode">Tryb VR2</string>
+    <string name="menu_vr3_mode">Tryb VR3</string>
     <string name="menu_language">Język</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Wybierz język</string>
@@ -50,5 +50,14 @@
     <string name="freezer">Zamrażarka</string>
     <string name="fridge">Lodówka</string>
     <string name="current_temperature">Aktualna temperatura</string>
+    <string name="current_temperature_short">Temperatura</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
+    <string name="menu_calculation_model">Model obliczeń</string>
+    <string name="container_bottle">Butelka</string>
+    <string name="container_can">Puszka</string>
+    <string name="orientation_lying">Leżąca</string>
+    <string name="orientation_standing">Stojąca</string>
+    <string name="calculation_model_title">Model obliczeń</string>
+    <string name="back">Wstecz</string>
+    <string name="help_load_error">Nie udało się wczytać strony pomocy. Spróbuj ponownie po zaktualizowaniu aplikacji.</string>
 </resources>

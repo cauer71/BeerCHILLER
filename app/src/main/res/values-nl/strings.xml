@@ -24,7 +24,7 @@
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Menu openen</string>
     <string name="menu_classic_ui">Classic UI</string>
-    <string name="menu_vr2_mode">VR2-modus</string>
+    <string name="menu_vr3_mode">VR3-modus</string>
     <string name="menu_language">Taal</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Taal kiezen</string>
@@ -50,5 +50,14 @@
     <string name="freezer">Vriezer</string>
     <string name="fridge">Koelkast</string>
     <string name="current_temperature">Huidige temperatuur</string>
+    <string name="current_temperature_short">Temperatuur</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
+    <string name="menu_calculation_model">Berekeningsmodel</string>
+    <string name="container_bottle">Fles</string>
+    <string name="container_can">Blik</string>
+    <string name="orientation_lying">Liggend</string>
+    <string name="orientation_standing">Staand</string>
+    <string name="calculation_model_title">Berekeningsmodel</string>
+    <string name="back">Terug</string>
+    <string name="help_load_error">De hulppagina kon niet worden geladen. Probeer het opnieuw nadat je de app hebt bijgewerkt.</string>
 </resources>
