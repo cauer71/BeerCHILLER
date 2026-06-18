@@ -50,7 +50,7 @@ $$
 
 The calibration target for the 0.33 l glass bottle is documented in the figure below.
 
-![Bierkühlung: Messung vs. berechnete Kurve](docs/images/cooling-curve-comparison.png)
+![Freezer cooling validation](docs/images/freezer_cooling_measured_vs_calculated.svg)
 
 ## Help Pages
 
