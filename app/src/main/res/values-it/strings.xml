@@ -55,8 +55,8 @@
     <string name="menu_calculation_model">Modello di calcolo</string>
     <string name="container_bottle">Bottiglia</string>
     <string name="container_can">Lattina</string>
-    <string name="orientation_lying">Sdraiata</string>
-    <string name="orientation_standing">In piedi</string>
+    <string name="orientation_lying">orizzontale</string>
+    <string name="orientation_standing">verticale</string>
     <string name="calculation_model_title">Modello di calcolo</string>
     <string name="back">Indietro</string>
     <string name="help_load_error">Impossibile caricare la pagina di aiuto. Riprova dopo aver aggiornato l’app.</string>
