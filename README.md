@@ -46,11 +46,17 @@ $$
 T(t) = T_L + (T_a - T_L) \cdot \left(\frac{4}{\tau + 4}\right)^4
 $$
 
-### Measured vs. Calculated
+### Cooling Model Validation
 
-The calibration target for the 0.33 l glass bottle is documented in the figure below.
+The chart compares measured beer temperature data with the calibrated cooling model.
+Both tests were performed with a 0.33 l glass bottle with a glass mass of 214 g.
 
-![Freezer cooling validation](docs/images/freezer_cooling_measured_vs_calculated.svg)
+- Freezer test: ambient temperature approx. -17.5 °C
+- Refrigerator test: ambient temperature approx. 5.3 °C
+- Target temperature: 8 °C
+- Small refrigerator door-opening artifacts were smoothed
+
+![Beer cooling model validation](docs/images/beer_cooling_model_validation_github_inside_only.svg)
 
 ## Help Pages
 
