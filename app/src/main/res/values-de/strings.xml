@@ -24,7 +24,7 @@
     <string name="degrees_celsius">%1$d °C</string>
     <string name="menu_open">Menü öffnen</string>
     <string name="menu_classic_ui">Classic UI</string>
-    <string name="menu_vr3_mode">VR3-Modus</string>
+    <string name="menu_beer_ui">Beer UI</string>
     <string name="menu_calculation_model">Berechnungsmodell</string>
     <string name="menu_language">Sprache</string>
     <string name="menu_info">Info</string>
@@ -58,6 +58,6 @@
     <string name="current_temperature_short">Temperatur</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
     <string name="calculation_model_title">Berechnungsmodell</string>
-    <string name="back">ZurÃ¼ck</string>
+    <string name="back">Zurück</string>
     <string name="help_load_error">Die Hilfeseite konnte nicht geladen werden. Bitte versuche es nach einer App-Aktualisierung erneut.</string>
 </resources>

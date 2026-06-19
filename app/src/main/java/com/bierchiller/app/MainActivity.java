@@ -14,6 +14,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -56,7 +57,7 @@ public class MainActivity extends Activity {
     private static final int ALARM_REQUEST_CODE = 1001;
     private static final int SHOW_REQUEST_CODE = 1002;
     private static final int VISUAL_CLASSIC = 0;
-    private static final int VISUAL_VR3 = 1;
+    private static final int VISUAL_BEER = 1;
     private static final int DEVICE_FREEZER = 0;
     private static final int DEVICE_FRIDGE = 1;
     private static final int CONTAINER_BOTTLE = 0;
@@ -89,6 +90,8 @@ public class MainActivity extends Activity {
     private View backgroundOverlay;
     private View controlPanel;
     private View selectionTopRow;
+    private View containerTypeGroup;
+    private View orientationGroup;
     private View volumeRow;
     private View bottomButtonRow;
     private TextView startTempValue;
@@ -135,15 +138,15 @@ public class MainActivity extends Activity {
     private int containerType = CONTAINER_BOTTLE;
     private int orientation = ORIENTATION_LYING;
     private boolean running;
-    private boolean vr3ControlsCollapsed;
-    private ValueAnimator vr3Animator;
-    private int vr3SelectionHeight;
-    private int vr3VolumeHeight;
-    private int vr3ControlHeight;
-    private int vr3BottomRowHeight;
-    private float vr3StartWeight;
-    private float vr3StopWeight;
-    private int vr3StopLeftMargin;
+    private boolean beerControlsCollapsed;
+    private ValueAnimator beerAnimator;
+    private int beerSelectionHeight;
+    private int beerVolumeHeight;
+    private int beerControlHeight;
+    private int beerBottomRowHeight;
+    private float beerStartWeight;
+    private float beerStopWeight;
+    private int beerStopLeftMargin;
     private Button selectedContainerButton;
     private Button selectedOrientationButton;
     private Button selectedVolumeButton;
@@ -168,6 +171,8 @@ public class MainActivity extends Activity {
         backgroundOverlay = findViewById(R.id.backgroundOverlay);
         controlPanel = findViewById(R.id.controlPanel);
         selectionTopRow = findViewById(R.id.selectionTopRow);
+        containerTypeGroup = findViewById(R.id.containerTypeGroup);
+        orientationGroup = findViewById(R.id.orientationGroup);
         volumeRow = findViewById(R.id.volumeRow);
         bottomButtonRow = findViewById(R.id.bottomButtonRow);
         startTempValue = findViewById(R.id.startTempValue);
@@ -256,22 +261,14 @@ public class MainActivity extends Activity {
     private void wireMenu() {
         menuButton.setOnClickListener(v -> {
         PopupMenu popupMenu = new PopupMenu(this, menuButton);
-            popupMenu.getMenu().add(0, 1, 0, R.string.menu_classic_ui)
-                    .setCheckable(true)
-                    .setChecked(visualMode == VISUAL_CLASSIC);
-            popupMenu.getMenu().add(0, 2, 1, R.string.menu_vr3_mode)
-                    .setCheckable(true)
-                    .setChecked(visualMode == VISUAL_VR3);
-            popupMenu.getMenu().add(0, 3, 2, R.string.menu_calculation_model);
-            popupMenu.getMenu().add(0, 4, 3, R.string.menu_language);
-            popupMenu.getMenu().add(0, 5, 4, R.string.menu_info);
+            popupMenu.getMenu().add(0, 1, 0,
+                    visualMode == VISUAL_CLASSIC ? R.string.menu_beer_ui : R.string.menu_classic_ui);
+            popupMenu.getMenu().add(0, 3, 1, R.string.menu_calculation_model);
+            popupMenu.getMenu().add(0, 4, 2, R.string.menu_language);
+            popupMenu.getMenu().add(0, 5, 3, R.string.menu_info);
             popupMenu.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == 1) {
-                    setVisualMode(VISUAL_CLASSIC);
-                    return true;
-                }
-                if (item.getItemId() == 2) {
-                    setVisualMode(VISUAL_VR3);
+                    setVisualMode(visualMode == VISUAL_CLASSIC ? VISUAL_BEER : VISUAL_CLASSIC);
                     return true;
                 }
                 if (item.getItemId() == 3) {
@@ -320,7 +317,7 @@ public class MainActivity extends Activity {
         headerBeerText.setTextColor(Color.parseColor(vrStyle ? "#4A2509" : "#E8B923"));
         headerChillerText.setTextColor(Color.parseColor(vrStyle ? "#D99C00" : "#123B4A"));
         menuButton.setColorFilter(Color.parseColor(vrStyle ? "#4A2509" : "#123B4A"), PorterDuff.Mode.SRC_IN);
-        controlPanel.setBackgroundResource(vrStyle ? R.drawable.bg_control_panel_vr2 : R.drawable.bg_control_panel);
+        applySelectorGroupBackgrounds(vrStyle);
         startButton.setBackgroundResource(vrStyle ? R.drawable.bg_primary_button_vr2 : R.drawable.bg_primary_button);
         stopButton.setBackgroundResource(vrStyle ? R.drawable.bg_secondary_button_vr2 : R.drawable.bg_secondary_button);
         int iconVisibility = vrStyle ? View.VISIBLE : View.GONE;
@@ -329,23 +326,51 @@ public class MainActivity extends Activity {
         deviceTempIcon.setVisibility(iconVisibility);
         tintStartButton(visualBackground ? Color.WHITE : Color.parseColor("#102A33"));
         styleTemperatureControls(vrStyle);
-        applyVr3RunningLayout(false);
+        applyBeerRunningLayout(false);
+    }
+
+    private void applySelectorGroupBackgrounds(boolean vrStyle) {
+        View[] groups = new View[]{containerTypeGroup, orientationGroup, volumeRow};
+        if (!vrStyle) {
+            controlPanel.setBackgroundResource(R.drawable.bg_control_panel);
+            for (View group : groups) {
+                group.setBackgroundResource(R.drawable.bg_segment_group);
+            }
+            return;
+        }
+
+        int alpha = Math.round(255f * 0.80f);
+        int fill = Color.argb(alpha, 0xFB, 0xF5, 0xE7);
+        int stroke = Color.argb(Math.min(255, alpha + 14), 0xF4, 0xDD, 0xAA);
+        controlPanel.setBackground(createRoundedPanelBackground(fill, stroke, 30));
+        for (View group : groups) {
+            group.setBackground(createRoundedPanelBackground(fill, stroke, 22));
+        }
+    }
+
+    private GradientDrawable createRoundedPanelBackground(int fill, int stroke, float radiusDp) {
+        GradientDrawable background = new GradientDrawable();
+        background.setShape(GradientDrawable.RECTANGLE);
+        background.setColor(fill);
+        background.setStroke(dpInt(1), stroke);
+        background.setCornerRadius(dp(radiusDp));
+        return background;
     }
 
     private int readVisualModePreference() {
         Object stored = preferences.getAll().get(KEY_VISUAL_MODE);
         if (stored instanceof Integer) {
             int mode = (Integer) stored;
-            return mode == VISUAL_CLASSIC ? VISUAL_CLASSIC : VISUAL_VR3;
+            return mode == VISUAL_CLASSIC ? VISUAL_CLASSIC : VISUAL_BEER;
         }
         if (stored instanceof Boolean) {
-            return (Boolean) stored ? VISUAL_VR3 : VISUAL_CLASSIC;
+            return (Boolean) stored ? VISUAL_BEER : VISUAL_CLASSIC;
         }
-        return VISUAL_VR3;
+        return VISUAL_BEER;
     }
 
     private boolean isVrStyle() {
-        return visualMode == VISUAL_VR3;
+        return visualMode == VISUAL_BEER;
     }
 
     private void styleTemperatureControls(boolean vrStyle) {
@@ -869,100 +894,100 @@ public class MainActivity extends Activity {
         stopButton.setTextColor(running
                 ? Color.parseColor(isVrStyle() ? "#4A2509" : "#123B4A")
                 : Color.parseColor("#7D9092"));
-        applyVr3RunningLayout(true);
+        applyBeerRunningLayout(true);
     }
 
-    // Portrait running animation shared by Classic and VR3.
-    private void applyVr3RunningLayout(boolean animate) {
+    // Portrait running animation shared by Classic and Beer UI.
+    private void applyBeerRunningLayout(boolean animate) {
         boolean portrait = getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE;
         if (!portrait) {
-            if (vr3ControlsCollapsed) {
-                captureVr3OriginalSizes();
-                applyVr3Progress(0f);
-                vr3ControlsCollapsed = false;
+            if (beerControlsCollapsed) {
+                captureBeerOriginalSizes();
+                applyBeerProgress(0f);
+                beerControlsCollapsed = false;
             }
             return;
         }
         boolean collapse = running;
-        if (!collapse && !vr3ControlsCollapsed) {
+        if (!collapse && !beerControlsCollapsed) {
             return;
         }
-        if (vr3ControlsCollapsed == collapse
+        if (beerControlsCollapsed == collapse
                 && timerCircle.getScaleX() == (collapse ? 1.18f : 1f)
-                && viewHeight(controlPanel) == (collapse ? 0 : originalVr3Height(controlPanel))) {
+                && viewHeight(controlPanel) == (collapse ? 0 : originalBeerHeight(controlPanel))) {
             return;
         }
 
-        captureVr3OriginalSizes();
-        if (vr3Animator != null) {
-            vr3Animator.cancel();
+        captureBeerOriginalSizes();
+        if (beerAnimator != null) {
+            beerAnimator.cancel();
         }
 
-        float startProgress = currentVr3CollapseProgress();
+        float startProgress = currentBeerCollapseProgress();
         float endProgress = collapse ? 1f : 0f;
-        vr3ControlsCollapsed = collapse;
+        beerControlsCollapsed = collapse;
         if (!animate) {
-            applyVr3Progress(endProgress);
-            applyVr3FinalLayout(collapse);
+            applyBeerProgress(endProgress);
+            applyBeerFinalLayout(collapse);
             return;
         }
 
-        vr3Animator = ValueAnimator.ofFloat(startProgress, endProgress);
-        vr3Animator.setDuration(600L);
-        vr3Animator.setInterpolator(new PathInterpolator(0.2f, 0f, 0f, 1f));
-        vr3Animator.addUpdateListener(animation -> applyVr3Progress((float) animation.getAnimatedValue()));
-        vr3Animator.addListener(new android.animation.AnimatorListenerAdapter() {
+        beerAnimator = ValueAnimator.ofFloat(startProgress, endProgress);
+        beerAnimator.setDuration(600L);
+        beerAnimator.setInterpolator(new PathInterpolator(0.2f, 0f, 0f, 1f));
+        beerAnimator.addUpdateListener(animation -> applyBeerProgress((float) animation.getAnimatedValue()));
+        beerAnimator.addListener(new android.animation.AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(android.animation.Animator animation) {
-                applyVr3Progress(endProgress);
-                applyVr3FinalLayout(collapse);
+                applyBeerProgress(endProgress);
+                applyBeerFinalLayout(collapse);
             }
         });
-        vr3Animator.start();
+        beerAnimator.start();
     }
 
-    private void captureVr3OriginalSizes() {
-        if (vr3SelectionHeight <= 0) {
-            vr3SelectionHeight = Math.max(selectionTopRow.getHeight(), dpInt(42));
+    private void captureBeerOriginalSizes() {
+        if (beerSelectionHeight <= 0) {
+            beerSelectionHeight = Math.max(selectionTopRow.getHeight(), dpInt(42));
         }
-        if (vr3VolumeHeight <= 0) {
-            vr3VolumeHeight = Math.max(volumeRow.getHeight(), dpInt(44));
+        if (beerVolumeHeight <= 0) {
+            beerVolumeHeight = Math.max(volumeRow.getHeight(), dpInt(44));
         }
-        if (vr3ControlHeight <= 0) {
-            vr3ControlHeight = Math.max(controlPanel.getHeight(), dpInt(226));
+        if (beerControlHeight <= 0) {
+            beerControlHeight = Math.max(controlPanel.getHeight(), dpInt(226));
         }
-        if (vr3BottomRowHeight <= 0) {
-            vr3BottomRowHeight = Math.max(bottomButtonRow.getHeight(), dpInt(62));
+        if (beerBottomRowHeight <= 0) {
+            beerBottomRowHeight = Math.max(bottomButtonRow.getHeight(), dpInt(62));
         }
-        if (vr3StartWeight <= 0f) {
-            vr3StartWeight = ((LinearLayout.LayoutParams) startButton.getLayoutParams()).weight;
+        if (beerStartWeight <= 0f) {
+            beerStartWeight = ((LinearLayout.LayoutParams) startButton.getLayoutParams()).weight;
         }
-        if (vr3StopWeight <= 0f) {
+        if (beerStopWeight <= 0f) {
             LinearLayout.LayoutParams stopParams = (LinearLayout.LayoutParams) stopButton.getLayoutParams();
-            vr3StopWeight = stopParams.weight;
-            vr3StopLeftMargin = stopParams.leftMargin;
+            beerStopWeight = stopParams.weight;
+            beerStopLeftMargin = stopParams.leftMargin;
         }
     }
 
-    private float currentVr3CollapseProgress() {
+    private float currentBeerCollapseProgress() {
         if (timerCircle.getScaleX() > 1f) {
             return Math.max(0f, Math.min(1f, (timerCircle.getScaleX() - 1f) / 0.18f));
         }
-        return vr3ControlsCollapsed ? 1f : 0f;
+        return beerControlsCollapsed ? 1f : 0f;
     }
 
-    private int originalVr3Height(View view) {
+    private int originalBeerHeight(View view) {
         if (view == selectionTopRow) {
-            return vr3SelectionHeight;
+            return beerSelectionHeight;
         }
         if (view == volumeRow) {
-            return vr3VolumeHeight;
+            return beerVolumeHeight;
         }
         if (view == controlPanel) {
-            return vr3ControlHeight;
+            return beerControlHeight;
         }
         if (view == bottomButtonRow) {
-            return vr3BottomRowHeight;
+            return beerBottomRowHeight;
         }
         return view.getHeight();
     }
@@ -971,13 +996,13 @@ public class MainActivity extends Activity {
         return view.getLayoutParams() != null ? view.getLayoutParams().height : view.getHeight();
     }
 
-    private void applyVr3Progress(float progress) {
+    private void applyBeerProgress(float progress) {
         float clamped = Math.max(0f, Math.min(1f, progress));
 
-        setViewHeight(selectionTopRow, Math.round(vr3SelectionHeight * (1f - clamped)));
-        setViewHeight(volumeRow, Math.round(vr3VolumeHeight * (1f - clamped)));
-        setViewHeight(controlPanel, Math.round(vr3ControlHeight * (1f - clamped)));
-        setViewHeight(bottomButtonRow, vr3BottomRowHeight);
+        setViewHeight(selectionTopRow, Math.round(beerSelectionHeight * (1f - clamped)));
+        setViewHeight(volumeRow, Math.round(beerVolumeHeight * (1f - clamped)));
+        setViewHeight(controlPanel, Math.round(beerControlHeight * (1f - clamped)));
+        setViewHeight(bottomButtonRow, beerBottomRowHeight);
 
         float controlsAlpha = 1f - clamped;
         selectionTopRow.setAlpha(controlsAlpha);
@@ -996,9 +1021,9 @@ public class MainActivity extends Activity {
 
         LinearLayout.LayoutParams startParams = (LinearLayout.LayoutParams) startButton.getLayoutParams();
         LinearLayout.LayoutParams stopParams = (LinearLayout.LayoutParams) stopButton.getLayoutParams();
-        startParams.weight = vr3StartWeight * (1f - clamped);
-        stopParams.weight = vr3StopWeight + vr3StartWeight * clamped;
-        stopParams.leftMargin = Math.round(vr3StopLeftMargin * (1f - clamped));
+        startParams.weight = beerStartWeight * (1f - clamped);
+        stopParams.weight = beerStopWeight + beerStartWeight * clamped;
+        stopParams.leftMargin = Math.round(beerStopLeftMargin * (1f - clamped));
         startButton.setLayoutParams(startParams);
         stopButton.setLayoutParams(stopParams);
 
@@ -1007,17 +1032,17 @@ public class MainActivity extends Activity {
         timerCircle.setTranslationY(dp(16) * clamped);
     }
 
-    private void applyVr3FinalLayout(boolean collapsed) {
-        setViewHeight(selectionTopRow, collapsed ? 0 : vr3SelectionHeight);
-        setViewHeight(volumeRow, collapsed ? 0 : vr3VolumeHeight);
-        setViewHeight(controlPanel, collapsed ? 0 : vr3ControlHeight);
-        setViewHeight(bottomButtonRow, vr3BottomRowHeight);
+    private void applyBeerFinalLayout(boolean collapsed) {
+        setViewHeight(selectionTopRow, collapsed ? 0 : beerSelectionHeight);
+        setViewHeight(volumeRow, collapsed ? 0 : beerVolumeHeight);
+        setViewHeight(controlPanel, collapsed ? 0 : beerControlHeight);
+        setViewHeight(bottomButtonRow, beerBottomRowHeight);
 
         LinearLayout.LayoutParams startParams = (LinearLayout.LayoutParams) startButton.getLayoutParams();
         LinearLayout.LayoutParams stopParams = (LinearLayout.LayoutParams) stopButton.getLayoutParams();
-        startParams.weight = collapsed ? 0f : vr3StartWeight;
-        stopParams.weight = collapsed ? vr3StopWeight + vr3StartWeight : vr3StopWeight;
-        stopParams.leftMargin = collapsed ? 0 : vr3StopLeftMargin;
+        startParams.weight = collapsed ? 0f : beerStartWeight;
+        stopParams.weight = collapsed ? beerStopWeight + beerStartWeight : beerStopWeight;
+        stopParams.leftMargin = collapsed ? 0 : beerStopLeftMargin;
         startButton.setLayoutParams(startParams);
         stopButton.setLayoutParams(stopParams);
     }

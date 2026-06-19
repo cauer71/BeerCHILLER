@@ -15,8 +15,8 @@ android {
         applicationId = "com.bierchiller.app"
         minSdk = 23
         targetSdk = 36
-        versionCode = 10355
-        versionName = "1.3.55"
+        versionCode = 10360
+        versionName = "1.3.60"
     }
 
     buildFeatures {

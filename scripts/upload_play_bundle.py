@@ -25,9 +25,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
+import re
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 import requests
@@ -51,6 +50,69 @@ def load_credentials(service_account_json: Path):
         str(service_account_json),
         scopes=[SCOPE],
     )
+
+
+def read_version_name(app_build_file: Path) -> str | None:
+    if not app_build_file.exists():
+        return None
+
+    match = re.search(r'versionName\s*=\s*"([^"]+)"', app_build_file.read_text(encoding="utf-8"))
+    if match:
+        return match.group(1)
+    return None
+
+
+def read_release_notes(notes_file: Path) -> list[dict[str, str]] | None:
+    if not notes_file.exists():
+        return None
+
+    lines = notes_file.read_text(encoding="utf-8").splitlines()
+    locales: dict[str, list[str]] = {}
+    current_locale: str | None = None
+    current_lines: list[str] = []
+
+    def flush_locale() -> None:
+        nonlocal current_locale, current_lines
+        if current_locale and current_lines:
+            locales[current_locale] = current_lines[:]
+        current_lines = []
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if line.startswith("## "):
+            flush_locale()
+            current_locale = line[3:].strip()
+            continue
+
+        if current_locale is None:
+            continue
+
+        if line == "":
+            continue
+
+        if line.startswith("#"):
+            continue
+
+        if line.startswith("- "):
+            current_lines.append(line[2:].strip())
+            continue
+
+        current_lines.append(line)
+
+    flush_locale()
+
+    if not locales:
+        return None
+
+    release_notes = []
+    for language, notes in locales.items():
+        release_notes.append(
+            {
+                "language": language,
+                "text": "\n".join(notes),
+            }
+        )
+    return release_notes
 
 
 def request_json(session: AuthorizedSession, method: str, url: str, **kwargs):
@@ -106,6 +168,7 @@ def update_track(
     track: str,
     version_code: str,
     release_name: str,
+    release_notes: list[dict[str, str]] | None,
     status: str,
     user_fraction: float | None,
 ):
@@ -115,6 +178,8 @@ def update_track(
         "status": status,
         "versionCodes": [version_code],
     }
+    if release_notes:
+        release["releaseNotes"] = release_notes
     if user_fraction is not None:
         release["userFraction"] = user_fraction
 
@@ -156,13 +221,18 @@ def parse_args():
     )
     parser.add_argument(
         "--track",
-        default="internal",
-        help="Play track to update, for example internal, closed, open, or production.",
+        default="BeerChiller",
+        help="Play track to update, for example BeerChiller, production, internal, beta, or alpha.",
     )
     parser.add_argument(
         "--release-name",
         default=None,
-        help="Release name shown in Play Console. Defaults to a timestamped name.",
+        help="Release name shown in Play Console. Defaults to BierCHILLER <versionName>.",
+    )
+    parser.add_argument(
+        "--release-notes-file",
+        default=None,
+        help="Markdown file with release notes grouped by locale under ## de-DE / ## en-US.",
     )
     parser.add_argument(
         "--status",
@@ -207,8 +277,12 @@ def main() -> int:
 
     release_name = args.release_name
     if not release_name:
-        stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-        release_name = f"Automated release {stamp}"
+        version_name = read_version_name(Path("app/build.gradle.kts"))
+        release_name = f"BierCHILLER {version_name}" if version_name else "BierCHILLER release"
+
+    release_notes = None
+    if args.release_notes_file:
+        release_notes = read_release_notes(Path(args.release_notes_file).expanduser().resolve())
 
     eprint(f"Creating edit for {args.package} ...")
     edit_id = create_edit(session, args.package)
@@ -230,6 +304,7 @@ def main() -> int:
         args.track,
         version_code,
         release_name,
+        release_notes,
         args.status,
         args.user_fraction,
     )
@@ -249,6 +324,7 @@ def main() -> int:
             "editId": edit_id,
             "versionCode": version_code,
             "releaseName": release_name,
+            "releaseNotesFile": args.release_notes_file,
             "commitResult": commit_result,
         },
         indent=2,

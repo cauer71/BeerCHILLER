@@ -227,7 +227,7 @@ public class TimerCircleView extends View {
         boolean showTemperature = temperatureText != null && !temperatureText.isEmpty();
         float mainBaseline = centerY - Math.min(dp(showTemperature ? 30 : 2), size * (showTemperature ? 0.10f : 0.01f))
                 - (mainMetrics.ascent + mainMetrics.descent) / 2f;
-        float labelBaseline = centerY - Math.min(dp(showTemperature ? 90 : 78), size * (showTemperature ? 0.30f : 0.26f))
+        float labelBaseline = centerY - Math.min(dp(showTemperature ? 82 : 70), size * (showTemperature ? 0.27f : 0.23f))
                 - (labelMetrics.ascent + labelMetrics.descent) / 2f;
         float detailBaseline = centerY + Math.min(dp(showTemperature ? 24 : 43), size * (showTemperature ? 0.08f : 0.16f))
                 - (labelMetrics.ascent + labelMetrics.descent) / 2f;

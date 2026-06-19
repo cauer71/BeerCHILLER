@@ -1,0 +1,7 @@
+app/build/
+build/
+.gradle/
+toolchain/
+design-qa/
+app/src/main/assets/help/katex/*.min.js
+app/src/main/assets/help/katex/*.min.css
