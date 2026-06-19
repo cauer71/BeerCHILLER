@@ -216,7 +216,30 @@ Aplikacja obsługuje:
 
 Szklana butelka 0,33 l jest przypadkiem najdokładniejszym, ponieważ została skalibrowana na podstawie rzeczywistego pomiaru. Pozostałe opakowania są przybliżeniami.
 
-## 10. Ograniczenia modelu
+## 10. Położenie opakowania
+
+Obliczenia opierają się na modelu konwekcji swobodnej dla cylindrycznego opakowania. Przypadkiem bazowym jest opakowanie leżące.
+
+Dla opakowań stojących aplikacja stosuje obecnie współczynnik przybliżony, ponieważ rzeczywisty przepływ powietrza i oddawanie ciepła mogą się różnić:
+
+\[
+t_\text{rzeczywisty} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{położenie}}
+\]
+
+Dla położenia leżącego:
+
+\[
+f_\text{położenie} = 1{,}0
+\]
+
+Dla położenia stojącego obecna wartość wynosi:
+
+\[
+f_\text{położenie} = 1{,}17
+\]
+
+Oznacza to, że obliczony czas dla opakowań stojących jest dzielony w przybliżeniu przez 1,17.
+## 11. Ograniczenia modelu
 
 Obliczenie nie uwzględnia:
 

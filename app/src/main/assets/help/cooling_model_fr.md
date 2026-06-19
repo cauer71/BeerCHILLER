@@ -216,7 +216,30 @@ L'application prend en charge :
 
 La bouteille en verre de 0,33 l est le cas le plus précis, car elle est calibrée avec une mesure réelle. Les autres contenants sont des approximations.
 
-## 10. Limites du modèle
+## 10. Orientation du contenant
+
+Le calcul repose sur un modèle de convection libre pour un contenant cylindrique. Le cas de base est un contenant couché.
+
+Pour les contenants debout, l’application applique actuellement un facteur d’approximation, car l’écoulement réel de l’air et le transfert thermique peuvent changer:
+
+\[
+t_\text{réel} = \frac{t_\text{modèle}}{f_\text{calib} \cdot f_\text{orientation}}
+\]
+
+Pour un contenant couché:
+
+\[
+f_\text{orientation} = 1{,}0
+\]
+
+Pour un contenant debout, la valeur actuelle est:
+
+\[
+f_\text{orientation} = 1{,}17
+\]
+
+Le temps calculé pour les contenants debout est ainsi divisé environ par 1,17.
+## 11. Limites du modèle
 
 Le calcul ne prend pas en compte :
 

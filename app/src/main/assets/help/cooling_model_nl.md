@@ -216,7 +216,30 @@ De app ondersteunt:
 
 De 0,33 l glazen fles is het nauwkeurigst, omdat deze op een echte meting is gekalibreerd. Andere verpakkingen zijn benaderingen.
 
-## 10. Grenzen van het model
+## 10. Stand van de verpakking
+
+De berekening is gebaseerd op een model voor vrije convectie rond een cilindrische verpakking. De basis is een liggende verpakking.
+
+Voor staande verpakkingen gebruikt de app momenteel een benaderingsfactor, omdat de echte luchtstroming en warmteafgifte anders kunnen zijn:
+
+\[
+t_\text{werkelijk} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{stand}}
+\]
+
+Voor liggend geldt:
+
+\[
+f_\text{stand} = 1{,}0
+\]
+
+Voor staand geldt momenteel:
+
+\[
+f_\text{stand} = 1{,}17
+\]
+
+Daardoor wordt de berekende tijd voor staande verpakkingen ongeveer door 1,17 gedeeld.
+## 11. Grenzen van het model
 
 De berekening houdt geen rekening met:
 

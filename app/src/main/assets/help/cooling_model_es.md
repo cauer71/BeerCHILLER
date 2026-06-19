@@ -216,7 +216,30 @@ La app admite:
 
 La botella de vidrio de 0,33 l es el caso más preciso porque está calibrada con una medición real. Los demás envases son aproximaciones.
 
-## 10. Límites del modelo
+## 10. Orientación del envase
+
+El cálculo se basa en un modelo de convección libre para un envase cilíndrico. El caso base es un envase tumbado.
+
+Para envases de pie, la app aplica actualmente un factor aproximado, porque el flujo real de aire y la transferencia de calor pueden variar:
+
+\[
+t_\text{real} = \frac{t_\text{modelo}}{f_\text{calib} \cdot f_\text{orientación}}
+\]
+
+Para envases tumbados:
+
+\[
+f_\text{orientación} = 1{,}0
+\]
+
+Para envases de pie, el valor actual es:
+
+\[
+f_\text{orientación} = 1{,}17
+\]
+
+Así, el tiempo calculado para envases de pie se divide aproximadamente por 1,17.
+## 11. Límites del modelo
 
 El cálculo no tiene en cuenta:
 

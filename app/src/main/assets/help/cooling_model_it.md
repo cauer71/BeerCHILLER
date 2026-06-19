@@ -216,7 +216,30 @@ L'app supporta:
 
 La bottiglia di vetro da 0,33 l è il caso più accurato perché è calibrata con una misura reale. Gli altri contenitori sono approssimazioni.
 
-## 10. Limiti del modello
+## 10. Orientamento del contenitore
+
+Il calcolo si basa su un modello di convezione libera per un contenitore cilindrico. Il caso base è un contenitore in posizione orizzontale.
+
+Per i contenitori in posizione verticale l’app usa attualmente un fattore approssimativo, perché il flusso d’aria reale e lo scambio termico possono cambiare:
+
+\[
+t_\text{real} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{orientamento}}
+\]
+
+Per la posizione orizzontale vale:
+
+\[
+f_\text{orientamento} = 1{,}0
+\]
+
+Per la posizione verticale vale attualmente:
+
+\[
+f_\text{orientamento} = 1{,}17
+\]
+
+In questo modo il tempo calcolato per i contenitori verticali viene diviso circa per 1,17.
+## 11. Limiti del modello
 
 Il calcolo non considera:
 

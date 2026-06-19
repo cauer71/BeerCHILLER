@@ -216,7 +216,30 @@ Die App unterstützt:
 
 Die 0,33-l-Glasflasche ist der genaueste Fall, weil sie mit einem echten Versuch kalibriert wurde. Andere Gebinde sind Näherungen.
 
-## 10. Grenzen des Modells
+## 10. Lage des Gefäßes
+
+Die Berechnung basiert auf einem Modell für freie Konvektion am zylindrischen Gefäß. Der Basisfall ist ein liegendes Gefäß.
+
+Für stehende Gefäße verwendet die App derzeit einen Näherungsfaktor, weil die reale Luftströmung und Wärmeabgabe anders sein können:
+
+\[
+t_\text{real} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{lage}}
+\]
+
+Für liegend gilt:
+
+\[
+f_\text{lage} = 1{,}0
+\]
+
+Für stehend gilt derzeit:
+
+\[
+f_\text{lage} = 1{,}17
+\]
+
+Dadurch wird die berechnete Zeit für stehende Gefäße ungefähr durch 1,17 geteilt.
+## 11. Grenzen des Modells
 
 Die Berechnung berücksichtigt nicht:
 

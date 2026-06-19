@@ -216,7 +216,30 @@ The app supports:
 
 The 0.33 l glass bottle is the most accurate case because it is calibrated with a real measurement. Other containers are approximations.
 
-## 10. Model limits
+## 10. Container orientation
+
+The calculation is based on a free-convection model for a cylindrical container. The base case is a lying container.
+
+For standing containers, the app currently applies an approximation factor because real airflow and heat transfer can differ:
+
+\[
+t_\text{real} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{orientation}}
+\]
+
+For lying containers:
+
+\[
+f_\text{orientation} = 1.0
+\]
+
+For standing containers, the current value is:
+
+\[
+f_\text{orientation} = 1.17
+\]
+
+This divides the calculated cooling time for standing containers by about 1.17.
+## 11. Model limits
 
 The calculation does not consider:
 

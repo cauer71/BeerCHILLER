@@ -216,7 +216,30 @@ A app suporta:
 
 A garrafa de vidro de 0,33 l é o caso mais preciso porque foi calibrada com uma medição real. Os outros recipientes são aproximações.
 
-## 10. Limites do modelo
+## 10. Orientação do recipiente
+
+O cálculo baseia-se num modelo de convecção livre para um recipiente cilíndrico. O caso base é um recipiente deitado.
+
+Para recipientes em pé, a app usa atualmente um fator aproximado, porque o fluxo real de ar e a transferência de calor podem mudar:
+
+\[
+t_\text{real} = \frac{t_\text{modelo}}{f_\text{calib} \cdot f_\text{orientação}}
+\]
+
+Para recipientes deitados:
+
+\[
+f_\text{orientação} = 1{,}0
+\]
+
+Para recipientes em pé, o valor atual é:
+
+\[
+f_\text{orientação} = 1{,}17
+\]
+
+Assim, o tempo calculado para recipientes em pé é dividido aproximadamente por 1,17.
+## 11. Limites do modelo
 
 O cálculo não considera:
 

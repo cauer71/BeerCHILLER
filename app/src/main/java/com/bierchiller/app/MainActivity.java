@@ -78,6 +78,8 @@ public class MainActivity extends Activity {
     private static final double REFERENCE_TARGET_TEMP = 8.0;
     private static final double REFERENCE_DEVICE_TEMP = -17.5;
     private static final double REFERENCE_MEASURED_SECONDS = 54.4 * 60.0;
+    private static final double ORIENTATION_FACTOR_LYING = 1.0;
+    private static final double ORIENTATION_FACTOR_STANDING = 1.17;
     private static final String[] LANGUAGE_CODES = new String[]{
             LocaleHelper.SYSTEM_LANGUAGE, "de", "en", "it", "fr", "es", "pt", "nl", "pl", "cs", "hr"
     };
@@ -503,11 +505,7 @@ public class MainActivity extends Activity {
             return;
         }
         deviceTemp = clamp(deviceTemp + delta, -30, 5);
-        if (deviceTemp == FRIDGE_TEMP) {
-            deviceMode = DEVICE_FRIDGE;
-        } else if (deviceTemp == FREEZER_TEMP) {
-            deviceMode = DEVICE_FREEZER;
-        }
+        syncDeviceModeWithTemperature();
         saveInputPreferences();
         updateIdleDisplay();
     }
@@ -522,6 +520,10 @@ public class MainActivity extends Activity {
         updateIdleDisplay();
     }
 
+    private void syncDeviceModeWithTemperature() {
+        deviceMode = deviceTemp < 0 ? DEVICE_FREEZER : DEVICE_FRIDGE;
+    }
+
     private void restoreInputPreferences() {
         startTemp = preferences.getInt(KEY_START_TEMP, startTemp);
         targetTemp = preferences.getInt(KEY_TARGET_TEMP, targetTemp);
@@ -534,7 +536,7 @@ public class MainActivity extends Activity {
         startTemp = clamp(startTemp, -5, 40);
         targetTemp = clamp(targetTemp, -5, 20);
         deviceTemp = clamp(deviceTemp, -30, 5);
-        deviceMode = deviceMode == DEVICE_FRIDGE ? DEVICE_FRIDGE : DEVICE_FREEZER;
+        syncDeviceModeWithTemperature();
         containerType = containerType == CONTAINER_CAN ? CONTAINER_CAN : CONTAINER_BOTTLE;
         orientation = orientation == ORIENTATION_STANDING ? ORIENTATION_STANDING : ORIENTATION_LYING;
         volumeIndex = Math.max(VOLUME_SMALL, Math.min(volumeIndex, VOLUME_LARGE));
@@ -781,9 +783,7 @@ public class MainActivity extends Activity {
     }
 
     private void updateDeviceModeButtons() {
-        boolean freezerSelected = deviceTemp == FREEZER_TEMP && deviceMode == DEVICE_FREEZER;
-        boolean fridgeSelected = deviceTemp == FRIDGE_TEMP && deviceMode == DEVICE_FRIDGE;
-        Button newDeviceButton = freezerSelected || !fridgeSelected ? freezerButton : fridgeButton;
+        Button newDeviceButton = deviceMode == DEVICE_FRIDGE ? fridgeButton : freezerButton;
         styleSegmentGroup(new Button[]{freezerButton, fridgeButton}, newDeviceButton, selectedDeviceButton);
         selectedDeviceButton = newDeviceButton;
     }
@@ -1061,7 +1061,7 @@ public class MainActivity extends Activity {
             return targetTemp;
         }
         double elapsedSeconds = Math.max(0.0, result.seconds * Math.max(0f, Math.min(1f, elapsedProgress)));
-        double modelElapsedSeconds = elapsedSeconds * result.freezerCalibrationFactor;
+        double modelElapsedSeconds = elapsedSeconds * result.freezerCalibrationFactor * result.orientationFactor;
         double dimensionlessTime = modelElapsedSeconds * result.hMax * result.area / result.thermalCapacity;
         double theta = Math.pow(4.0 / (dimensionlessTime + 4.0), 4.0);
         double temperature = deviceTemp + (startTemp - deviceTemp) * theta;
@@ -1069,11 +1069,13 @@ public class MainActivity extends Activity {
     }
 
     private CoolingResult calculateCoolingResult() {
+        OrientationPreset orientationPreset = selectedOrientationPreset();
         if (deviceTemp <= -273.15 || targetTemp <= deviceTemp) {
             return CoolingResult.invalid();
         }
         if (targetTemp >= startTemp) {
-            return new CoolingResult(true, 0.0, 0.0, 0.0, 0.0, 1.0, freezerCalibrationFactor());
+            return new CoolingResult(true, 0.0, 0.0, 0.0, 0.0, 1.0,
+                    freezerCalibrationFactor(), orientationPreset.orientation, orientationPreset.factor);
         }
 
         ContainerPreset preset = selectedContainerPreset();
@@ -1092,8 +1094,11 @@ public class MainActivity extends Activity {
         }
 
         double freezerCalibrationFactor = freezerCalibrationFactor();
-        double seconds = model.seconds / freezerCalibrationFactor;
-        if (!Double.isFinite(seconds) || seconds < 0.0 || !Double.isFinite(freezerCalibrationFactor)) {
+        double seconds = applyCalibrationFactors(model.seconds, freezerCalibrationFactor, orientationPreset.factor);
+        if (!Double.isFinite(seconds) || seconds < 0.0
+                || !Double.isFinite(freezerCalibrationFactor)
+                || !Double.isFinite(orientationPreset.factor)
+                || orientationPreset.factor <= 0.0) {
             return CoolingResult.invalid();
         }
         return new CoolingResult(
@@ -1103,8 +1108,22 @@ public class MainActivity extends Activity {
                 model.area,
                 model.thermalCapacity,
                 model.thetaTarget,
-                freezerCalibrationFactor
+                freezerCalibrationFactor,
+                orientationPreset.orientation,
+                orientationPreset.factor
         );
+    }
+
+    static double orientationFactorFor(int requestedOrientation) {
+        return requestedOrientation == ORIENTATION_STANDING
+                ? ORIENTATION_FACTOR_STANDING
+                : ORIENTATION_FACTOR_LYING;
+    }
+
+    static double applyCalibrationFactors(double modelSeconds,
+                                          double environmentCalibrationFactor,
+                                          double orientationFactor) {
+        return modelSeconds / (environmentCalibrationFactor * orientationFactor);
     }
 
     private CoolingModel calculateCoolingModelSeconds(double startTempC, double targetTempC,
@@ -1181,6 +1200,11 @@ public class MainActivity extends Activity {
         return new ContainerPreset(CONTAINER_BOTTLE, 0.33, 0.33, 0.214, 840.0, 0.061, 0.235, false);
     }
 
+    private OrientationPreset selectedOrientationPreset() {
+        int selectedOrientation = orientation == ORIENTATION_STANDING ? ORIENTATION_STANDING : ORIENTATION_LYING;
+        return new OrientationPreset(selectedOrientation, orientationFactorFor(selectedOrientation));
+    }
+
     private static class ContainerPreset {
         final int containerType;
         final double volumeLiters;
@@ -1226,9 +1250,12 @@ public class MainActivity extends Activity {
         final double thermalCapacity;
         final double thetaTarget;
         final double freezerCalibrationFactor;
+        final int orientation;
+        final double orientationFactor;
 
         CoolingResult(boolean valid, double seconds, double hMax, double area,
-                      double thermalCapacity, double thetaTarget, double freezerCalibrationFactor) {
+                      double thermalCapacity, double thetaTarget, double freezerCalibrationFactor,
+                      int orientation, double orientationFactor) {
             this.valid = valid;
             this.seconds = seconds;
             this.hMax = hMax;
@@ -1236,10 +1263,23 @@ public class MainActivity extends Activity {
             this.thermalCapacity = thermalCapacity;
             this.thetaTarget = thetaTarget;
             this.freezerCalibrationFactor = freezerCalibrationFactor;
+            this.orientation = orientation;
+            this.orientationFactor = orientationFactor;
         }
 
         static CoolingResult invalid() {
-            return new CoolingResult(false, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+            return new CoolingResult(false, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
+                    ORIENTATION_LYING, ORIENTATION_FACTOR_LYING);
+        }
+    }
+
+    private static class OrientationPreset {
+        final int orientation;
+        final double factor;
+
+        OrientationPreset(int orientation, double factor) {
+            this.orientation = orientation;
+            this.factor = factor;
         }
     }
 

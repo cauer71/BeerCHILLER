@@ -216,7 +216,30 @@ Aplikacija podržava:
 
 Staklena boca od 0,33 l najtočniji je slučaj jer je kalibrirana stvarnim mjerenjem. Ostale posude su aproksimacije.
 
-## 10. Ograničenja modela
+## 10. Položaj posude
+
+Izračun se temelji na modelu slobodne konvekcije oko cilindrične posude. Osnovni slučaj je posuda u ležećem položaju.
+
+Za uspravne posude aplikacija trenutačno koristi približni faktor, jer se stvarno strujanje zraka i prijenos topline mogu razlikovati:
+
+\[
+t_\text{stvarno} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{položaj}}
+\]
+
+Za ležeći položaj vrijedi:
+
+\[
+f_\text{položaj} = 1{,}0
+\]
+
+Za uspravni položaj trenutačno vrijedi:
+
+\[
+f_\text{položaj} = 1{,}17
+\]
+
+Time se izračunato vrijeme za uspravne posude približno dijeli s 1,17.
+## 11. Ograničenja modela
 
 Izračun ne uzima u obzir:
 

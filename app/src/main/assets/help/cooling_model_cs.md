@@ -216,7 +216,30 @@ Aplikace podporuje:
 
 Skleněná lahev 0,33 l je nejpřesnější případ, protože je kalibrována skutečným měřením. Ostatní obaly jsou aproximace.
 
-## 10. Omezení modelu
+## 10. Poloha nádoby
+
+Výpočet vychází z modelu volné konvekce kolem válcové nádoby. Základním případem je nádoba vleže.
+
+Pro nádoby nastojato používá aplikace aktuálně aproximační faktor, protože skutečné proudění vzduchu a přenos tepla se mohou lišit:
+
+\[
+t_\text{skutečný} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{poloha}}
+\]
+
+Pro polohu vleže platí:
+
+\[
+f_\text{poloha} = 1{,}0
+\]
+
+Pro polohu nastojato platí aktuálně:
+
+\[
+f_\text{poloha} = 1{,}17
+\]
+
+Vypočtený čas pro nádoby nastojato se tím přibližně dělí hodnotou 1,17.
+## 11. Omezení modelu
 
 Výpočet nezohledňuje:
 
