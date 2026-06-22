@@ -12,9 +12,9 @@
     <string name="ends_at">Ende um %1$s</string>
     <string name="bottle_size">Flaschengröße</string>
     <string name="bottle_volume">Flaschengröße</string>
-    <string name="start_temperature">Start Temperatur</string>
-    <string name="target_temperature">Ziel Temperatur</string>
-    <string name="device_temperature">Geräte Temperatur</string>
+    <string name="start_temperature">Start\nTemperatur</string>
+    <string name="target_temperature">Ziel\nTemperatur</string>
+    <string name="device_temperature">Geräte\nTemperatur</string>
     <string name="start_timer">Timer starten</string>
     <string name="stop">Stoppen</string>
     <string name="stop_timer">Stoppen</string>

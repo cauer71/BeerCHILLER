@@ -18,6 +18,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.Window;
@@ -163,7 +164,13 @@ public class MainActivity extends Activity {
 
     @Override
     protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LocaleHelper.wrap(newBase));
+        super.attachBaseContext(lockUiFontScale(LocaleHelper.wrap(newBase)));
+    }
+
+    private static Context lockUiFontScale(Context context) {
+        Configuration configuration = new Configuration(context.getResources().getConfiguration());
+        configuration.fontScale = 1.0f;
+        return context.createConfigurationContext(configuration);
     }
 
     @Override
@@ -214,6 +221,7 @@ public class MainActivity extends Activity {
         deviceMinusButton = findViewById(R.id.deviceMinusButton);
         devicePlusButton = findViewById(R.id.devicePlusButton);
 
+        lockCompactControlText();
         preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         restoreInputPreferences();
@@ -379,6 +387,77 @@ public class MainActivity extends Activity {
         return visualMode == VISUAL_BEER;
     }
 
+    private void lockCompactControlText() {
+        keepOneLine(headerBeerText, 28f, android.view.Gravity.CENTER_VERTICAL);
+        keepOneLine(headerChillerText, 28f, android.view.Gravity.CENTER_VERTICAL);
+        keepOneLine(startButtonText, 18f, android.view.Gravity.CENTER);
+        keepOneLine(stopButton, 18f, android.view.Gravity.CENTER);
+
+        Button[] selectorButtons = new Button[]{bottleButton, canButton, lyingButton, standingButton};
+        for (Button button : selectorButtons) {
+            keepOneLine(button, 15f, android.view.Gravity.CENTER);
+            button.setPadding(dpInt(2), 0, dpInt(2), 0);
+        }
+
+        Button[] volumeButtons = new Button[]{volumeSmallButton, volumeMediumButton, volumeLargeButton};
+        for (Button button : volumeButtons) {
+            keepOneLine(button, 17f, android.view.Gravity.CENTER);
+            button.setPadding(dpInt(2), 0, dpInt(2), 0);
+        }
+
+        Button[] deviceButtons = new Button[]{freezerButton, fridgeButton};
+        for (Button button : deviceButtons) {
+            keepOneLine(button, 15f, android.view.Gravity.CENTER);
+            button.setPadding(dpInt(2), 0, dpInt(2), 0);
+        }
+
+        TextView[] labels = new TextView[]{startTempLabel, targetTempLabel, deviceTempLabel};
+        for (TextView label : labels) {
+            keepFixedText(label, 15f, 2, android.view.Gravity.CENTER_VERTICAL);
+            label.setPadding(0, 0, dpInt(8), 0);
+        }
+
+        TextView[] values = new TextView[]{startTempValue, targetTempValue, deviceTempValue};
+        for (TextView value : values) {
+            keepOneLine(value, 19f, android.view.Gravity.CENTER);
+        }
+
+        Button[] stepButtons = new Button[]{
+                startMinusButton, startPlusButton, targetMinusButton, targetPlusButton,
+                deviceMinusButton, devicePlusButton
+        };
+        for (Button button : stepButtons) {
+            keepOneLine(button, 25f, android.view.Gravity.CENTER);
+            button.setPadding(0, 0, 0, 0);
+        }
+    }
+
+    private void keepOneLine(TextView view, float textSizeDp, int gravity) {
+        keepFixedText(view, textSizeDp, 1, gravity);
+    }
+
+    private void keepFixedText(TextView view, float textSizeDp, int maxLines, int gravity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            view.setAutoSizeTextTypeWithDefaults(TextView.AUTO_SIZE_TEXT_TYPE_NONE);
+        }
+        view.setSingleLine(maxLines == 1);
+        view.setMaxLines(maxLines);
+        view.setEllipsize(maxLines == 1 ? TextUtils.TruncateAt.END : null);
+        view.setIncludeFontPadding(false);
+        view.setGravity(gravity);
+        view.setLineSpacing(0f, 0.94f);
+        view.setTextSize(TypedValue.COMPLEX_UNIT_DIP, textSizeDp);
+    }
+
+    private void lockTemperatureValueText() {
+        TextView[] values = new TextView[]{startTempValue, targetTempValue, deviceTempValue};
+        for (TextView value : values) {
+            keepOneLine(value, 19f, android.view.Gravity.CENTER);
+            value.setHorizontallyScrolling(false);
+            value.setMinWidth(dpInt(78));
+        }
+    }
+
     private void styleTemperatureControls(boolean vrStyle) {
         int buttonBackground = vrStyle ? R.drawable.bg_step_button_vr2 : R.drawable.bg_step_button;
         int valueBackground = vrStyle ? R.drawable.bg_value_chip_vr2 : R.drawable.bg_value_chip;
@@ -398,10 +477,8 @@ public class MainActivity extends Activity {
         TextView[] labels = new TextView[]{startTempLabel, targetTempLabel, deviceTempLabel};
         for (TextView label : labels) {
             label.setTextColor(Color.parseColor(vrStyle ? "#4A2509" : "#123B4A"));
-            label.setSingleLine(false);
-            label.setMaxLines(2);
-            label.setGravity(android.view.Gravity.CENTER_VERTICAL);
-            label.setTextSize(TypedValue.COMPLEX_UNIT_SP, vrStyle ? 9.5f : 12f);
+            keepFixedText(label, 15f, 2, android.view.Gravity.CENTER_VERTICAL);
+            label.setPadding(0, 0, dpInt(8), 0);
         }
     }
 
@@ -938,6 +1015,7 @@ public class MainActivity extends Activity {
         startTempValue.setText(formatTemperature(startTemp));
         targetTempValue.setText(formatTemperature(targetTemp));
         deviceTempValue.setText(formatTemperature(deviceTemp));
+        lockTemperatureValueText();
     }
 
     private String formatTemperature(double celsius) {
