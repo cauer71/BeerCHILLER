@@ -4,47 +4,88 @@ BierCHILLER is a native Android application for estimating the cooling time of b
 
 ## Scientific Model
 
-The cooling calculation is based on a lumped-capacitance approximation of a beer bottle or can. The drink and container are treated as one thermally well-mixed body, while the surrounding refrigerator or freezer air is modeled as a constant-temperature reservoir.
+The cooling calculation uses the **BeerChiller Calibrated V2** model. The drink and container are treated as one practical cooling system, while the surrounding refrigerator or freezer air is modeled as a constant-temperature reservoir.
 
-The implemented model follows the free-convection derivation used for a horizontal cylindrical container:
-
-$$
-\theta = \frac{T - T_L}{T_a - T_L}
-$$
+The model uses the temperature difference between beer and device:
 
 $$
-\frac{d\theta}{d\tau} + \theta^{5/4} = 0
+\Delta_0 = T_0 - T_D
 $$
 
 $$
-\theta(\tau) = \left(\frac{4}{\tau + 4}\right)^4
+\theta = \frac{T_Z - T_D}{T_0 - T_D}
 $$
 
 Where:
 
-- `T` is the current beer temperature.
-- `T_a` is the initial beer temperature.
-- `T_L` is the device temperature, such as freezer or refrigerator temperature.
-- `\theta` is the dimensionless temperature difference.
-- `\tau` is the dimensionless cooling time.
+- `T_0` is the initial beer temperature.
+- `T_Z` is the requested target temperature.
+- `T_D` is the device temperature, such as freezer or refrigerator temperature.
+- `\Delta_0` is the starting temperature difference to the device.
+- `\theta` is the dimensionless target ratio.
 
-For a requested target temperature `T_e`, the target state is:
-
-$$
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
-$$
+BeerCHILLER uses a calibrated temperature-dependent cooling curve with the empirical exponent:
 
 $$
-\tau_e = 4 \cdot \left(\theta_e^{-1/4} - 1\right)
+n = 0.15
 $$
 
-The app maps this dimensionless time to minutes through an empirically calibrated cooling-rate constant and container-size factors. This keeps the physically motivated curve shape from the free-convection model while allowing practical calibration for real household refrigerators, freezers, bottle sizes, can sizes, placement, airflow, and glass geometry.
+The final app formula is:
+
+$$
+t =
+\tau_0
+\cdot f_D
+\cdot f_P
+\cdot
+\left(\frac{25}{T_0-T_D}\right)^{0.15}
+\cdot
+\frac{
+\left(
+\frac{T_Z-T_D}{T_0-T_D}
+\right)^{-0.15}
+-1
+}{0.15}
+$$
+
+The app rounds the result up to full minutes:
+
+$$
+t_{app}=\lceil t \rceil
+$$
 
 During an active timer, BierCHILLER uses the same curve to estimate and display the current beer temperature:
 
 $$
-T(t) = T_L + (T_a - T_L) \cdot \left(\frac{4}{\tau + 4}\right)^4
+\theta(t)=
+\left(
+1+n\cdot\frac{t}{\tau_{eff}}
+\right)^{-1/n}
 $$
+
+$$
+T(t)=T_D+(T_0-T_D)\cdot\theta(t)
+$$
+
+The calibrated constants are:
+
+| Container | Volume | `tau_0` |
+|---|---:|---:|
+| Bottle | 0.33 l | 87 min |
+| Bottle | 0.5 l | 110 min |
+| Bottle | 1.0 l | 155 min |
+| Can | 0.33 l | 85 min |
+| Can | 0.5 l | 105 min |
+
+| Device | `f_D` |
+|---|---:|
+| Refrigerator | 1.00 |
+| Freezer | 0.84 |
+
+| Container | Standing `f_P` | Lying `f_P` |
+|---|---:|---:|
+| Bottle | 1.00 | 0.95 |
+| Can | 1.00 | 0.92 |
 
 ### Cooling Model Validation
 
@@ -68,11 +109,11 @@ The model intentionally abstracts real cooling behavior. The result is an estima
 
 Main assumptions:
 
-- Beer and bottle glass are represented by one average temperature.
+- Beer and container are represented by one average temperature.
 - The device air temperature is constant during the cooling process.
-- Bottle orientation and geometry are approximated by a cylindrical model.
-- Heat transfer is dominated by convection between bottle and air.
-- Bottle-size corrections are applied by empirical scaling factors.
+- Cooling slows down as the beer approaches the device temperature.
+- Container size is represented by calibrated base time values.
+- Device type and container position are represented by empirical factors.
 
 Practical deviations can occur because domestic freezers cycle, air movement varies, bottles differ in shape and wall thickness, and the starting temperature may not be uniform.
 
