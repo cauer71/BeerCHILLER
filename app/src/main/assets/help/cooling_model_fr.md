@@ -1,262 +1,109 @@
-# Modèle de calcul
+# Calculation model
 
-L'application calcule le temps de refroidissement d'une bière dans le congélateur à l'aide d'un modèle physique d'approximation.
+The app calculates beer cooling time in a refrigerator or freezer with **BeerChiller Calibrated V2**.
 
-La boisson et le contenant sont considérés comme un seul réservoir thermique. La bouteille ou la canette sont approximées géométriquement par un cylindre. La chaleur est principalement transférée par la surface extérieure vers l'air froid du congélateur.
+The model is a practical approximation. It uses the starting temperature, target temperature, device temperature, container, volume, and position. Real appliances can cool faster or slower because of airflow, contact surfaces, loading, and door openings.
 
-Le calcul reste une approximation. Les congélateurs réels peuvent refroidir plus vite ou plus lentement selon le mouvement de l'air, les surfaces de contact et le type d'appareil.
-
-## 1. Capacité thermique de la boisson et du contenant
-
-La bière et le contenant stockent la chaleur ensemble.
+## 1. Temperature difference
 
 \[
-W = m_B c_B + m_G c_G
+\Delta_0 = T_0 - T_D
 \]
-
-Où :
-
-- \(W\) : capacité thermique totale en J/K
-- \(m_B\) : masse de la bière
-- \(c_B\) : capacité thermique massique de la bière
-- \(m_G\) : masse du contenant, en verre ou en aluminium
-- \(c_G\) : capacité thermique massique du contenant
-
-Pour la bière, l'application utilise :
 
 \[
-c_B = 4200 \,\frac{J}{kgK}
+\theta = \frac{T_Z - T_D}{T_0 - T_D}
 \]
 
-Pour le verre :
+Where:
+
+- \(T_0\): starting beer temperature
+- \(T_Z\): target beer temperature
+- \(T_D\): refrigerator or freezer temperature
+- \(\theta\): dimensionless target ratio
+
+## 2. Cooling curve
+
+Cooling slows down as the beer approaches the appliance temperature. BeerChiller models this with an empirical exponent:
 
 \[
-c_G = 840 \,\frac{J}{kgK}
+n = 0.15
 \]
-
-Pour les canettes en aluminium :
 
 \[
-c_G = 900 \,\frac{J}{kgK}
+\frac{d\Delta}{dt} = -k \cdot \Delta^{1+n}
 \]
 
-## 2. Surface du contenant
-
-Le transfert de chaleur dépend de la surface.
-
-Pour les bouteilles, on utilise la surface latérale du cylindre :
-
-\[
-A = \pi d L
-\]
-
-Pour les canettes, on tient aussi compte des faces :
-
-\[
-A = \pi d L + \frac{\pi d^2}{2}
-\]
-
-Où :
-
-- \(A\) : surface efficace
-- \(d\) : diamètre
-- \(L\) : longueur ou hauteur de la partie cylindrique
-
-## 3. Température sans dimension
-
-Pour la dérivation, l'écart de température est rendu sans dimension :
-
-\[
-\theta = \frac{T - T_L}{T_a - T_L}
-\]
-
-Où :
-
-- \(T\) : température actuelle de la boisson
-- \(T_a\) : température initiale
-- \(T_L\) : température du congélateur
-
-La température cible devient :
-
-\[
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
-\]
-
-## 4. Échange thermique dépendant de la température
-
-En convection naturelle, le coefficient de transfert thermique n'est pas constant.
-
-L'application utilise :
-
-\[
-h = h_{\max} \theta^{1/4}
-\]
-
-Ainsi, le refroidissement commence plus rapidement au début, car la différence de température avec l'air du congélateur est plus grande. Ensuite, le refroidissement ralentit.
-
-## 5. Coefficient maximal de transfert thermique
-
-Pour la convection naturelle approximée sur un cylindre horizontal, l'application utilise :
-
-\[
-h_{\max}
-=
-\frac{k_L}{l}
-\cdot 0{,}402
-\cdot
-\left(
-\frac{g l^3}{T_{L,K} \nu_L \alpha_L}
-\right)^{1/4}
-\cdot
-(T_a - T_L)^{1/4}
-\]
-
-avec la longueur caractéristique :
-
-\[
-l = \frac{\pi d}{2}
-\]
-
-Où :
-
-- \(k_L\) : conductivité thermique de l'air
-- \(\nu_L\) : viscosité cinématique de l'air
-- \(\alpha_L\) : diffusivité thermique de l'air
-- \(g\) : accélération de la pesanteur
-- \(T_{L,K}\) : température du congélateur en Kelvin
-
-Pour la température en Kelvin :
-
-\[
-T_{L,K} = T_L + 273{,}15
-\]
-
-## 6. Équation différentielle
-
-À partir du bilan énergétique :
-
-\[
-W \frac{dT}{dt} = -h A (T - T_L)
-\]
-
-Avec la température sans dimension :
-
-\[
-\frac{d\theta}{dt}
-=
--\frac{h_{\max} A}{W}
-\theta^{5/4}
-\]
-
-L'exposant \(5/4\) apparaît parce que le coefficient d'échange thermique dépend lui-même de l'écart de température.
-
-## 7. Formule du temps
-
-Après résolution de l'équation différentielle, le temps jusqu'à la température cible est :
+## 3. Final app formula
 
 \[
 t =
-\frac{W}{h_{\max} A}
+\tau_0
+\cdot f_D
+\cdot f_P
 \cdot
-4
-\left[
-\theta_e^{-1/4}
--1
-\right]
-\]
-
-avec :
-
-\[
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
-\]
-
-## 8. Calibration pour de vrais congélateurs
-
-Un congélateur réel ne correspond pas exactement au modèle idéalisé. Le mouvement de l'air, le contact avec les clayettes et les surfaces froides peuvent accélérer le refroidissement.
-
-C'est pourquoi l'application utilise un facteur de calibration :
-
-\[
-f_\text{calib}
-\]
-
-L'application est calibrée à partir d'un essai pratique avec une bouteille en verre de 0,33 l :
-
-- Volume de la bouteille : 0,33 l
-- Masse du verre : 214 g
-- Température du congélateur : −17,5 °C
-- Température initiale : 39,5 °C
-- Température cible : 8,0 °C
-- temps mesuré : 54,4 minutes
-
-La formule finale est donc :
-
-\[
-t =
-\frac{W}{h_{\max} A f_\text{calib}}
+\left(\frac{25}{T_0-T_D}\right)^{0.15}
 \cdot
-4
-\left[
+\frac{
 \left(
-\frac{T_e - T_L}{T_a - T_L}
-\right)^{-1/4}
+\frac{T_Z-T_D}{T_0-T_D}
+\right)^{-0.15}
 -1
-\right]
+}{0.15}
 \]
 
-## 9. Extension à d'autres contenants
-
-Les autres bouteilles et canettes sont extrapolées à partir de la bouteille en verre calibrée de 0,33 l en utilisant la capacité thermique et la surface.
-
-L'application prend en charge :
-
-- Bouteilles : 0,33 l, 0,5 l et 1,0 l
-- Canettes : 0,33 l et 0,5 l
-
-La bouteille en verre de 0,33 l est le cas le plus précis, car elle est calibrée avec une mesure réelle. Les autres contenants sont des approximations.
-
-## 10. Orientation du contenant
-
-Le calcul repose sur un modèle de convection libre pour un contenant cylindrique. Le cas de base est un contenant couché.
-
-Pour les contenants debout, l’application applique actuellement un facteur d’approximation, car l’écoulement réel de l’air et le transfert thermique peuvent changer:
-
 \[
-t_\text{réel} = \frac{t_\text{modèle}}{f_\text{calib} \cdot f_\text{orientation}}
+t_{app}=\lceil t \rceil
 \]
 
-Pour un contenant couché:
+## 4. Constants
+
+Base values for \(\tau_0\):
+
+| Container | Volume | \(\tau_0\) |
+|---|---:|---:|
+| Bottle | 0.33 l | 87 min |
+| Bottle | 0.5 l | 110 min |
+| Bottle | 1.0 l | 155 min |
+| Can | 0.33 l | 85 min |
+| Can | 0.5 l | 105 min |
+
+Device factors:
+
+| Device | \(f_D\) |
+|---|---:|
+| Refrigerator | 1.00 |
+| Freezer | 0.84 |
+
+Position factors:
+
+| Container | Standing | Lying |
+|---|---:|---:|
+| Bottle | 1.00 | 0.95 |
+| Can | 1.00 | 0.92 |
+
+## 5. Temperature during the timer
 
 \[
-f_\text{orientation} = 1{,}0
+\theta(t)=
+\left(
+1+n\cdot\frac{t}{\tau_{eff}}
+\right)^{-1/n}
 \]
 
-Pour un contenant debout, la valeur actuelle est:
-
 \[
-f_\text{orientation} = 1{,}17
+T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 \]
 
-Le temps calculé pour les contenants debout est ainsi divisé environ par 1,17.
-## 11. Limites du modèle
+## 6. Validity rules
 
-Le calcul ne prend pas en compte :
+- If \(T_0 \le T_Z\), the beer is already cold enough.
+- If \(T_Z \le T_D\), the target temperature is not meaningfully reachable.
+- Only \(0 < \theta < 1\) is valid.
 
-- la formation de glace
-- la chaleur de cristallisation
-- les changements d'état
-- l'agitation ou le mouvement de la bière
-- le flux d'air exact dans le congélateur
-- les différentes formes de bouteilles
-- les surfaces de contact exactes avec la clayette
+## Example
 
-Près du point de congélation, le calcul devient moins fiable. Pour des températures de consommation normales comme 8 °C ou 6 °C, le modèle reste une approximation pratique.
-
-## Exemple
-
-Une bouteille en verre de 0,33 l passant de 20 °C à 8 °C dans un congélateur à −18 °C donne environ :
+A 0.33 l glass bottle from 39.5 degrees Celsius to 6 degrees Celsius in a freezer at -17.5 degrees Celsius gives:
 
 \[
-t \approx 27\,\text{min}
+t_{app} \approx 62\,\text{min}
 \]

@@ -1,262 +1,109 @@
-# Modello di calcolo
+# Calculation model
 
-L'app calcola il tempo di raffreddamento di una birra nel congelatore con un modello fisico di approssimazione.
+The app calculates beer cooling time in a refrigerator or freezer with **BeerChiller Calibrated V2**.
 
-La bevanda e il contenitore sono considerati come un unico serbatoio termico. La bottiglia o la lattina vengono approssimate geometricamente come un cilindro. Il calore viene trasferito soprattutto attraverso la superficie esterna verso l'aria fredda del congelatore.
+The model is a practical approximation. It uses the starting temperature, target temperature, device temperature, container, volume, and position. Real appliances can cool faster or slower because of airflow, contact surfaces, loading, and door openings.
 
-Il calcolo è un'approssimazione. I congelatori reali possono raffreddare più velocemente o più lentamente a causa del movimento dell'aria, delle superfici di contatto e di diversi tipi di apparecchi.
-
-## 1. Capacità termica di bevanda e contenitore
-
-Birra e contenitore accumulano calore insieme.
+## 1. Temperature difference
 
 \[
-W = m_B c_B + m_G c_G
+\Delta_0 = T_0 - T_D
 \]
-
-Dove:
-
-- \(W\): capacità termica totale in J/K
-- \(m_B\): massa della birra
-- \(c_B\): calore specifico della birra
-- \(m_G\): massa del contenitore, vetro o alluminio
-- \(c_G\): calore specifico del contenitore
-
-Per la birra l'app usa:
 
 \[
-c_B = 4200 \,\frac{J}{kgK}
+\theta = \frac{T_Z - T_D}{T_0 - T_D}
 \]
 
-Per il vetro:
+Where:
+
+- \(T_0\): starting beer temperature
+- \(T_Z\): target beer temperature
+- \(T_D\): refrigerator or freezer temperature
+- \(\theta\): dimensionless target ratio
+
+## 2. Cooling curve
+
+Cooling slows down as the beer approaches the appliance temperature. BeerChiller models this with an empirical exponent:
 
 \[
-c_G = 840 \,\frac{J}{kgK}
+n = 0.15
 \]
-
-Per le lattine in alluminio:
 
 \[
-c_G = 900 \,\frac{J}{kgK}
+\frac{d\Delta}{dt} = -k \cdot \Delta^{1+n}
 \]
 
-## 2. Superficie del contenitore
-
-La cessione di calore dipende dalla superficie.
-
-Per le bottiglie si usa la superficie laterale del cilindro:
-
-\[
-A = \pi d L
-\]
-
-Per le lattine si considerano anche le basi:
-
-\[
-A = \pi d L + \frac{\pi d^2}{2}
-\]
-
-Dove:
-
-- \(A\): superficie efficace
-- \(d\): diametro
-- \(L\): lunghezza o altezza della parte cilindrica
-
-## 3. Temperatura adimensionale
-
-Per la derivazione, la differenza di temperatura viene resa adimensionale:
-
-\[
-\theta = \frac{T - T_L}{T_a - T_L}
-\]
-
-Dove:
-
-- \(T\): temperatura attuale della bevanda
-- \(T_a\): temperatura iniziale
-- \(T_L\): temperatura del congelatore
-
-La temperatura obiettivo è:
-
-\[
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
-\]
-
-## 4. Scambio termico dipendente dalla temperatura
-
-Per convezione naturale il coefficiente di scambio termico non è costante.
-
-L'app usa:
-
-\[
-h = h_{\max} \theta^{1/4}
-\]
-
-Così il raffreddamento è più rapido all'inizio, perché la differenza di temperatura con l'aria del congelatore è maggiore. In seguito il raffreddamento rallenta.
-
-## 5. Coefficiente massimo di scambio termico
-
-Per la convezione naturale approssimata su un cilindro orizzontale si usa:
-
-\[
-h_{\max}
-=
-\frac{k_L}{l}
-\cdot 0{,}402
-\cdot
-\left(
-\frac{g l^3}{T_{L,K} \nu_L \alpha_L}
-\right)^{1/4}
-\cdot
-(T_a - T_L)^{1/4}
-\]
-
-con la lunghezza caratteristica:
-
-\[
-l = \frac{\pi d}{2}
-\]
-
-Dove:
-
-- \(k_L\): conducibilità termica dell'aria
-- \(\nu_L\): viscosità cinematica dell'aria
-- \(\alpha_L\): diffusività termica dell'aria
-- \(g\): accelerazione di gravità
-- \(T_{L,K}\): temperatura del congelatore in Kelvin
-
-Per la temperatura in Kelvin:
-
-\[
-T_{L,K} = T_L + 273{,}15
-\]
-
-## 6. Equazione differenziale
-
-Dall'equilibrio energetico:
-
-\[
-W \frac{dT}{dt} = -h A (T - T_L)
-\]
-
-Con la temperatura adimensionale:
-
-\[
-\frac{d\theta}{dt}
-=
--\frac{h_{\max} A}{W}
-\theta^{5/4}
-\]
-
-L'esponente \(5/4\) compare perché il coefficiente di scambio termico dipende esso stesso dalla differenza di temperatura.
-
-## 7. Formula del tempo
-
-Dopo la soluzione dell'equazione differenziale, il tempo fino alla temperatura obiettivo è:
+## 3. Final app formula
 
 \[
 t =
-\frac{W}{h_{\max} A}
+\tau_0
+\cdot f_D
+\cdot f_P
 \cdot
-4
-\left[
-\theta_e^{-1/4}
--1
-\right]
-\]
-
-con:
-
-\[
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
-\]
-
-## 8. Calibrazione per congelatori reali
-
-Un congelatore reale non corrisponde esattamente al modello idealizzato. Movimento dell'aria, contatto con i ripiani e superfici fredde possono accelerare il raffreddamento.
-
-Per questo l'app usa un fattore di calibrazione:
-
-\[
-f_\text{calib}
-\]
-
-L'app è calibrata con una prova pratica su una bottiglia di vetro da 0,33 l:
-
-- Volume bottiglia: 0,33 l
-- Massa vetro: 214 g
-- Temperatura congelatore: −17,5 °C
-- Temperatura iniziale: 39,5 °C
-- Temperatura obiettivo: 8,0 °C
-- tempo misurato: 54,4 minuti
-
-La formula finale è quindi:
-
-\[
-t =
-\frac{W}{h_{\max} A f_\text{calib}}
+\left(\frac{25}{T_0-T_D}\right)^{0.15}
 \cdot
-4
-\left[
+\frac{
 \left(
-\frac{T_e - T_L}{T_a - T_L}
-\right)^{-1/4}
+\frac{T_Z-T_D}{T_0-T_D}
+\right)^{-0.15}
 -1
-\right]
+}{0.15}
 \]
 
-## 9. Estensione ad altri contenitori
-
-Altre bottiglie e lattine vengono ricavate dalla bottiglia di vetro calibrata da 0,33 l usando capacità termica e superficie.
-
-L'app supporta:
-
-- Bottiglie: 0,33 l, 0,5 l e 1,0 l
-- Lattine: 0,33 l e 0,5 l
-
-La bottiglia di vetro da 0,33 l è il caso più accurato perché è calibrata con una misura reale. Gli altri contenitori sono approssimazioni.
-
-## 10. Orientamento del contenitore
-
-Il calcolo si basa su un modello di convezione libera per un contenitore cilindrico. Il caso base è un contenitore in posizione orizzontale.
-
-Per i contenitori in posizione verticale l’app usa attualmente un fattore approssimativo, perché il flusso d’aria reale e lo scambio termico possono cambiare:
-
 \[
-t_\text{real} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{orientamento}}
+t_{app}=\lceil t \rceil
 \]
 
-Per la posizione orizzontale vale:
+## 4. Constants
+
+Base values for \(\tau_0\):
+
+| Container | Volume | \(\tau_0\) |
+|---|---:|---:|
+| Bottle | 0.33 l | 87 min |
+| Bottle | 0.5 l | 110 min |
+| Bottle | 1.0 l | 155 min |
+| Can | 0.33 l | 85 min |
+| Can | 0.5 l | 105 min |
+
+Device factors:
+
+| Device | \(f_D\) |
+|---|---:|
+| Refrigerator | 1.00 |
+| Freezer | 0.84 |
+
+Position factors:
+
+| Container | Standing | Lying |
+|---|---:|---:|
+| Bottle | 1.00 | 0.95 |
+| Can | 1.00 | 0.92 |
+
+## 5. Temperature during the timer
 
 \[
-f_\text{orientamento} = 1{,}0
+\theta(t)=
+\left(
+1+n\cdot\frac{t}{\tau_{eff}}
+\right)^{-1/n}
 \]
 
-Per la posizione verticale vale attualmente:
-
 \[
-f_\text{orientamento} = 1{,}17
+T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 \]
 
-In questo modo il tempo calcolato per i contenitori verticali viene diviso circa per 1,17.
-## 11. Limiti del modello
+## 6. Validity rules
 
-Il calcolo non considera:
+- If \(T_0 \le T_Z\), the beer is already cold enough.
+- If \(T_Z \le T_D\), the target temperature is not meaningfully reachable.
+- Only \(0 < \theta < 1\) is valid.
 
-- formazione di ghiaccio
-- calore di cristallizzazione
-- cambiamenti di fase
-- agitazione o movimento della birra
-- flusso d'aria esatto nel congelatore
-- forme diverse delle bottiglie
-- superfici di contatto esatte con il ripiano
+## Example
 
-Vicino al punto di congelamento il calcolo diventa meno affidabile. Per temperature di consumo normali come 8 °C o 6 °C il modello è una buona approssimazione pratica.
-
-## Esempio
-
-Una bottiglia di vetro da 0,33 l da 20 °C a 8 °C in un congelatore a −18 °C dà circa:
+A 0.33 l glass bottle from 39.5 degrees Celsius to 6 degrees Celsius in a freezer at -17.5 degrees Celsius gives:
 
 \[
-t \approx 27\,\text{min}
+t_{app} \approx 62\,\text{min}
 \]

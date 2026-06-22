@@ -86,6 +86,7 @@ public class HelpActivity extends Activity {
         StringBuilder paragraph = new StringBuilder();
         boolean inList = false;
         boolean inFormula = false;
+        boolean inTable = false;
         boolean cardOpen = false;
         boolean introOpen = false;
 
@@ -110,6 +111,25 @@ public class HelpActivity extends Activity {
                 html.append("<div class=\"formula\">").append(escapeHtml(rawLine)).append('\n');
                 inFormula = true;
                 continue;
+            }
+            if (isTableRow(line)) {
+                flushParagraph(html, paragraph);
+                if (inList) {
+                    html.append("</ul>");
+                    inList = false;
+                }
+                if (!isTableSeparator(line)) {
+                    if (!inTable) {
+                        html.append("<div class=\"table-wrap\"><table>");
+                        inTable = true;
+                    }
+                    appendTableRow(html, line);
+                }
+                continue;
+            }
+            if (inTable) {
+                html.append("</table></div>");
+                inTable = false;
             }
             if (line.isEmpty()) {
                 flushParagraph(html, paragraph);
@@ -168,6 +188,9 @@ public class HelpActivity extends Activity {
         if (inFormula) {
             html.append("</div>");
         }
+        if (inTable) {
+            html.append("</table></div>");
+        }
         if (inList) {
             html.append("</ul>");
         }
@@ -186,6 +209,23 @@ public class HelpActivity extends Activity {
         }
         html.append("<p>").append(formatInline(paragraph.toString())).append("</p>");
         paragraph.setLength(0);
+    }
+
+    private boolean isTableRow(String line) {
+        return line.startsWith("|") && line.endsWith("|") && line.indexOf('|', 1) > 0;
+    }
+
+    private boolean isTableSeparator(String line) {
+        return line.matches("^\\|[\\s:\\-\\|]+\\|$");
+    }
+
+    private void appendTableRow(StringBuilder html, String line) {
+        String[] cells = line.substring(1, line.length() - 1).split("\\|", -1);
+        html.append("<tr>");
+        for (String cell : cells) {
+            html.append("<td>").append(formatInline(cell.trim())).append("</td>");
+        }
+        html.append("</tr>");
     }
 
     private String formatInline(String text) {

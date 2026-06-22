@@ -1,245 +1,183 @@
 # Calculation model
 
-The app calculates the cooling time of a beer in a freezer using a physical approximation model.
+The app calculates beer cooling time in a refrigerator or freezer with **BeerChiller Calibrated V2**.
 
-The drink and the container are treated as one shared thermal store. The bottle or can is approximated geometrically as a cylinder. Heat is mainly transferred through the outer surface to the cold air in the freezer.
+The model is a practical approximation. It uses the starting temperature, target temperature, device temperature, container, volume, and position. Real appliances can cool faster or slower because of airflow, contact surfaces, loading, and door openings.
 
-The calculation is an approximation. Real freezers can cool faster or slower because of air movement, contact surfaces, and different appliance designs.
+## 1. Temperature difference
 
-## 1. Heat capacity of drink and container
-
-Beer and container store heat together.
+The driving value is the temperature difference between beer and appliance:
 
 \[
-W = m_B c_B + m_G c_G
+\Delta = T - T_D
 \]
 
 Where:
 
-- \(W\): total heat capacity in J/K
-- \(m_B\): mass of the beer
-- \(c_B\): specific heat capacity of the beer
-- \(m_G\): mass of the container, either glass or aluminum
-- \(c_G\): specific heat capacity of the container
+- \(T\): current beer temperature
+- \(T_D\): refrigerator or freezer temperature
 
-For beer, the app uses:
+At the start:
 
 \[
-c_B = 4200 \,\frac{J}{kgK}
+\Delta_0 = T_0 - T_D
 \]
 
-For glass:
+The target temperature is written as a dimensionless ratio:
 
 \[
-c_G = 840 \,\frac{J}{kgK}
-\]
-
-For aluminum cans:
-
-\[
-c_G = 900 \,\frac{J}{kgK}
-\]
-
-## 2. Surface area of the container
-
-Heat loss depends on the surface area.
-
-For bottles, the cylindrical side area is used:
-
-\[
-A = \pi d L
-\]
-
-For cans, the end faces are also included:
-
-\[
-A = \pi d L + \frac{\pi d^2}{2}
+\theta = \frac{T_Z - T_D}{T_0 - T_D}
 \]
 
 Where:
 
-- \(A\): effective surface area
-- \(d\): diameter
-- \(L\): length or height of the cylindrical part
+- \(T_0\): starting beer temperature
+- \(T_Z\): target beer temperature
+- \(\theta\): dimensionless target ratio
 
-## 3. Dimensionless temperature
+## 2. Temperature-dependent heat transfer
 
-For the derivation, the temperature difference is written in dimensionless form:
-
-\[
-\theta = \frac{T - T_L}{T_a - T_L}
-\]
-
-Where:
-
-- \(T\): current drink temperature
-- \(T_a\): initial temperature
-- \(T_L\): freezer temperature
-
-The target temperature is:
+As the beer gets closer to the appliance temperature, cooling slows down. BeerChiller models this with a small empirical exponent:
 
 \[
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
+n = 0.15
 \]
 
-## 4. Temperature-dependent heat transfer
+The heat flow is approximated as proportional to:
 
-For free convection, the heat transfer coefficient is not constant.
+\[
+\dot Q \sim \Delta^{1+n}
+\]
+
+This gives the cooling equation:
+
+\[
+\frac{d\Delta}{dt} = -k \cdot \Delta^{1+n}
+\]
+
+## 3. Time formula
+
+After separating the variables, the time from the starting difference \(\Delta_0\) to the target difference \(\Delta_Z\) is:
+
+\[
+t \sim \Delta_0^{-n} \cdot \frac{\theta^{-n}-1}{n}
+\]
+
+The app uses a reference temperature difference so the constants remain easy to calibrate:
+
+\[
+\Delta_{ref}=25K
+\]
+
+## 4. Final app formula
 
 The app uses:
 
 \[
-h = h_{\max} \theta^{1/4}
-\]
-
-This means cooling starts faster at the beginning, because the temperature difference to the freezer air is larger. Later the cooling becomes slower.
-
-## 5. Maximum heat transfer coefficient
-
-For the approximated free convection on a horizontal cylinder, the app uses:
-
-\[
-h_{\max}
-=
-\frac{k_L}{l}
-\cdot 0{,}402
-\cdot
-\left(
-\frac{g l^3}{T_{L,K} \nu_L \alpha_L}
-\right)^{1/4}
-\cdot
-(T_a - T_L)^{1/4}
-\]
-
-with the characteristic length:
-
-\[
-l = \frac{\pi d}{2}
-\]
-
-Where:
-
-- \(k_L\): thermal conductivity of air
-- \(\nu_L\): kinematic viscosity of air
-- \(\alpha_L\): thermal diffusivity of air
-- \(g\): gravitational acceleration
-- \(T_{L,K}\): freezer temperature in Kelvin
-
-For Kelvin temperature:
-
-\[
-T_{L,K} = T_L + 273{,}15
-\]
-
-## 6. Differential equation
-
-From the energy balance:
-
-\[
-W \frac{dT}{dt} = -h A (T - T_L)
-\]
-
-With the dimensionless temperature:
-
-\[
-\frac{d\theta}{dt}
-=
--\frac{h_{\max} A}{W}
-\theta^{5/4}
-\]
-
-The exponent \(5/4\) appears because the heat transfer coefficient itself depends on the temperature difference.
-
-## 7. Time formula
-
-After solving the differential equation, the time until the target temperature is:
-
-\[
 t =
-\frac{W}{h_{\max} A}
+\tau_0
+\cdot f_D
+\cdot f_P
 \cdot
-4
-\left[
-\theta_e^{-1/4}
--1
-\right]
-\]
-
-with:
-
-\[
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
-\]
-
-## 8. Calibration for real freezers
-
-A real freezer does not match the idealized model exactly. Air movement, contact with shelves, and cold surfaces can speed up cooling.
-
-Therefore the app uses a calibration factor:
-
-\[
-f_\text{calib}
-\]
-
-The app is calibrated with a practical test using a 0.33 l glass bottle:
-
-- Bottle volume: 0.33 l
-- Glass mass: 214 g
-- Freezer temperature: −17.5 °C
-- Initial temperature: 39.5 °C
-- Target temperature: 8.0 °C
-- measured time: 54.4 minutes
-
-The final formula is:
-
-\[
-t =
-\frac{W}{h_{\max} A f_\text{calib}}
+\left(\frac{25}{T_0-T_D}\right)^{0.15}
 \cdot
-4
-\left[
+\frac{
 \left(
-\frac{T_e - T_L}{T_a - T_L}
-\right)^{-1/4}
+\frac{T_Z-T_D}{T_0-T_D}
+\right)^{-0.15}
 -1
-\right]
+}{0.15}
 \]
 
-## 9. Scaling to other containers
-
-Other bottles and cans are scaled from the calibrated 0.33 l glass bottle using heat capacity and surface area.
-
-The app supports:
-
-- Bottles: 0.33 l, 0.5 l and 1.0 l
-- Cans: 0.33 l and 0.5 l
-
-The 0.33 l glass bottle is the most accurate case because it is calibrated with a real measurement. Other containers are approximations.
-
-## 10. Container orientation
-
-The calculation is based on a free-convection model for a cylindrical container. The base case is a lying container.
-
-For standing containers, the app currently applies an approximation factor because real airflow and heat transfer can differ:
+The calculated time is rounded up to full minutes:
 
 \[
-t_\text{real} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{orientation}}
+t_{app}=\lceil t \rceil
 \]
 
-For lying containers:
+If a positive time below one minute occurs, the app shows at least 1 minute.
+
+## 5. Constants
+
+The global calibration is:
 
 \[
-f_\text{orientation} = 1.0
+n = 0.15
 \]
-
-For standing containers, the current value is:
 
 \[
-f_\text{orientation} = 1.17
+\Delta_{ref}=25K
 \]
 
-This divides the calculated cooling time for standing containers by about 1.17.
-## 11. Model limits
+Base values for \(\tau_0\):
+
+| Container | Volume | \(\tau_0\) |
+|---|---:|---:|
+| Bottle | 0.33 l | 87 min |
+| Bottle | 0.5 l | 110 min |
+| Bottle | 1.0 l | 155 min |
+| Can | 0.33 l | 85 min |
+| Can | 0.5 l | 105 min |
+
+Device factors:
+
+| Device | \(f_D\) |
+|---|---:|
+| Refrigerator | 1.00 |
+| Freezer | 0.84 |
+
+Position factors:
+
+| Container | Standing | Lying |
+|---|---:|---:|
+| Bottle | 1.00 | 0.95 |
+| Can | 1.00 | 0.92 |
+
+## 6. Temperature during the timer
+
+During an active timer, the app uses the same curve in reverse to estimate the current beer temperature:
+
+\[
+\theta(t)=
+\left(
+1+n\cdot\frac{t}{\tau_{eff}}
+\right)^{-1/n}
+\]
+
+\[
+T(t)=T_D+(T_0-T_D)\cdot\theta(t)
+\]
+
+Here, \(\tau_{eff}\) is the calibrated time factor from \(\tau_0\), \(f_D\), \(f_P\), and the temperature-difference correction.
+
+## 7. Validity rules
+
+The app does not display infinite, negative, or non-computable times.
+
+- If \(T_0 \le T_Z\), the beer is already cold enough.
+- If \(T_Z \le T_D\), the target temperature is not meaningfully reachable.
+- If \(\Delta_0 \le 0\), the input is invalid.
+- Only \(0 < \theta < 1\) is valid.
+
+## 8. Calibration
+
+The model is mainly calibrated against measurements from a 0.33 l glass bottle.
+
+Refrigerator at about 5.3 degrees Celsius and starting temperature 32.94 degrees Celsius:
+
+| Target temperature | Measured time | V2 model |
+|---:|---:|---:|
+| 12 degrees Celsius | about 134 min | 136 min |
+| 10 degrees Celsius | about 172 min | 174 min |
+| 8 degrees Celsius | about 239 min | 239 min |
+
+Freezer at about -17.5 degrees Celsius and starting temperature 39.5 degrees Celsius:
+
+| Target temperature | Measured time | V2 model |
+|---:|---:|---:|
+| 6 degrees Celsius | about 61 min | 62 min |
+
+## 9. Model limits
 
 The calculation does not consider:
 
@@ -247,16 +185,17 @@ The calculation does not consider:
 - crystallization heat
 - phase changes
 - shaking or movement of the beer
-- exact air flow in the freezer
+- exact airflow in the appliance
 - different bottle shapes
 - exact contact surfaces with the shelf
+- cardboard, bags, or additional insulation
 
-Near the freezing point the calculation becomes less reliable. For normal drinking temperatures such as 8 °C or 6 °C, the model is a practical approximation.
+Near the freezing point the calculation becomes less reliable. For normal drinking temperatures such as 8 degrees Celsius or 6 degrees Celsius, the model is a practical approximation.
 
 ## Example
 
-A 0.33 l glass bottle from 20 °C to 8 °C in a freezer at −18 °C gives roughly:
+A 0.33 l glass bottle from 39.5 degrees Celsius to 6 degrees Celsius in a freezer at -17.5 degrees Celsius gives:
 
 \[
-t \approx 27\,\text{min}
+t_{app} \approx 62\,\text{min}
 \]

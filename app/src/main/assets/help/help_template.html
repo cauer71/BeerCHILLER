@@ -86,6 +86,33 @@
       padding: 14px 12px;
     }
     .formula .katex-display { margin: 0; }
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin: 14px 0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,0.52);
+    }
+    table {
+      width: 100%;
+      min-width: 420px;
+      border-collapse: collapse;
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+    tr:first-child td {
+      font-weight: 700;
+      color: var(--text);
+      background: rgba(18,59,74,0.06);
+    }
+    td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    tr:last-child td { border-bottom: 0; }
     .note {
       border-left: 4px solid var(--accent);
     }

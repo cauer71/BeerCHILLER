@@ -1,262 +1,109 @@
-# Model obliczeniowy
+# Calculation model
 
-Aplikacja oblicza czas chłodzenia piwa w zamrażarce za pomocą fizycznego modelu przybliżonego.
+The app calculates beer cooling time in a refrigerator or freezer with **BeerChiller Calibrated V2**.
 
-Napój i opakowanie są traktowane jako jeden wspólny magazyn ciepła. Butelka lub puszka są geometrycznie przybliżane do cylindra. Ciepło oddawane jest głównie przez powierzchnię zewnętrzną do zimnego powietrza w zamrażarce.
+The model is a practical approximation. It uses the starting temperature, target temperature, device temperature, container, volume, and position. Real appliances can cool faster or slower because of airflow, contact surfaces, loading, and door openings.
 
-Obliczenie jest przybliżeniem. Rzeczywiste zamrażarki mogą chłodzić szybciej lub wolniej ze względu na ruch powietrza, powierzchnie kontaktu i różne konstrukcje urządzeń.
-
-## 1. Pojemność cieplna napoju i opakowania
-
-Piwo i opakowanie magazynują ciepło wspólnie.
+## 1. Temperature difference
 
 \[
-W = m_B c_B + m_G c_G
+\Delta_0 = T_0 - T_D
 \]
-
-Gdzie:
-
-- \(W\): całkowita pojemność cieplna w J/K
-- \(m_B\): masa piwa
-- \(c_B\): ciepło właściwe piwa
-- \(m_G\): masa opakowania, czyli szkła lub aluminium
-- \(c_G\): ciepło właściwe opakowania
-
-Dla piwa aplikacja używa:
 
 \[
-c_B = 4200 \,\frac{J}{kgK}
+\theta = \frac{T_Z - T_D}{T_0 - T_D}
 \]
 
-Dla szkła:
+Where:
+
+- \(T_0\): starting beer temperature
+- \(T_Z\): target beer temperature
+- \(T_D\): refrigerator or freezer temperature
+- \(\theta\): dimensionless target ratio
+
+## 2. Cooling curve
+
+Cooling slows down as the beer approaches the appliance temperature. BeerChiller models this with an empirical exponent:
 
 \[
-c_G = 840 \,\frac{J}{kgK}
+n = 0.15
 \]
-
-Dla puszek aluminiowych:
 
 \[
-c_G = 900 \,\frac{J}{kgK}
+\frac{d\Delta}{dt} = -k \cdot \Delta^{1+n}
 \]
 
-## 2. Powierzchnia opakowania
-
-Oddawanie ciepła zależy od powierzchni.
-
-Dla butelek używana jest powierzchnia boczna cylindra:
-
-\[
-A = \pi d L
-\]
-
-Dla puszek dodatkowo uwzględniane są powierzchnie den i wieczka:
-
-\[
-A = \pi d L + \frac{\pi d^2}{2}
-\]
-
-Gdzie:
-
-- \(A\): efektywna powierzchnia
-- \(d\): średnica
-- \(L\): długość lub wysokość części cylindrycznej
-
-## 3. Temperatura bezwymiarowa
-
-Na potrzeby wyprowadzenia różnica temperatur jest zapisana bezwymiarowo:
-
-\[
-\theta = \frac{T - T_L}{T_a - T_L}
-\]
-
-Gdzie:
-
-- \(T\): aktualna temperatura napoju
-- \(T_a\): temperatura początkowa
-- \(T_L\): temperatura zamrażarki
-
-Temperatura docelowa to:
-
-\[
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
-\]
-
-## 4. Współczynnik wymiany ciepła zależny od temperatury
-
-Przy konwekcji swobodnej współczynnik wymiany ciepła nie jest stały.
-
-Aplikacja używa:
-
-\[
-h = h_{\max} \theta^{1/4}
-\]
-
-Dzięki temu chłodzenie na początku przebiega szybciej, ponieważ różnica temperatur względem powietrza w zamrażarce jest większa. Później chłodzenie zwalnia.
-
-## 5. Maksymalny współczynnik wymiany ciepła
-
-Dla przybliżonej konwekcji swobodnej na poziomym cylindrze aplikacja używa:
-
-\[
-h_{\max}
-=
-\frac{k_L}{l}
-\cdot 0{,}402
-\cdot
-\left(
-\frac{g l^3}{T_{L,K} \nu_L \alpha_L}
-\right)^{1/4}
-\cdot
-(T_a - T_L)^{1/4}
-\]
-
-z charakterystyczną długością:
-
-\[
-l = \frac{\pi d}{2}
-\]
-
-Gdzie:
-
-- \(k_L\): przewodność cieplna powietrza
-- \(\nu_L\): kinematyczna lepkość powietrza
-- \(\alpha_L\): dyfuzyjność cieplna powietrza
-- \(g\): przyspieszenie ziemskie
-- \(T_{L,K}\): temperatura zamrażarki w Kelvinach
-
-Dla temperatury w Kelvinach:
-
-\[
-T_{L,K} = T_L + 273{,}15
-\]
-
-## 6. Równanie różniczkowe
-
-Z bilansu energii:
-
-\[
-W \frac{dT}{dt} = -h A (T - T_L)
-\]
-
-Z temperaturą bezwymiarową:
-
-\[
-\frac{d\theta}{dt}
-=
--\frac{h_{\max} A}{W}
-\theta^{5/4}
-\]
-
-Wykładnik \(5/4\) wynika z tego, że sam współczynnik wymiany ciepła zależy od różnicy temperatur.
-
-## 7. Wzór czasu
-
-Po rozwiązaniu równania różniczkowego czas do temperatury docelowej wynosi:
+## 3. Final app formula
 
 \[
 t =
-\frac{W}{h_{\max} A}
+\tau_0
+\cdot f_D
+\cdot f_P
 \cdot
-4
-\left[
-\theta_e^{-1/4}
--1
-\right]
-\]
-
-z:
-
-\[
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
-\]
-
-## 8. Kalibracja dla rzeczywistych zamrażarek
-
-Rzeczywista zamrażarka nie odpowiada dokładnie modelowi idealnemu. Ruch powietrza, kontakt z półkami i zimne powierzchnie mogą przyspieszyć chłodzenie.
-
-Dlatego aplikacja używa współczynnika kalibracji:
-
-\[
-f_\text{calib}
-\]
-
-Aplikacja jest skalibrowana na podstawie praktycznego testu dla szklanej butelki 0,33 l:
-
-- Pojemność butelki: 0,33 l
-- Masa szkła: 214 g
-- Temperatura zamrażarki: −17,5 °C
-- Temperatura początkowa: 39,5 °C
-- Temperatura docelowa: 8,0 °C
-- zmierzony czas: 54,4 min
-
-Końcowy wzór:
-
-\[
-t =
-\frac{W}{h_{\max} A f_\text{calib}}
+\left(\frac{25}{T_0-T_D}\right)^{0.15}
 \cdot
-4
-\left[
+\frac{
 \left(
-\frac{T_e - T_L}{T_a - T_L}
-\right)^{-1/4}
+\frac{T_Z-T_D}{T_0-T_D}
+\right)^{-0.15}
 -1
-\right]
+}{0.15}
 \]
 
-## 9. Przeliczenie na inne opakowania
-
-Pozostałe butelki i puszki są wyprowadzane z kalibrowanej szklanej butelki 0,33 l na podstawie pojemności cieplnej i powierzchni.
-
-Aplikacja obsługuje:
-
-- Butelki: 0,33 l, 0,5 l i 1,0 l
-- Puszki: 0,33 l i 0,5 l
-
-Szklana butelka 0,33 l jest przypadkiem najdokładniejszym, ponieważ została skalibrowana na podstawie rzeczywistego pomiaru. Pozostałe opakowania są przybliżeniami.
-
-## 10. Położenie opakowania
-
-Obliczenia opierają się na modelu konwekcji swobodnej dla cylindrycznego opakowania. Przypadkiem bazowym jest opakowanie leżące.
-
-Dla opakowań stojących aplikacja stosuje obecnie współczynnik przybliżony, ponieważ rzeczywisty przepływ powietrza i oddawanie ciepła mogą się różnić:
-
 \[
-t_\text{rzeczywisty} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{położenie}}
+t_{app}=\lceil t \rceil
 \]
 
-Dla położenia leżącego:
+## 4. Constants
+
+Base values for \(\tau_0\):
+
+| Container | Volume | \(\tau_0\) |
+|---|---:|---:|
+| Bottle | 0.33 l | 87 min |
+| Bottle | 0.5 l | 110 min |
+| Bottle | 1.0 l | 155 min |
+| Can | 0.33 l | 85 min |
+| Can | 0.5 l | 105 min |
+
+Device factors:
+
+| Device | \(f_D\) |
+|---|---:|
+| Refrigerator | 1.00 |
+| Freezer | 0.84 |
+
+Position factors:
+
+| Container | Standing | Lying |
+|---|---:|---:|
+| Bottle | 1.00 | 0.95 |
+| Can | 1.00 | 0.92 |
+
+## 5. Temperature during the timer
 
 \[
-f_\text{położenie} = 1{,}0
+\theta(t)=
+\left(
+1+n\cdot\frac{t}{\tau_{eff}}
+\right)^{-1/n}
 \]
 
-Dla położenia stojącego obecna wartość wynosi:
-
 \[
-f_\text{położenie} = 1{,}17
+T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 \]
 
-Oznacza to, że obliczony czas dla opakowań stojących jest dzielony w przybliżeniu przez 1,17.
-## 11. Ograniczenia modelu
+## 6. Validity rules
 
-Obliczenie nie uwzględnia:
+- If \(T_0 \le T_Z\), the beer is already cold enough.
+- If \(T_Z \le T_D\), the target temperature is not meaningfully reachable.
+- Only \(0 < \theta < 1\) is valid.
 
-- zamarzania
-- ciepła krystalizacji
-- przemian fazowych
-- potrząsania lub ruchu piwa
-- dokładnego przepływu powietrza w zamrażarce
-- różnych kształtów butelek
-- dokładnych powierzchni kontaktu z półką
+## Example
 
-Blisko punktu zamarzania obliczenie staje się mniej pewne. Dla normalnych temperatur do picia, takich jak 8 °C lub 6 °C, model jest praktycznym przybliżeniem.
-
-## Przykład
-
-Szklana butelka 0,33 l z 20 °C do 8 °C w zamrażarce przy −18 °C daje około:
+A 0.33 l glass bottle from 39.5 degrees Celsius to 6 degrees Celsius in a freezer at -17.5 degrees Celsius gives:
 
 \[
-t \approx 27\,\text{min}
+t_{app} \approx 62\,\text{min}
 \]

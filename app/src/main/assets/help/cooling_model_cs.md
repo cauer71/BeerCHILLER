@@ -1,262 +1,109 @@
-# Výpočetní model
+# Calculation model
 
-Aplikace počítá dobu chlazení piva v mrazáku pomocí fyzikálního aproximačního modelu.
+The app calculates beer cooling time in a refrigerator or freezer with **BeerChiller Calibrated V2**.
 
-Nápoj a obal jsou považovány za jednu společnou tepelnou zásobu. Láhev nebo plechovka jsou geometricky aproximovány jako válec. Teplo se přenáší hlavně přes vnější povrch do studeného vzduchu v mrazáku.
+The model is a practical approximation. It uses the starting temperature, target temperature, device temperature, container, volume, and position. Real appliances can cool faster or slower because of airflow, contact surfaces, loading, and door openings.
 
-Výpočet je aproximace. Skutečné mrazáky mohou chladit rychleji nebo pomaleji kvůli pohybu vzduchu, kontaktním plochám a různým konstrukcím spotřebičů.
-
-## 1. Tepelná kapacita nápoje a obalu
-
-Pivo a obal společně ukládají teplo.
+## 1. Temperature difference
 
 \[
-W = m_B c_B + m_G c_G
+\Delta_0 = T_0 - T_D
 \]
-
-Kde:
-
-- \(W\): celková tepelná kapacita v J/K
-- \(m_B\): hmotnost piva
-- \(c_B\): měrná tepelná kapacita piva
-- \(m_G\): hmotnost obalu, tedy skla nebo hliníku
-- \(c_G\): měrná tepelná kapacita obalu
-
-Pro pivo aplikace používá:
 
 \[
-c_B = 4200 \,\frac{J}{kgK}
+\theta = \frac{T_Z - T_D}{T_0 - T_D}
 \]
 
-Pro sklo:
+Where:
+
+- \(T_0\): starting beer temperature
+- \(T_Z\): target beer temperature
+- \(T_D\): refrigerator or freezer temperature
+- \(\theta\): dimensionless target ratio
+
+## 2. Cooling curve
+
+Cooling slows down as the beer approaches the appliance temperature. BeerChiller models this with an empirical exponent:
 
 \[
-c_G = 840 \,\frac{J}{kgK}
+n = 0.15
 \]
-
-Pro hliníkové plechovky:
 
 \[
-c_G = 900 \,\frac{J}{kgK}
+\frac{d\Delta}{dt} = -k \cdot \Delta^{1+n}
 \]
 
-## 2. Povrch obalu
-
-Odvod tepla závisí na povrchu.
-
-U lahví se používá plášť válce:
-
-\[
-A = \pi d L
-\]
-
-U plechovek se navíc započítávají čelní plochy:
-
-\[
-A = \pi d L + \frac{\pi d^2}{2}
-\]
-
-Kde:
-
-- \(A\): účinný povrch
-- \(d\): průměr
-- \(L\): délka nebo výška válcové části
-
-## 3. Bezrozměrná teplota
-
-Pro odvození se teplotní rozdíl zapisuje bezrozměrně:
-
-\[
-\theta = \frac{T - T_L}{T_a - T_L}
-\]
-
-Kde:
-
-- \(T\): aktuální teplota nápoje
-- \(T_a\): počáteční teplota
-- \(T_L\): teplota mrazáku
-
-Cílová teplota je:
-
-\[
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
-\]
-
-## 4. Na teplotě závislý přestup tepla
-
-Při volné konvekci není součinitel přestupu tepla konstantní.
-
-Aplikace používá:
-
-\[
-h = h_{\max} \theta^{1/4}
-\]
-
-Díky tomu chlazení na začátku probíhá rychleji, protože rozdíl teplot vůči vzduchu v mrazáku je větší. Později se chlazení zpomaluje.
-
-## 5. Maximální součinitel přestupu tepla
-
-Pro přibližnou volnou konvekci na vodorovném válci aplikace používá:
-
-\[
-h_{\max}
-=
-\frac{k_L}{l}
-\cdot 0{,}402
-\cdot
-\left(
-\frac{g l^3}{T_{L,K} \nu_L \alpha_L}
-\right)^{1/4}
-\cdot
-(T_a - T_L)^{1/4}
-\]
-
-s charakteristickou délkou:
-
-\[
-l = \frac{\pi d}{2}
-\]
-
-Kde:
-
-- \(k_L\): tepelná vodivost vzduchu
-- \(\nu_L\): kinematická viskozita vzduchu
-- \(\alpha_L\): teplotní difuzivita vzduchu
-- \(g\): tíhové zrychlení
-- \(T_{L,K}\): teplota mrazáku v Kelvinech
-
-Pro teplotu v Kelvinech:
-
-\[
-T_{L,K} = T_L + 273{,}15
-\]
-
-## 6. Diferenciální rovnice
-
-Z energetické bilance:
-
-\[
-W \frac{dT}{dt} = -h A (T - T_L)
-\]
-
-S bezrozměrnou teplotou:
-
-\[
-\frac{d\theta}{dt}
-=
--\frac{h_{\max} A}{W}
-\theta^{5/4}
-\]
-
-Exponent \(5/4\) vzniká proto, že samotný součinitel přestupu tepla závisí na teplotním rozdílu.
-
-## 7. Vzorec pro čas
-
-Po řešení diferenciální rovnice je čas do cílové teploty:
+## 3. Final app formula
 
 \[
 t =
-\frac{W}{h_{\max} A}
+\tau_0
+\cdot f_D
+\cdot f_P
 \cdot
-4
-\left[
-\theta_e^{-1/4}
--1
-\right]
-\]
-
-s:
-
-\[
-\theta_e = \frac{T_e - T_L}{T_a - T_L}
-\]
-
-## 8. Kalibrace pro reálné mrazáky
-
-Skutečný mrazák neodpovídá ideálnímu modelu přesně. Pohyb vzduchu, kontakt s policemi a chladné plochy mohou chlazení urychlit.
-
-Proto aplikace používá kalibrační faktor:
-
-\[
-f_\text{calib}
-\]
-
-Aplikace je kalibrována praktickým pokusem se skleněnou lahví 0,33 l:
-
-- Objem láhve: 0,33 l
-- Hmotnost skla: 214 g
-- Teplota mrazáku: −17,5 °C
-- Počáteční teplota: 39,5 °C
-- Cílová teplota: 8,0 °C
-- naměřený čas: 54,4 minuty
-
-Konečný vzorec:
-
-\[
-t =
-\frac{W}{h_{\max} A f_\text{calib}}
+\left(\frac{25}{T_0-T_D}\right)^{0.15}
 \cdot
-4
-\left[
+\frac{
 \left(
-\frac{T_e - T_L}{T_a - T_L}
-\right)^{-1/4}
+\frac{T_Z-T_D}{T_0-T_D}
+\right)^{-0.15}
 -1
-\right]
+}{0.15}
 \]
 
-## 9. Přepočet na jiné obaly
-
-Ostatní lahve a plechovky jsou odvozeny z kalibrované skleněné lahve 0,33 l pomocí tepelné kapacity a povrchu.
-
-Aplikace podporuje:
-
-- Lahve: 0,33 l, 0,5 l a 1,0 l
-- Plechovky: 0,33 l a 0,5 l
-
-Skleněná lahev 0,33 l je nejpřesnější případ, protože je kalibrována skutečným měřením. Ostatní obaly jsou aproximace.
-
-## 10. Poloha nádoby
-
-Výpočet vychází z modelu volné konvekce kolem válcové nádoby. Základním případem je nádoba vleže.
-
-Pro nádoby nastojato používá aplikace aktuálně aproximační faktor, protože skutečné proudění vzduchu a přenos tepla se mohou lišit:
-
 \[
-t_\text{skutečný} = \frac{t_\text{model}}{f_\text{calib} \cdot f_\text{poloha}}
+t_{app}=\lceil t \rceil
 \]
 
-Pro polohu vleže platí:
+## 4. Constants
+
+Base values for \(\tau_0\):
+
+| Container | Volume | \(\tau_0\) |
+|---|---:|---:|
+| Bottle | 0.33 l | 87 min |
+| Bottle | 0.5 l | 110 min |
+| Bottle | 1.0 l | 155 min |
+| Can | 0.33 l | 85 min |
+| Can | 0.5 l | 105 min |
+
+Device factors:
+
+| Device | \(f_D\) |
+|---|---:|
+| Refrigerator | 1.00 |
+| Freezer | 0.84 |
+
+Position factors:
+
+| Container | Standing | Lying |
+|---|---:|---:|
+| Bottle | 1.00 | 0.95 |
+| Can | 1.00 | 0.92 |
+
+## 5. Temperature during the timer
 
 \[
-f_\text{poloha} = 1{,}0
+\theta(t)=
+\left(
+1+n\cdot\frac{t}{\tau_{eff}}
+\right)^{-1/n}
 \]
 
-Pro polohu nastojato platí aktuálně:
-
 \[
-f_\text{poloha} = 1{,}17
+T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 \]
 
-Vypočtený čas pro nádoby nastojato se tím přibližně dělí hodnotou 1,17.
-## 11. Omezení modelu
+## 6. Validity rules
 
-Výpočet nezohledňuje:
+- If \(T_0 \le T_Z\), the beer is already cold enough.
+- If \(T_Z \le T_D\), the target temperature is not meaningfully reachable.
+- Only \(0 < \theta < 1\) is valid.
 
-- tvorbu ledu
-- krystalizační teplo
-- fázové přeměny
-- třesení nebo pohyb piva
-- přesné proudění vzduchu v mrazáku
-- různé tvary lahví
-- přesné kontaktní plochy s policí
+## Example
 
-Blízko bodu mrazu je výpočet méně spolehlivý. Pro běžné teploty k pití, jako je 8 °C nebo 6 °C, je model praktickou aproximací.
-
-## Příklad
-
-Skleněná lahev 0,33 l z 20 °C na 8 °C v mrazáku při −18 °C vychází přibližně:
+A 0.33 l glass bottle from 39.5 degrees Celsius to 6 degrees Celsius in a freezer at -17.5 degrees Celsius gives:
 
 \[
-t \approx 27\,\text{min}
+t_{app} \approx 62\,\text{min}
 \]

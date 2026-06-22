@@ -28,6 +28,9 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.core.view.WindowCompat;
@@ -53,6 +56,8 @@ public class MainActivity extends Activity {
     private static final String KEY_VOLUME_INDEX = "volumeIndex";
     private static final String KEY_CONTAINER_TYPE = "containerType";
     private static final String KEY_ORIENTATION = "orientation";
+    private static final String KEY_TEMPERATURE_UNIT = "temperatureUnit";
+    private static final String KEY_FREEZER_DEFAULT_MIGRATED = "freezerDefaultMigrated";
     static final String KEY_ALARM_DISMISSED = "alarmDismissed";
     private static final int ALARM_REQUEST_CODE = 1001;
     private static final int SHOW_REQUEST_CODE = 1002;
@@ -64,23 +69,23 @@ public class MainActivity extends Activity {
     private static final int CONTAINER_CAN = 1;
     private static final int ORIENTATION_LYING = 0;
     private static final int ORIENTATION_STANDING = 1;
-    private static final int FREEZER_TEMP = -14;
+    private static final int FREEZER_TEMP = -18;
+    private static final int LEGACY_FREEZER_TEMP = -14;
     private static final int FRIDGE_TEMP = 4;
+    private static final int UNIT_SYSTEM = 0;
+    private static final int UNIT_CELSIUS = 1;
+    private static final int UNIT_FAHRENHEIT = 2;
     private static final int VOLUME_SMALL = 0;
     private static final int VOLUME_MEDIUM = 1;
     private static final int VOLUME_LARGE = 2;
-    private static final double BEER_HEAT_CAPACITY = 4200.0;
-    private static final double AIR_THERMAL_CONDUCTIVITY = 0.026;
-    private static final double AIR_KINEMATIC_VISCOSITY = 15.1e-6;
-    private static final double AIR_THERMAL_DIFFUSIVITY = 21.8e-6;
-    private static final double GRAVITY = 9.81;
-    private static final double CONVECTION_EXPONENT = 0.25;
-    private static final double REFERENCE_START_TEMP = 39.5;
-    private static final double REFERENCE_TARGET_TEMP = 8.0;
-    private static final double REFERENCE_DEVICE_TEMP = -17.5;
-    private static final double REFERENCE_MEASURED_SECONDS = 54.4 * 60.0;
-    private static final double ORIENTATION_FACTOR_LYING = 1.0;
-    private static final double ORIENTATION_FACTOR_STANDING = 1.17;
+    private static final double CONVECTION_EXPONENT = 0.15;
+    private static final double DELTA_REF_C = 25.0;
+    private static final double DEVICE_FACTOR_FRIDGE = 1.0;
+    private static final double DEVICE_FACTOR_FREEZER = 0.84;
+    private static final double BOTTLE_POSITION_FACTOR_STANDING = 1.0;
+    private static final double BOTTLE_POSITION_FACTOR_LYING = 0.95;
+    private static final double CAN_POSITION_FACTOR_STANDING = 1.0;
+    private static final double CAN_POSITION_FACTOR_LYING = 0.92;
     private static final String[] LANGUAGE_CODES = new String[]{
             LocaleHelper.SYSTEM_LANGUAGE, "de", "en", "it", "fr", "es", "pt", "nl", "pl", "cs", "hr"
     };
@@ -137,6 +142,7 @@ public class MainActivity extends Activity {
     private int deviceMode = DEVICE_FREEZER;
     private int containerType = CONTAINER_BOTTLE;
     private int orientation = ORIENTATION_LYING;
+    private int temperatureUnit = UNIT_SYSTEM;
     private boolean running;
     private boolean beerControlsCollapsed;
     private ValueAnimator beerAnimator;
@@ -264,7 +270,7 @@ public class MainActivity extends Activity {
             popupMenu.getMenu().add(0, 1, 0,
                     visualMode == VISUAL_CLASSIC ? R.string.menu_beer_ui : R.string.menu_classic_ui);
             popupMenu.getMenu().add(0, 3, 1, R.string.menu_calculation_model);
-            popupMenu.getMenu().add(0, 4, 2, R.string.menu_language);
+            popupMenu.getMenu().add(0, 4, 2, R.string.menu_settings);
             popupMenu.getMenu().add(0, 5, 3, R.string.menu_info);
             popupMenu.setOnMenuItemClickListener(item -> {
                 if (item.getItemId() == 1) {
@@ -276,7 +282,7 @@ public class MainActivity extends Activity {
                     return true;
                 }
                 if (item.getItemId() == 4) {
-                    showLanguageDialog();
+                    showSettingsDialog();
                     return true;
                 }
                 if (item.getItemId() == 5) {
@@ -462,6 +468,133 @@ public class MainActivity extends Activity {
                 .show();
     }
 
+    private void showTemperatureUnitDialog() {
+        String[] unitNames = new String[]{
+                getString(R.string.temperature_unit_system),
+                getString(R.string.temperature_unit_celsius),
+                getString(R.string.temperature_unit_fahrenheit)
+        };
+        int currentSelection = Math.max(UNIT_SYSTEM, Math.min(temperatureUnit, UNIT_FAHRENHEIT));
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.temperature_unit_title)
+                .setSingleChoiceItems(unitNames, currentSelection, (dialog, which) -> {
+                    temperatureUnit = Math.max(UNIT_SYSTEM, Math.min(which, UNIT_FAHRENHEIT));
+                    preferences.edit().putInt(KEY_TEMPERATURE_UNIT, temperatureUnit).apply();
+                    dialog.dismiss();
+                    if (!running) {
+                        updateIdleDisplay();
+                    } else if (endTimeMillis > System.currentTimeMillis()) {
+                        updateRunningTimerCircle(endTimeMillis - System.currentTimeMillis());
+                    }
+                })
+                .setNegativeButton(R.string.close, null)
+                .show();
+    }
+
+    private void showSettingsDialog() {
+        String[] languageNames = languageNames();
+        String[] unitNames = temperatureUnitNames();
+        int currentLanguageSelection = LocaleHelper.currentSelectionIndex(this, LANGUAGE_CODES);
+        int currentUnitSelection = Math.max(UNIT_SYSTEM, Math.min(temperatureUnit, UNIT_FAHRENHEIT));
+
+        ScrollView scrollView = new ScrollView(this);
+        LinearLayout content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        int horizontalPadding = dpInt(24);
+        int verticalPadding = dpInt(8);
+        content.setPadding(horizontalPadding, verticalPadding, horizontalPadding, verticalPadding);
+        scrollView.addView(content);
+
+        TextView languageLabel = settingsSectionLabel(R.string.language_title);
+        RadioGroup languageGroup = settingsRadioGroup(languageNames, currentLanguageSelection);
+        TextView unitLabel = settingsSectionLabel(R.string.temperature_unit_title);
+        RadioGroup unitGroup = settingsRadioGroup(unitNames, currentUnitSelection);
+
+        content.addView(languageLabel);
+        content.addView(languageGroup);
+        content.addView(unitLabel);
+        content.addView(unitGroup);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.settings_title)
+                .setView(scrollView)
+                .setPositiveButton(R.string.close, (dialog, which) -> {
+                    int selectedLanguageIndex = languageGroup.indexOfChild(languageGroup.findViewById(languageGroup.getCheckedRadioButtonId()));
+                    int selectedUnitIndex = unitGroup.indexOfChild(unitGroup.findViewById(unitGroup.getCheckedRadioButtonId()));
+
+                    boolean languageChanged = selectedLanguageIndex >= 0
+                            && selectedLanguageIndex != currentLanguageSelection;
+                    boolean unitChanged = selectedUnitIndex >= 0
+                            && selectedUnitIndex != currentUnitSelection;
+
+                    if (unitChanged) {
+                        temperatureUnit = Math.max(UNIT_SYSTEM, Math.min(selectedUnitIndex, UNIT_FAHRENHEIT));
+                        preferences.edit().putInt(KEY_TEMPERATURE_UNIT, temperatureUnit).apply();
+                    }
+                    if (languageChanged) {
+                        LocaleHelper.setStoredLanguage(this, LANGUAGE_CODES[selectedLanguageIndex]);
+                        recreate();
+                    } else if (unitChanged) {
+                        if (!running) {
+                            updateIdleDisplay();
+                        } else if (endTimeMillis > System.currentTimeMillis()) {
+                            updateRunningTimerCircle(endTimeMillis - System.currentTimeMillis());
+                        }
+                    }
+                })
+                .show();
+    }
+
+    private String[] languageNames() {
+        return new String[]{
+                getString(R.string.language_system),
+                "Deutsch",
+                "English",
+                "Italiano",
+                "Fran\u00e7ais",
+                "Espa\u00f1ol",
+                "Portugu\u00eas",
+                "Nederlands",
+                "Polski",
+                "\u010ce\u0161tina",
+                "Hrvatski"
+        };
+    }
+
+    private String[] temperatureUnitNames() {
+        return new String[]{
+                getString(R.string.temperature_unit_system),
+                getString(R.string.temperature_unit_celsius),
+                getString(R.string.temperature_unit_fahrenheit)
+        };
+    }
+
+    private TextView settingsSectionLabel(int titleRes) {
+        TextView label = new TextView(this);
+        label.setText(titleRes);
+        label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        label.setTextColor(Color.parseColor("#5F767B"));
+        label.setPadding(0, dpInt(16), 0, dpInt(4));
+        return label;
+    }
+
+    private RadioGroup settingsRadioGroup(String[] labels, int checkedIndex) {
+        RadioGroup group = new RadioGroup(this);
+        group.setOrientation(RadioGroup.VERTICAL);
+        for (int i = 0; i < labels.length; i++) {
+            RadioButton radioButton = new RadioButton(this);
+            radioButton.setId(View.generateViewId());
+            radioButton.setText(labels[i]);
+            radioButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+            radioButton.setPadding(0, dpInt(8), 0, dpInt(8));
+            group.addView(radioButton);
+            if (i == checkedIndex) {
+                group.check(radioButton.getId());
+            }
+        }
+        return group;
+    }
+
     private void updateHeaderBrand() {
         String appName = getString(R.string.app_name);
         if (appName.endsWith("CHILLER")) {
@@ -554,9 +687,11 @@ public class MainActivity extends Activity {
         targetTemp = preferences.getInt(KEY_TARGET_TEMP, targetTemp);
         deviceTemp = preferences.getInt(KEY_DEVICE_TEMP, deviceTemp);
         deviceMode = preferences.getInt(KEY_DEVICE_MODE, deviceTemp == FRIDGE_TEMP ? DEVICE_FRIDGE : DEVICE_FREEZER);
+        migrateLegacyFreezerDefault();
         volumeIndex = preferences.getInt(KEY_VOLUME_INDEX, volumeIndex);
         containerType = preferences.getInt(KEY_CONTAINER_TYPE, containerType);
         orientation = preferences.getInt(KEY_ORIENTATION, orientation);
+        temperatureUnit = preferences.getInt(KEY_TEMPERATURE_UNIT, UNIT_SYSTEM);
 
         startTemp = clamp(startTemp, -5, 40);
         targetTemp = clamp(targetTemp, -5, 20);
@@ -564,10 +699,28 @@ public class MainActivity extends Activity {
         syncDeviceModeWithTemperature();
         containerType = containerType == CONTAINER_CAN ? CONTAINER_CAN : CONTAINER_BOTTLE;
         orientation = orientation == ORIENTATION_STANDING ? ORIENTATION_STANDING : ORIENTATION_LYING;
+        temperatureUnit = temperatureUnit >= UNIT_SYSTEM && temperatureUnit <= UNIT_FAHRENHEIT
+                ? temperatureUnit
+                : UNIT_SYSTEM;
         volumeIndex = Math.max(VOLUME_SMALL, Math.min(volumeIndex, VOLUME_LARGE));
         if (containerType == CONTAINER_CAN && volumeIndex == VOLUME_LARGE) {
             volumeIndex = VOLUME_MEDIUM;
         }
+    }
+
+    private void migrateLegacyFreezerDefault() {
+        if (preferences.getBoolean(KEY_FREEZER_DEFAULT_MIGRATED, false)) {
+            return;
+        }
+        if (deviceMode == DEVICE_FREEZER && deviceTemp == LEGACY_FREEZER_TEMP) {
+            deviceTemp = FREEZER_TEMP;
+            preferences.edit()
+                    .putInt(KEY_DEVICE_TEMP, deviceTemp)
+                    .putBoolean(KEY_FREEZER_DEFAULT_MIGRATED, true)
+                    .apply();
+            return;
+        }
+        preferences.edit().putBoolean(KEY_FREEZER_DEFAULT_MIGRATED, true).apply();
     }
 
     private void saveInputPreferences() {
@@ -715,7 +868,7 @@ public class MainActivity extends Activity {
                 "00:00",
                 getString(R.string.remaining_time),
                 formatEndTime(endTimeMillis),
-                getString(R.string.degrees_celsius_decimal, (float) targetTemp),
+                formatTemperatureDecimal(targetTemp),
                 getString(R.string.current_temperature_short),
                 isVrStyle() ? 1f : 0f,
                 true,
@@ -739,7 +892,7 @@ public class MainActivity extends Activity {
                 formatDuration(remainingMillis),
                 getString(R.string.remaining_time),
                 formatEndTime(endTimeMillis),
-                getString(R.string.degrees_celsius_decimal, (float) currentBeerTemp),
+                formatTemperatureDecimal(currentBeerTemp),
                 getString(R.string.current_temperature_short),
                 visibleProgress,
                 true,
@@ -782,9 +935,49 @@ public class MainActivity extends Activity {
     }
 
     private void updateTemperatureValues() {
-        startTempValue.setText(getString(R.string.degrees_celsius, startTemp));
-        targetTempValue.setText(getString(R.string.degrees_celsius, targetTemp));
-        deviceTempValue.setText(getString(R.string.degrees_celsius, deviceTemp));
+        startTempValue.setText(formatTemperature(startTemp));
+        targetTempValue.setText(formatTemperature(targetTemp));
+        deviceTempValue.setText(formatTemperature(deviceTemp));
+    }
+
+    private String formatTemperature(double celsius) {
+        if (shouldDisplayFahrenheit()) {
+            return getString(R.string.degrees_fahrenheit, Math.round(celsiusToFahrenheit(celsius)));
+        }
+        return getString(R.string.degrees_celsius, Math.round(celsius));
+    }
+
+    private String formatTemperatureDecimal(double celsius) {
+        if (shouldDisplayFahrenheit()) {
+            return getString(R.string.degrees_fahrenheit_decimal, (float) celsiusToFahrenheit(celsius));
+        }
+        return getString(R.string.degrees_celsius_decimal, (float) celsius);
+    }
+
+    private boolean shouldDisplayFahrenheit() {
+        if (temperatureUnit == UNIT_FAHRENHEIT) {
+            return true;
+        }
+        if (temperatureUnit == UNIT_CELSIUS) {
+            return false;
+        }
+        return localeUsesFahrenheit(Locale.getDefault());
+    }
+
+    static boolean localeUsesFahrenheit(Locale locale) {
+        if (locale == null) {
+            return false;
+        }
+        String country = locale.getCountry();
+        return "US".equals(country)
+                || "BS".equals(country)
+                || "BZ".equals(country)
+                || "KY".equals(country)
+                || "PW".equals(country);
+    }
+
+    private static double celsiusToFahrenheit(double celsius) {
+        return celsius * 9.0 / 5.0 + 32.0;
     }
 
     private void updateSelectionButtons() {
@@ -1086,9 +1279,16 @@ public class MainActivity extends Activity {
             return targetTemp;
         }
         double elapsedSeconds = Math.max(0.0, result.seconds * Math.max(0f, Math.min(1f, elapsedProgress)));
-        double modelElapsedSeconds = elapsedSeconds * result.freezerCalibrationFactor * result.orientationFactor;
-        double dimensionlessTime = modelElapsedSeconds * result.hMax * result.area / result.thermalCapacity;
-        double theta = Math.pow(4.0 / (dimensionlessTime + 4.0), 4.0);
+        double temperatureTerm = (Math.pow(result.thetaTarget, -CONVECTION_EXPONENT) - 1.0)
+                / CONVECTION_EXPONENT;
+        if (!Double.isFinite(temperatureTerm) || temperatureTerm <= 0.0) {
+            return targetTemp;
+        }
+        double tauEffectiveSeconds = result.seconds / temperatureTerm;
+        double theta = Math.pow(
+                1.0 + CONVECTION_EXPONENT * elapsedSeconds / tauEffectiveSeconds,
+                -1.0 / CONVECTION_EXPONENT
+        );
         double temperature = deviceTemp + (startTemp - deviceTemp) * theta;
         return Math.max(targetTemp, Math.min(startTemp, temperature));
     }
@@ -1099,8 +1299,8 @@ public class MainActivity extends Activity {
             return CoolingResult.invalid();
         }
         if (targetTemp >= startTemp) {
-            return new CoolingResult(true, 0.0, 0.0, 0.0, 0.0, 1.0,
-                    freezerCalibrationFactor(), orientationPreset.orientation, orientationPreset.factor);
+            return new CoolingResult(true, 0.0, 1.0,
+                    orientationPreset.orientation, orientationPreset.factor);
         }
 
         ContainerPreset preset = selectedContainerPreset();
@@ -1112,117 +1312,153 @@ public class MainActivity extends Activity {
                 startTemp,
                 targetTemp,
                 deviceTemp,
-                preset
+                preset,
+                deviceMode,
+                orientationPreset.orientation
         );
         if (!model.valid) {
             return CoolingResult.invalid();
         }
 
-        double freezerCalibrationFactor = freezerCalibrationFactor();
-        double seconds = applyCalibrationFactors(model.seconds, freezerCalibrationFactor, orientationPreset.factor);
-        if (!Double.isFinite(seconds) || seconds < 0.0
-                || !Double.isFinite(freezerCalibrationFactor)
+        if (!Double.isFinite(model.seconds) || model.seconds < 0.0
                 || !Double.isFinite(orientationPreset.factor)
-                || orientationPreset.factor <= 0.0) {
+                || orientationPreset.factor <= 0.0
+                || !Double.isFinite(model.thetaTarget)) {
             return CoolingResult.invalid();
         }
         return new CoolingResult(
                 true,
-                seconds,
-                model.hMax,
-                model.area,
-                model.thermalCapacity,
+                model.seconds,
                 model.thetaTarget,
-                freezerCalibrationFactor,
                 orientationPreset.orientation,
                 orientationPreset.factor
         );
     }
 
     static double orientationFactorFor(int requestedOrientation) {
-        return requestedOrientation == ORIENTATION_STANDING
-                ? ORIENTATION_FACTOR_STANDING
-                : ORIENTATION_FACTOR_LYING;
+        return positionFactorFor(CONTAINER_BOTTLE, requestedOrientation);
     }
 
     static double applyCalibrationFactors(double modelSeconds,
                                           double environmentCalibrationFactor,
                                           double orientationFactor) {
-        return modelSeconds / (environmentCalibrationFactor * orientationFactor);
+        return modelSeconds * environmentCalibrationFactor * orientationFactor;
     }
 
-    private CoolingModel calculateCoolingModelSeconds(double startTempC, double targetTempC,
-                                                      double deviceTempC, ContainerPreset preset) {
+    static double applyCalibrationFactors(double modelSeconds,
+                                          double environmentCalibrationFactor,
+                                          double orientationFactor,
+                                          double containerCoolingFactor) {
+        return modelSeconds * environmentCalibrationFactor * orientationFactor * containerCoolingFactor;
+    }
+
+    static CoolingModel calculateCoolingModelSeconds(double startTempC, double targetTempC,
+                                                     double deviceTempC, ContainerPreset preset) {
+        return calculateCoolingModelSeconds(
+                startTempC,
+                targetTempC,
+                deviceTempC,
+                preset,
+                DEVICE_FRIDGE,
+                ORIENTATION_STANDING
+        );
+    }
+
+    static CoolingModel calculateCoolingModelSeconds(double startTempC, double targetTempC,
+                                                     double deviceTempC, ContainerPreset preset,
+                                                     int requestedDeviceMode, int requestedOrientation) {
         if (deviceTempC <= -273.15 || targetTempC <= deviceTempC || preset == null || !preset.isValid()) {
             return CoolingModel.invalid();
         }
         if (targetTempC >= startTempC) {
-            return new CoolingModel(true, 0.0, 0.0, 0.0, 0.0, 1.0);
+            return new CoolingModel(true, 0.0, 1.0);
         }
 
-        double deltaStart = startTempC - deviceTempC;
-        double thetaTarget = (targetTempC - deviceTempC) / deltaStart;
-        if (thetaTarget <= 0.0 || thetaTarget >= 1.0) {
+        double delta0 = startTempC - deviceTempC;
+        if (!Double.isFinite(delta0) || delta0 <= 0.0) {
             return CoolingModel.invalid();
         }
 
-        double deviceTemperatureK = deviceTempC + 273.15;
-        double characteristicLength = Math.PI * preset.diameterMeters / 2.0;
-        double area = Math.PI * preset.diameterMeters * preset.lengthMeters;
-        if (preset.includeEndFaces) {
-            area += Math.PI * preset.diameterMeters * preset.diameterMeters / 2.0;
+        double thetaTarget = (targetTempC - deviceTempC) / delta0;
+        if (!Double.isFinite(thetaTarget) || thetaTarget <= 0.0 || thetaTarget >= 1.0) {
+            return CoolingModel.invalid();
         }
-        double thermalCapacity = preset.beerMassKg * BEER_HEAT_CAPACITY
-                + preset.containerMassKg * preset.containerHeatCapacity;
-        double hMax = (AIR_THERMAL_CONDUCTIVITY / characteristicLength)
-                * 0.402
-                * Math.pow((GRAVITY * Math.pow(characteristicLength, 3.0))
-                / (deviceTemperatureK * AIR_KINEMATIC_VISCOSITY * AIR_THERMAL_DIFFUSIVITY), CONVECTION_EXPONENT)
-                * Math.pow(deltaStart, CONVECTION_EXPONENT);
 
-        double dimensionlessTime = 4.0 * (Math.pow(thetaTarget, -CONVECTION_EXPONENT) - 1.0);
-        double seconds = (thermalCapacity / (hMax * area)) * dimensionlessTime;
+        double deltaCorrection = Math.pow(DELTA_REF_C / delta0, CONVECTION_EXPONENT);
+        double temperatureTerm = (Math.pow(thetaTarget, -CONVECTION_EXPONENT) - 1.0)
+                / CONVECTION_EXPONENT;
+        double minutes = preset.baseTauMinutes
+                * deviceFactorFor(requestedDeviceMode)
+                * positionFactorFor(preset.containerType, requestedOrientation)
+                * deltaCorrection
+                * temperatureTerm;
+        double seconds = minutes * 60.0;
         if (!Double.isFinite(seconds) || seconds < 0.0) {
             return CoolingModel.invalid();
         }
-        return new CoolingModel(true, seconds, hMax, area, thermalCapacity, thetaTarget);
+        return new CoolingModel(true, seconds, thetaTarget);
     }
 
-    private double freezerCalibrationFactor() {
-        CoolingModel reference = calculateCoolingModelSeconds(
-                REFERENCE_START_TEMP,
-                REFERENCE_TARGET_TEMP,
-                REFERENCE_DEVICE_TEMP,
-                referenceBottlePreset()
-        );
-        if (!reference.valid || reference.seconds <= 0.0) {
-            return 1.0;
+    static double surfaceAreaFor(ContainerPreset preset) {
+        double sideArea = Math.PI * preset.diameterMeters * preset.lengthMeters;
+        if (!preset.includeEndFaces) {
+            return sideArea;
         }
-        return reference.seconds / REFERENCE_MEASURED_SECONDS;
+        return sideArea + Math.PI * preset.diameterMeters * preset.diameterMeters / 2.0;
+    }
+
+    static double containerCoolingFactorFor(int requestedContainerType) {
+        return 1.0;
+    }
+
+    static double deviceFactorFor(int requestedDeviceMode) {
+        return requestedDeviceMode == DEVICE_FREEZER
+                ? DEVICE_FACTOR_FREEZER
+                : DEVICE_FACTOR_FRIDGE;
+    }
+
+    static double positionFactorFor(int requestedContainerType, int requestedOrientation) {
+        if (requestedContainerType == CONTAINER_CAN) {
+            return requestedOrientation == ORIENTATION_LYING
+                    ? CAN_POSITION_FACTOR_LYING
+                    : CAN_POSITION_FACTOR_STANDING;
+        }
+        return requestedOrientation == ORIENTATION_LYING
+                ? BOTTLE_POSITION_FACTOR_LYING
+                : BOTTLE_POSITION_FACTOR_STANDING;
     }
 
     private ContainerPreset selectedContainerPreset() {
-        if (containerType == CONTAINER_CAN) {
-            if (volumeIndex == VOLUME_SMALL) {
-                return new ContainerPreset(CONTAINER_CAN, 0.33, 0.33, 0.015, 900.0, 0.066, 0.115, true);
+        return containerPresetFor(containerType, volumeIndex);
+    }
+
+    static ContainerPreset containerPresetFor(int requestedContainerType, int requestedVolumeIndex) {
+        if (requestedContainerType == CONTAINER_CAN) {
+            if (requestedVolumeIndex == VOLUME_SMALL) {
+                return new ContainerPreset(CONTAINER_CAN, 0.33, 85.0,
+                        0.33, 0.015, 900.0, 0.066, 0.115, true);
             }
-            if (volumeIndex == VOLUME_MEDIUM) {
-                return new ContainerPreset(CONTAINER_CAN, 0.5, 0.5, 0.018, 900.0, 0.066, 0.168, true);
+            if (requestedVolumeIndex == VOLUME_MEDIUM) {
+                return new ContainerPreset(CONTAINER_CAN, 0.5, 105.0,
+                        0.5, 0.018, 900.0, 0.066, 0.168, true);
             }
             return ContainerPreset.invalid();
         }
 
-        if (volumeIndex == VOLUME_SMALL) {
+        if (requestedVolumeIndex == VOLUME_SMALL) {
             return referenceBottlePreset();
         }
-        if (volumeIndex == VOLUME_LARGE) {
-            return new ContainerPreset(CONTAINER_BOTTLE, 1.0, 1.0, 0.65, 840.0, 0.085, 0.29, false);
+        if (requestedVolumeIndex == VOLUME_LARGE) {
+            return new ContainerPreset(CONTAINER_BOTTLE, 1.0, 155.0,
+                    1.0, 0.65, 840.0, 0.085, 0.29, false);
         }
-        return new ContainerPreset(CONTAINER_BOTTLE, 0.5, 0.5, 0.3, 840.0, 0.07, 0.21, false);
+        return new ContainerPreset(CONTAINER_BOTTLE, 0.5, 110.0,
+                0.5, 0.3, 840.0, 0.07, 0.21, false);
     }
 
-    private ContainerPreset referenceBottlePreset() {
-        return new ContainerPreset(CONTAINER_BOTTLE, 0.33, 0.33, 0.214, 840.0, 0.061, 0.235, false);
+    static ContainerPreset referenceBottlePreset() {
+        return new ContainerPreset(CONTAINER_BOTTLE, 0.33, 87.0,
+                0.33, 0.214, 840.0, 0.061, 0.235, false);
     }
 
     private OrientationPreset selectedOrientationPreset() {
@@ -1230,9 +1466,10 @@ public class MainActivity extends Activity {
         return new OrientationPreset(selectedOrientation, orientationFactorFor(selectedOrientation));
     }
 
-    private static class ContainerPreset {
+    static class ContainerPreset {
         final int containerType;
         final double volumeLiters;
+        final double baseTauMinutes;
         final double beerMassKg;
         final double containerMassKg;
         final double containerHeatCapacity;
@@ -1240,11 +1477,12 @@ public class MainActivity extends Activity {
         final double lengthMeters;
         final boolean includeEndFaces;
 
-        ContainerPreset(int containerType, double volumeLiters, double beerMassKg,
+        ContainerPreset(int containerType, double volumeLiters, double baseTauMinutes, double beerMassKg,
                         double containerMassKg, double containerHeatCapacity,
                         double diameterMeters, double lengthMeters, boolean includeEndFaces) {
             this.containerType = containerType;
             this.volumeLiters = volumeLiters;
+            this.baseTauMinutes = baseTauMinutes;
             this.beerMassKg = beerMassKg;
             this.containerMassKg = containerMassKg;
             this.containerHeatCapacity = containerHeatCapacity;
@@ -1254,11 +1492,12 @@ public class MainActivity extends Activity {
         }
 
         static ContainerPreset invalid() {
-            return new ContainerPreset(-1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false);
+            return new ContainerPreset(-1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, false);
         }
 
         boolean isValid() {
             return volumeLiters > 0.0
+                    && baseTauMinutes > 0.0
                     && beerMassKg > 0.0
                     && containerMassKg > 0.0
                     && containerHeatCapacity > 0.0
@@ -1270,31 +1509,22 @@ public class MainActivity extends Activity {
     private static class CoolingResult {
         final boolean valid;
         final double seconds;
-        final double hMax;
-        final double area;
-        final double thermalCapacity;
         final double thetaTarget;
-        final double freezerCalibrationFactor;
         final int orientation;
         final double orientationFactor;
 
-        CoolingResult(boolean valid, double seconds, double hMax, double area,
-                      double thermalCapacity, double thetaTarget, double freezerCalibrationFactor,
+        CoolingResult(boolean valid, double seconds, double thetaTarget,
                       int orientation, double orientationFactor) {
             this.valid = valid;
             this.seconds = seconds;
-            this.hMax = hMax;
-            this.area = area;
-            this.thermalCapacity = thermalCapacity;
             this.thetaTarget = thetaTarget;
-            this.freezerCalibrationFactor = freezerCalibrationFactor;
             this.orientation = orientation;
             this.orientationFactor = orientationFactor;
         }
 
         static CoolingResult invalid() {
-            return new CoolingResult(false, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
-                    ORIENTATION_LYING, ORIENTATION_FACTOR_LYING);
+            return new CoolingResult(false, 0.0, 0.0,
+                    ORIENTATION_LYING, BOTTLE_POSITION_FACTOR_LYING);
         }
     }
 
@@ -1308,26 +1538,19 @@ public class MainActivity extends Activity {
         }
     }
 
-    private static class CoolingModel {
+    static class CoolingModel {
         final boolean valid;
         final double seconds;
-        final double hMax;
-        final double area;
-        final double thermalCapacity;
         final double thetaTarget;
 
-        CoolingModel(boolean valid, double seconds, double hMax, double area,
-                     double thermalCapacity, double thetaTarget) {
+        CoolingModel(boolean valid, double seconds, double thetaTarget) {
             this.valid = valid;
             this.seconds = seconds;
-            this.hMax = hMax;
-            this.area = area;
-            this.thermalCapacity = thermalCapacity;
             this.thetaTarget = thetaTarget;
         }
 
         static CoolingModel invalid() {
-            return new CoolingModel(false, 0.0, 0.0, 0.0, 0.0, 0.0);
+            return new CoolingModel(false, 0.0, 0.0);
         }
     }
 
