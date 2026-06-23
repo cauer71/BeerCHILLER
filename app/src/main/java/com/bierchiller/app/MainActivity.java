@@ -7,6 +7,7 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.pm.PackageManager;
@@ -41,6 +42,12 @@ import androidx.dynamicanimation.animation.DynamicAnimation;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
 
+import com.google.android.play.core.appupdate.AppUpdateInfo;
+import com.google.android.play.core.appupdate.AppUpdateManager;
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory;
+import com.google.android.play.core.install.model.AppUpdateType;
+import com.google.android.play.core.install.model.UpdateAvailability;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -62,6 +69,7 @@ public class MainActivity extends Activity {
     static final String KEY_ALARM_DISMISSED = "alarmDismissed";
     private static final int ALARM_REQUEST_CODE = 1001;
     private static final int SHOW_REQUEST_CODE = 1002;
+    private static final int APP_UPDATE_REQUEST_CODE = 3001;
     private static final int VISUAL_CLASSIC = 0;
     private static final int VISUAL_BEER = 1;
     private static final int DEVICE_FREEZER = 0;
@@ -73,6 +81,15 @@ public class MainActivity extends Activity {
     private static final int FREEZER_TEMP = -18;
     private static final int LEGACY_FREEZER_TEMP = -14;
     private static final int FRIDGE_TEMP = 4;
+    static final int DEFAULT_START_TEMP = 22;
+    static final int DEFAULT_TARGET_TEMP = 8;
+    static final int DEFAULT_DEVICE_TEMP = FREEZER_TEMP;
+    static final int MIN_START_TEMP = -5;
+    static final int MAX_START_TEMP = 40;
+    static final int MIN_TARGET_TEMP = -5;
+    static final int MAX_TARGET_TEMP = 20;
+    static final int MIN_DEVICE_TEMP = -30;
+    static final int MAX_DEVICE_TEMP = 5;
     private static final int UNIT_SYSTEM = 0;
     private static final int UNIT_CELSIUS = 1;
     private static final int UNIT_FAHRENHEIT = 2;
@@ -136,9 +153,9 @@ public class MainActivity extends Activity {
     private CountDownTimer countDownTimer;
     private long endTimeMillis;
     private long totalDurationMillis;
-    private int startTemp = 22;
-    private int targetTemp = 6;
-    private int deviceTemp = FREEZER_TEMP;
+    private int startTemp = DEFAULT_START_TEMP;
+    private int targetTemp = DEFAULT_TARGET_TEMP;
+    private int deviceTemp = DEFAULT_DEVICE_TEMP;
     private int volumeIndex = VOLUME_MEDIUM;
     private int deviceMode = DEVICE_FREEZER;
     private int containerType = CONTAINER_BOTTLE;
@@ -160,6 +177,7 @@ public class MainActivity extends Activity {
     private Button selectedDeviceButton;
     private int visualMode;
     private AlarmManager alarmManager;
+    private AppUpdateManager appUpdateManager;
     private SharedPreferences preferences;
 
     @Override
@@ -235,6 +253,7 @@ public class MainActivity extends Activity {
         handleNotificationAction(getIntent());
         updateIdleDisplay();
         restoreRunningAlarm();
+        checkForAppUpdate();
     }
 
     @Override
@@ -721,7 +740,7 @@ public class MainActivity extends Activity {
         if (running) {
             return;
         }
-        startTemp = clamp(startTemp + delta, -5, 40);
+        startTemp = clamp(startTemp + delta, MIN_START_TEMP, MAX_START_TEMP);
         saveInputPreferences();
         updateIdleDisplay();
     }
@@ -730,7 +749,7 @@ public class MainActivity extends Activity {
         if (running) {
             return;
         }
-        targetTemp = clamp(targetTemp + delta, -5, 20);
+        targetTemp = clamp(targetTemp + delta, MIN_TARGET_TEMP, MAX_TARGET_TEMP);
         saveInputPreferences();
         updateIdleDisplay();
     }
@@ -739,7 +758,7 @@ public class MainActivity extends Activity {
         if (running) {
             return;
         }
-        deviceTemp = clamp(deviceTemp + delta, -30, 5);
+        deviceTemp = clamp(deviceTemp + delta, MIN_DEVICE_TEMP, MAX_DEVICE_TEMP);
         syncDeviceModeWithTemperature();
         saveInputPreferences();
         updateIdleDisplay();
@@ -760,9 +779,27 @@ public class MainActivity extends Activity {
     }
 
     private void restoreInputPreferences() {
-        startTemp = preferences.getInt(KEY_START_TEMP, startTemp);
-        targetTemp = preferences.getInt(KEY_TARGET_TEMP, targetTemp);
-        deviceTemp = preferences.getInt(KEY_DEVICE_TEMP, deviceTemp);
+        startTemp = restoreTemperaturePreference(
+                preferences.contains(KEY_START_TEMP),
+                preferences.getInt(KEY_START_TEMP, DEFAULT_START_TEMP),
+                DEFAULT_START_TEMP,
+                MIN_START_TEMP,
+                MAX_START_TEMP
+        );
+        targetTemp = restoreTemperaturePreference(
+                preferences.contains(KEY_TARGET_TEMP),
+                preferences.getInt(KEY_TARGET_TEMP, DEFAULT_TARGET_TEMP),
+                DEFAULT_TARGET_TEMP,
+                MIN_TARGET_TEMP,
+                MAX_TARGET_TEMP
+        );
+        deviceTemp = restoreTemperaturePreference(
+                preferences.contains(KEY_DEVICE_TEMP),
+                preferences.getInt(KEY_DEVICE_TEMP, DEFAULT_DEVICE_TEMP),
+                DEFAULT_DEVICE_TEMP,
+                MIN_DEVICE_TEMP,
+                MAX_DEVICE_TEMP
+        );
         deviceMode = preferences.getInt(KEY_DEVICE_MODE, deviceTemp == FRIDGE_TEMP ? DEVICE_FRIDGE : DEVICE_FREEZER);
         migrateLegacyFreezerDefault();
         volumeIndex = preferences.getInt(KEY_VOLUME_INDEX, volumeIndex);
@@ -770,9 +807,6 @@ public class MainActivity extends Activity {
         orientation = preferences.getInt(KEY_ORIENTATION, orientation);
         temperatureUnit = preferences.getInt(KEY_TEMPERATURE_UNIT, UNIT_SYSTEM);
 
-        startTemp = clamp(startTemp, -5, 40);
-        targetTemp = clamp(targetTemp, -5, 20);
-        deviceTemp = clamp(deviceTemp, -30, 5);
         syncDeviceModeWithTemperature();
         containerType = containerType == CONTAINER_CAN ? CONTAINER_CAN : CONTAINER_BOTTLE;
         orientation = orientation == ORIENTATION_STANDING ? ORIENTATION_STANDING : ORIENTATION_LYING;
@@ -783,6 +817,11 @@ public class MainActivity extends Activity {
         if (containerType == CONTAINER_CAN && volumeIndex == VOLUME_LARGE) {
             volumeIndex = VOLUME_MEDIUM;
         }
+    }
+
+    static int restoreTemperaturePreference(boolean hasSavedValue, int savedValue,
+                                            int defaultValue, int min, int max) {
+        return clamp(hasSavedValue ? savedValue : defaultValue, min, max);
     }
 
     private void migrateLegacyFreezerDefault() {
@@ -911,6 +950,47 @@ public class MainActivity extends Activity {
         } else {
             preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
             TimerNotificationHelper.cancel(this);
+        }
+    }
+
+    private AppUpdateManager getAppUpdateManager() {
+        if (appUpdateManager == null) {
+            appUpdateManager = AppUpdateManagerFactory.create(this);
+        }
+        return appUpdateManager;
+    }
+
+    private void checkForAppUpdate() {
+        getAppUpdateManager().getAppUpdateInfo()
+                .addOnSuccessListener(appUpdateInfo -> {
+                    if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                            && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+                        startImmediateAppUpdate(appUpdateInfo);
+                    }
+                });
+    }
+
+    private void resumeAppUpdateIfInProgress() {
+        getAppUpdateManager().getAppUpdateInfo()
+                .addOnSuccessListener(appUpdateInfo -> {
+                    if (appUpdateInfo.updateAvailability()
+                            == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                        startImmediateAppUpdate(appUpdateInfo);
+                    }
+                });
+    }
+
+    @SuppressWarnings("deprecation")
+    private void startImmediateAppUpdate(AppUpdateInfo appUpdateInfo) {
+        try {
+            getAppUpdateManager().startUpdateFlowForResult(
+                    appUpdateInfo,
+                    AppUpdateType.IMMEDIATE,
+                    this,
+                    APP_UPDATE_REQUEST_CODE
+            );
+        } catch (IntentSender.SendIntentException | RuntimeException ignored) {
+            // Google Play handles supported devices. If the flow cannot start, keep the app usable.
         }
     }
 
@@ -1658,7 +1738,7 @@ public class MainActivity extends Activity {
         return baseFlags;
     }
 
-    private int clamp(int value, int min, int max) {
+    static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(value, max));
     }
 
@@ -1685,6 +1765,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         enableFullscreen();
+        resumeAppUpdateIfInProgress();
         if (preferences.getBoolean(KEY_ALARM_DISMISSED, false)) {
             preferences.edit().remove(KEY_ALARM_DISMISSED).apply();
             stopTimer(true);
