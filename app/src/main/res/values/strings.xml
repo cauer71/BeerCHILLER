@@ -42,6 +42,9 @@
     <string name="app_info_message">%1$s
 %2$s</string>
     <string name="close">Close</string>
+    <string name="open_settings">Open settings</string>
+    <string name="full_screen_intent_title">Allow full-screen alarms</string>
+    <string name="full_screen_intent_message">BeerCHILLER needs full-screen alarm permission so the stop screen appears immediately when the phone is locked.</string>
     <string name="alarm_ringing">Your beer is cold</string>
     <string name="alarm_detail">Target temperature reached.</string>
     <string name="stop_alarm">Stop alarm</string>

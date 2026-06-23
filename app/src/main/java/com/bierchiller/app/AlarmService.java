@@ -46,6 +46,7 @@ public class AlarmService extends Service {
         createNotificationChannel();
         startForeground(NOTIFICATION_ID, buildNotification());
         startAlarmSound();
+        AlarmScreenLauncher.showAlarmScreen(this);
         return START_STICKY;
     }
 
@@ -61,12 +62,10 @@ public class AlarmService extends Service {
     }
 
     private Notification buildNotification() {
-        Intent alarmIntent = new Intent(this, AlarmActivity.class);
-        alarmIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent alarmPendingIntent = PendingIntent.getActivity(
                 this,
                 2001,
-                alarmIntent,
+                AlarmScreenLauncher.alarmActivityIntent(this),
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 

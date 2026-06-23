@@ -42,6 +42,9 @@
     <string name="app_info_message">%1$s
 %2$s</string>
     <string name="close">Schließen</string>
+    <string name="open_settings">Einstellungen öffnen</string>
+    <string name="full_screen_intent_title">Vollbild-Alarme erlauben</string>
+    <string name="full_screen_intent_message">BierCHILLER braucht die Vollbild-Alarmberechtigung, damit der Stop-Bildschirm sofort erscheint, wenn das Handy gesperrt ist.</string>
     <string name="alarm_ringing">Dein Bier ist kalt</string>
     <string name="alarm_detail">Zieltemperatur erreicht.</string>
     <string name="stop_alarm">Alarm stoppen</string>

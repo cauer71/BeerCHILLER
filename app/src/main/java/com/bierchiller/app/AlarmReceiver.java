@@ -15,5 +15,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         } else {
             context.startService(serviceIntent);
         }
+        AlarmScreenLauncher.showAlarmScreen(context);
     }
 }

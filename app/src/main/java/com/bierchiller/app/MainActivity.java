@@ -16,9 +16,11 @@ import android.graphics.Matrix;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.View;
@@ -250,6 +252,7 @@ public class MainActivity extends Activity {
         wireControls();
         wireMenu();
         requestNotificationPermission();
+        requestFullScreenIntentPermissionIfNeeded();
         handleNotificationAction(getIntent());
         updateIdleDisplay();
         restoreRunningAlarm();
@@ -1747,6 +1750,37 @@ public class MainActivity extends Activity {
                 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 2001);
+        }
+    }
+
+    private void requestFullScreenIntentPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+                || isFinishing()) {
+            return;
+        }
+        android.app.NotificationManager notificationManager =
+                getSystemService(android.app.NotificationManager.class);
+        if (notificationManager == null || notificationManager.canUseFullScreenIntent()) {
+            return;
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.full_screen_intent_title)
+                .setMessage(R.string.full_screen_intent_message)
+                .setPositiveButton(R.string.open_settings, (dialog, which) -> openFullScreenIntentSettings())
+                .setNegativeButton(R.string.close, null)
+                .show();
+    }
+
+    private void openFullScreenIntentSettings() {
+        Intent intent = new Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT)
+                .setData(Uri.parse("package:" + getPackageName()));
+        try {
+            startActivity(intent);
+        } catch (RuntimeException ignored) {
+            Intent fallbackIntent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+            startActivity(fallbackIntent);
         }
     }
 
