@@ -144,6 +144,7 @@ public final class TimerNotificationHelper {
                 ),
                 displayFahrenheit
         );
+        String targetTempText = formatTemperatureDecimal(context, targetTempC, displayFahrenheit);
         Notification publicVersion = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_beer_mug_button)
                 .setColor(resolveAppAccentColor(context))
@@ -154,11 +155,13 @@ public final class TimerNotificationHelper {
 
         return new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_beer_mug_button)
-                .setColor(resolveAppAccentColor(context))
+                .setColor(0xFFFFC107)          // Gold / Amber
+//                .setColor(resolveAppAccentColor(context))
 //                .setContentTitle(context.getString(R.string.app_name))
 //                .setContentText(statusText(remainingText, currentTempText))
-                .setContentTitle("  ⏱ " + remainingText)
-                .setContentText("  🌡 " + currentTempText)
+                .setContentTitle(context.getString(R.string.running))
+                .setContentText("⏱ " + remainingText + " min 🌡" + currentTempText + " → " + targetTempText)
+
                 .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -166,7 +169,8 @@ public final class TimerNotificationHelper {
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setShowWhen(false)
-                .setShortCriticalText("  🌡 " + currentTempText)
+                .setShortCriticalText("⏱ " + remainingText)
+//                .setShortCriticalText(remainingText)
                 .setContentIntent(openPendingIntent)
                 .addAction(
                         R.drawable.ic_beer_mug_button,
