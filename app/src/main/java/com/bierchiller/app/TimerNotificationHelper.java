@@ -8,9 +8,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Build;
+import android.util.TypedValue;
 
 import androidx.core.app.NotificationCompat;
 
@@ -145,14 +144,9 @@ public final class TimerNotificationHelper {
                 ),
                 displayFahrenheit
         );
-        Bitmap launcherIcon = BitmapFactory.decodeResource(
-                context.getResources(),
-                R.mipmap.ic_launcher
-        );
-
         Notification publicVersion = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_beer_mug_button)
-                .setLargeIcon(launcherIcon)
+                .setColor(resolveAppAccentColor(context))
                 .setContentTitle(context.getString(R.string.app_name))
                 .setContentText(statusText(remainingText, currentTempText))
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -160,20 +154,19 @@ public final class TimerNotificationHelper {
 
         return new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_beer_mug_button)
-                .setLargeIcon(launcherIcon)
-                .setContentTitle(context.getString(R.string.app_name))
-                .setContentText(statusText(remainingText, currentTempText))
+                .setColor(resolveAppAccentColor(context))
+//                .setContentTitle(context.getString(R.string.app_name))
+//                .setContentText(statusText(remainingText, currentTempText))
+                .setContentTitle("  ⏱ " + remainingText)
+                .setContentText("  🌡 " + currentTempText)
                 .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setPublicVersion(publicVersion)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
-                .setShowWhen(true)
-                .setWhen(endTimeMillis)
-                .setUsesChronometer(true)
-                .setChronometerCountDown(true)
-                .setShortCriticalText(remainingText)
+                .setShowWhen(false)
+                .setShortCriticalText("  🌡 " + currentTempText)
                 .setContentIntent(openPendingIntent)
                 .addAction(
                         R.drawable.ic_beer_mug_button,
@@ -185,8 +178,18 @@ public final class TimerNotificationHelper {
                 .build();
     }
 
+    private static int resolveAppAccentColor(Context context) {
+        TypedValue value = new TypedValue();
+        context.getTheme().resolveAttribute(android.R.attr.colorAccent, value, true);
+        return value.data;
+    }
+
     private static String statusText(String remainingText, String currentTempText) {
-        return remainingText + " / " + currentTempText;
+        return "⏱" + remainingText + "🌡 " + currentTempText;
+    }
+
+    private static String statusText2(String remainingText, String currentTempText) {
+        return "time:" + remainingText;
     }
 
     static void postDirectly(Context context, long endTimeMillis, long totalDurationMillis) {
