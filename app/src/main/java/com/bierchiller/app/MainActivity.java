@@ -875,7 +875,15 @@ public class MainActivity extends Activity {
         setStatus(getString(R.string.running));
         startUiCountdown(endTimeMillis);
         scheduleExactAlarm(endTimeMillis);
-        TimerNotificationHelper.show(this, endTimeMillis, totalDurationMillis);
+        TimerNotificationHelper.show(
+                this,
+                endTimeMillis,
+                totalDurationMillis,
+                startTemp,
+                targetTemp,
+                deviceTemp,
+                shouldDisplayFahrenheit()
+        );
     }
 
     private void scheduleExactAlarm(long triggerAtMillis) {
@@ -949,7 +957,15 @@ public class MainActivity extends Activity {
             setControlsForRunningState();
             setStatus(getString(R.string.running));
             startUiCountdown(endTimeMillis);
-            TimerNotificationHelper.show(this, endTimeMillis, totalDurationMillis);
+            TimerNotificationHelper.show(
+                    this,
+                    endTimeMillis,
+                    totalDurationMillis,
+                    startTemp,
+                    targetTemp,
+                    deviceTemp,
+                    shouldDisplayFahrenheit()
+            );
         } else {
             preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
             TimerNotificationHelper.cancel(this);

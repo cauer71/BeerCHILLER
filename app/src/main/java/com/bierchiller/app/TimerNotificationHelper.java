@@ -8,21 +8,45 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
 
+import java.util.Locale;
+
 public final class TimerNotificationHelper {
     static final String ACTION_STOP_TIMER = "com.bierchiller.app.STOP_TIMER";
+    static final String ACTION_START_TIMER = "com.bierchiller.app.START_TIMER";
+    static final String EXTRA_END_TIME_MILLIS = "extra_end_time_millis";
+    static final String EXTRA_TOTAL_DURATION_MILLIS = "extra_total_duration_millis";
+    static final String EXTRA_START_TEMP_C = "extra_start_temp_c";
+    static final String EXTRA_TARGET_TEMP_C = "extra_target_temp_c";
+    static final String EXTRA_DEVICE_TEMP_C = "extra_device_temp_c";
+    static final String EXTRA_DISPLAY_FAHRENHEIT = "extra_display_fahrenheit";
 
     private static final String CHANNEL_ID = "timer_channel_v3";
-    private static final int NOTIFICATION_ID = 43;
-
+    static final int NOTIFICATION_ID = 43;
+    private static final double CONVECTION_EXPONENT = 0.15;
     private TimerNotificationHelper() {
     }
 
     static void show(Context context, long endTimeMillis, long totalDurationMillis) {
+        show(
+                context,
+                endTimeMillis,
+                totalDurationMillis,
+                MainActivity.DEFAULT_START_TEMP,
+                MainActivity.DEFAULT_TARGET_TEMP,
+                MainActivity.DEFAULT_DEVICE_TEMP,
+                MainActivity.localeUsesFahrenheit(Locale.getDefault())
+        );
+    }
+
+    static void show(Context context, long endTimeMillis, long totalDurationMillis,
+                     double startTempC, double targetTempC, double deviceTempC,
+                     boolean displayFahrenheit) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -30,7 +54,64 @@ public final class TimerNotificationHelper {
         }
 
         createChannel(context);
+        postDirectly(
+                context,
+                endTimeMillis,
+                totalDurationMillis,
+                startTempC,
+                targetTempC,
+                deviceTempC,
+                displayFahrenheit
+        );
 
+        Intent serviceIntent = new Intent(context, TimerForegroundService.class)
+                .setAction(ACTION_START_TIMER)
+                .putExtra(EXTRA_END_TIME_MILLIS, endTimeMillis)
+                .putExtra(EXTRA_TOTAL_DURATION_MILLIS, totalDurationMillis)
+                .putExtra(EXTRA_START_TEMP_C, startTempC)
+                .putExtra(EXTRA_TARGET_TEMP_C, targetTempC)
+                .putExtra(EXTRA_DEVICE_TEMP_C, deviceTempC)
+                .putExtra(EXTRA_DISPLAY_FAHRENHEIT, displayFahrenheit);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent);
+            } else {
+                context.startService(serviceIntent);
+            }
+        } catch (RuntimeException ignored) {
+            // The immediate fallback notification was already posted above.
+        }
+    }
+
+    static Notification build(Context context, long endTimeMillis, long totalDurationMillis) {
+        return build(
+                context,
+                endTimeMillis,
+                totalDurationMillis,
+                MainActivity.DEFAULT_START_TEMP,
+                MainActivity.DEFAULT_TARGET_TEMP,
+                MainActivity.DEFAULT_DEVICE_TEMP,
+                MainActivity.localeUsesFahrenheit(Locale.getDefault())
+        );
+    }
+
+    static Notification build(Context context, long endTimeMillis, long totalDurationMillis,
+                              double startTempC, double targetTempC, double deviceTempC,
+                              boolean displayFahrenheit) {
+        return buildInternal(
+                context,
+                endTimeMillis,
+                totalDurationMillis,
+                startTempC,
+                targetTempC,
+                deviceTempC,
+                displayFahrenheit
+        );
+    }
+
+    private static Notification buildInternal(Context context, long endTimeMillis, long totalDurationMillis,
+                                              double startTempC, double targetTempC, double deviceTempC,
+                                              boolean displayFahrenheit) {
         Intent openIntent = new Intent(context, MainActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent openPendingIntent = PendingIntent.getActivity(
@@ -40,40 +121,49 @@ public final class TimerNotificationHelper {
                 pendingIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT)
         );
 
-        Intent stopIntent = new Intent(context, MainActivity.class)
+        Intent stopIntent = new Intent(context, TimerForegroundService.class)
                 .setAction(ACTION_STOP_TIMER)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        PendingIntent stopPendingIntent = PendingIntent.getActivity(
+                .putExtra(EXTRA_END_TIME_MILLIS, endTimeMillis)
+                .putExtra(EXTRA_TOTAL_DURATION_MILLIS, totalDurationMillis);
+        PendingIntent stopPendingIntent = PendingIntent.getService(
                 context,
                 3002,
                 stopIntent,
                 pendingIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT)
         );
 
-        String endText = context.getString(R.string.ends_at, MainActivity.formatTime(context, endTimeMillis));
-        String shortText = MainActivity.formatTime(context, endTimeMillis);
-        int progress = calculateProgress(endTimeMillis, totalDurationMillis);
-        NotificationCompat.ProgressStyle progressStyle = new NotificationCompat.ProgressStyle()
-                .setProgress(progress)
-                .setStyledByProgress(true)
-                .addProgressSegment(new NotificationCompat.ProgressStyle.Segment(1000)
-                        .setColor(Color.parseColor("#EAB400")))
-                .addProgressPoint(new NotificationCompat.ProgressStyle.Point(progress)
-                        .setColor(Color.parseColor("#123B4A")));
+        long remainingMillis = Math.max(0L, endTimeMillis - System.currentTimeMillis());
+        String remainingText = formatRemainingClock(remainingMillis);
+        String currentTempText = formatTemperatureDecimal(
+                context,
+                calculateCurrentBeerTemperature(
+                        startTempC,
+                        targetTempC,
+                        deviceTempC,
+                        endTimeMillis,
+                        totalDurationMillis
+                ),
+                displayFahrenheit
+        );
+        Bitmap launcherIcon = BitmapFactory.decodeResource(
+                context.getResources(),
+                R.mipmap.ic_launcher
+        );
 
         Notification publicVersion = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setSmallIcon(R.drawable.ic_beer_mug_button)
+                .setLargeIcon(launcherIcon)
                 .setContentTitle(context.getString(R.string.app_name))
-                .setContentText(endText)
+                .setContentText(statusText(remainingText, currentTempText))
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .build();
 
-        Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+        return new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_beer_mug_button)
+                .setLargeIcon(launcherIcon)
                 .setContentTitle(context.getString(R.string.app_name))
-                .setContentText(endText)
-                .setSubText(context.getString(R.string.remaining_time))
-                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setContentText(statusText(remainingText, currentTempText))
+                .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setPublicVersion(publicVersion)
@@ -83,23 +173,58 @@ public final class TimerNotificationHelper {
                 .setWhen(endTimeMillis)
                 .setUsesChronometer(true)
                 .setChronometerCountDown(true)
+                .setShortCriticalText(remainingText)
                 .setContentIntent(openPendingIntent)
-                .setStyle(progressStyle)
-                .setRequestPromotedOngoing(true)
-                .setShortCriticalText(shortText)
-                .addAction(android.R.drawable.ic_menu_close_clear_cancel,
+                .addAction(
+                        R.drawable.ic_beer_mug_button,
                         context.getString(R.string.stop_timer),
-                        stopPendingIntent)
+                        stopPendingIntent
+                )
+                .setRequestPromotedOngoing(true)
+                .setTimeoutAfter(remainingMillis)
                 .build();
+    }
 
+    private static String statusText(String remainingText, String currentTempText) {
+        return remainingText + " / " + currentTempText;
+    }
+
+    static void postDirectly(Context context, long endTimeMillis, long totalDurationMillis) {
+        postDirectly(
+                context,
+                endTimeMillis,
+                totalDurationMillis,
+                MainActivity.DEFAULT_START_TEMP,
+                MainActivity.DEFAULT_TARGET_TEMP,
+                MainActivity.DEFAULT_DEVICE_TEMP,
+                MainActivity.localeUsesFahrenheit(Locale.getDefault())
+        );
+    }
+
+    static void postDirectly(Context context, long endTimeMillis, long totalDurationMillis,
+                             double startTempC, double targetTempC, double deviceTempC,
+                             boolean displayFahrenheit) {
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) {
-            manager.notify(NOTIFICATION_ID, notification);
+            manager.notify(NOTIFICATION_ID, build(
+                    context,
+                    endTimeMillis,
+                    totalDurationMillis,
+                    startTempC,
+                    targetTempC,
+                    deviceTempC,
+                    displayFahrenheit
+            ));
         }
     }
 
     static void cancel(Context context) {
+        try {
+            context.stopService(new Intent(context, TimerForegroundService.class));
+        } catch (RuntimeException ignored) {
+            // The timer notification is also cancelled below for devices without the service.
+        }
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) {
@@ -107,7 +232,7 @@ public final class TimerNotificationHelper {
         }
     }
 
-    private static void createChannel(Context context) {
+    static void createChannel(Context context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             return;
         }
@@ -133,11 +258,63 @@ public final class TimerNotificationHelper {
         return baseFlags;
     }
 
-    private static int calculateProgress(long endTimeMillis, long totalDurationMillis) {
-        if (totalDurationMillis <= 0L) {
-            return 0;
+    private static String formatRemainingClock(long remainingMillis) {
+        long totalSeconds = Math.max(0L, (remainingMillis + 999L) / 1000L);
+        long minutes = totalSeconds / 60L;
+        long seconds = totalSeconds % 60L;
+        if (minutes >= 100L) {
+            long hours = minutes / 60L;
+            long remainingMinutes = minutes % 60L;
+            return String.format(Locale.US, "%d:%02d h", hours, remainingMinutes);
         }
-        long elapsedMillis = Math.max(0L, totalDurationMillis - (endTimeMillis - System.currentTimeMillis()));
-        return Math.max(0, Math.min(1000, (int) ((elapsedMillis * 1000L) / totalDurationMillis)));
+        return String.format(Locale.US, "%02d:%02d", minutes, seconds);
+    }
+
+    private static double calculateCurrentBeerTemperature(double startTempC, double targetTempC,
+                                                          double deviceTempC, long endTimeMillis,
+                                                          long totalDurationMillis) {
+        if (totalDurationMillis <= 0L || deviceTempC <= -273.15 || targetTempC <= deviceTempC) {
+            return targetTempC;
+        }
+        if (targetTempC >= startTempC) {
+            return targetTempC;
+        }
+
+        double delta0 = startTempC - deviceTempC;
+        if (delta0 <= 0.0) {
+            return targetTempC;
+        }
+
+        double thetaTarget = (targetTempC - deviceTempC) / delta0;
+        if (!Double.isFinite(thetaTarget) || thetaTarget <= 0.0 || thetaTarget >= 1.0) {
+            return targetTempC;
+        }
+
+        double temperatureTerm = (Math.pow(thetaTarget, -CONVECTION_EXPONENT) - 1.0)
+                / CONVECTION_EXPONENT;
+        if (!Double.isFinite(temperatureTerm) || temperatureTerm <= 0.0) {
+            return targetTempC;
+        }
+
+        double elapsedMillis = Math.max(0L, totalDurationMillis - (endTimeMillis - System.currentTimeMillis()));
+        double elapsedSeconds = Math.min(totalDurationMillis, elapsedMillis) / 1000.0;
+        double tauEffectiveSeconds = (totalDurationMillis / 1000.0) / temperatureTerm;
+        double theta = Math.pow(
+                1.0 + CONVECTION_EXPONENT * elapsedSeconds / tauEffectiveSeconds,
+                -1.0 / CONVECTION_EXPONENT
+        );
+        double temperature = deviceTempC + (startTempC - deviceTempC) * theta;
+        return Math.max(targetTempC, Math.min(startTempC, temperature));
+    }
+
+    private static String formatTemperatureDecimal(Context context, double celsius,
+                                                   boolean displayFahrenheit) {
+        if (displayFahrenheit) {
+            return context.getString(
+                    R.string.degrees_fahrenheit_decimal,
+                    (float) (celsius * 9.0 / 5.0 + 32.0)
+            );
+        }
+        return context.getString(R.string.degrees_celsius_decimal, (float) celsius);
     }
 }

@@ -15,8 +15,8 @@ android {
         applicationId = "com.bierchiller.app"
         minSdk = 23
         targetSdk = 36
-        versionCode = 10369
-        versionName = "1.3.69"
+        versionCode = 10370
+        versionName = "1.3.70"
     }
 
     buildFeatures {
@@ -52,6 +52,7 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
 }
 
 tasks.withType<JavaCompile>().configureEach {
