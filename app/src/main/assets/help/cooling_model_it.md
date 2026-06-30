@@ -1,10 +1,10 @@
-# Calculation model
+# Modello di calcolo
 
-The app calculates beer cooling time in a refrigerator or freezer with **BeerChiller Calibrated V2**.
+L'app calcola il tempo di raffreddamento della birra in frigorifero o in congelatore con il modello **BeerChiller Calibrated V2**.
 
-The model is a practical approximation. It uses the starting temperature, target temperature, device temperature, container, volume, and position. Real appliances can cool faster or slower because of airflow, contact surfaces, loading, and door openings.
+Il modello è una stima pratica. Usa la temperatura iniziale, la temperatura desiderata, la temperatura dell'apparecchio, il contenitore, il volume e la posizione. Gli apparecchi reali possono raffreddare più rapidamente o più lentamente a causa del flusso d'aria, delle superfici di contatto, del carico e delle aperture dello sportello.
 
-## 1. Temperature difference
+## 1. Differenza di temperatura
 
 \[
 \Delta_0 = T_0 - T_D
@@ -14,16 +14,16 @@ The model is a practical approximation. It uses the starting temperature, target
 \theta = \frac{T_Z - T_D}{T_0 - T_D}
 \]
 
-Where:
+Dove:
 
-- \(T_0\): starting beer temperature
-- \(T_Z\): target beer temperature
-- \(T_D\): refrigerator or freezer temperature
-- \(\theta\): dimensionless target ratio
+- \(T_0\): temperatura iniziale della birra
+- \(T_Z\): temperatura desiderata
+- \(T_D\): temperatura del frigorifero o del congelatore
+- \(\theta\): rapporto adimensionale della temperatura desiderata
 
-## 2. Cooling curve
+## 2. Curva di raffreddamento
 
-Cooling slows down as the beer approaches the appliance temperature. BeerChiller models this with an empirical exponent:
+Il raffreddamento rallenta man mano che la birra si avvicina alla temperatura dell'apparecchio. BeerCHILLER lo modella con un esponente empirico:
 
 \[
 n = 0.15
@@ -33,7 +33,7 @@ n = 0.15
 \frac{d\Delta}{dt} = -k \cdot \Delta^{1+n}
 \]
 
-## 3. Final app formula
+## 3. Formula finale dell'app
 
 \[
 t =
@@ -55,33 +55,33 @@ t =
 t_{app}=\lceil t \rceil
 \]
 
-## 4. Constants
+## 4. Costanti
 
-Base values for \(\tau_0\):
+Valori base per \(\tau_0\):
 
-| Container | Volume | \(\tau_0\) |
+| Contenitore | Volume | \(\tau_0\) |
 |---|---:|---:|
-| Bottle | 0.33 l | 87 min |
-| Bottle | 0.5 l | 110 min |
-| Bottle | 1.0 l | 155 min |
-| Can | 0.33 l | 85 min |
-| Can | 0.5 l | 105 min |
+| Bottiglia | 0.33 l | 87 min |
+| Bottiglia | 0.5 l | 110 min |
+| Bottiglia | 1.0 l | 155 min |
+| Lattina | 0.33 l | 85 min |
+| Lattina | 0.5 l | 105 min |
 
-Device factors:
+Fattori dell'apparecchio:
 
-| Device | \(f_D\) |
+| Apparecchio | \(f_D\) |
 |---|---:|
-| Refrigerator | 1.00 |
-| Freezer | 0.84 |
+| Frigorifero | 1.00 |
+| Congelatore | 0.84 |
 
-Position factors:
+Fattori di posizione:
 
-| Container | Standing | Lying |
+| Contenitore | Verticale | Orizzontale |
 |---|---:|---:|
-| Bottle | 1.00 | 0.95 |
-| Can | 1.00 | 0.92 |
+| Bottiglia | 1.00 | 0.95 |
+| Lattina | 1.00 | 0.92 |
 
-## 5. Temperature during the timer
+## 5. Temperatura durante il timer
 
 \[
 \theta(t)=
@@ -94,15 +94,15 @@ Position factors:
 T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 \]
 
-## 6. Validity rules
+## 6. Regole di validità
 
-- If \(T_0 \le T_Z\), the beer is already cold enough.
-- If \(T_Z \le T_D\), the target temperature is not meaningfully reachable.
-- Only \(0 < \theta < 1\) is valid.
+- Se \(T_0 \le T_Z\), la birra è già abbastanza fredda.
+- Se \(T_Z \le T_D\), la temperatura desiderata non è raggiungibile in modo significativo.
+- È valido solo \(0 < \theta < 1\).
 
-## Example
+## Esempio
 
-A 0.33 l glass bottle from 39.5 degrees Celsius to 6 degrees Celsius in a freezer at -17.5 degrees Celsius gives:
+Una bottiglia di vetro da 0.33 l da 39.5 gradi Celsius a 6 gradi Celsius in un congelatore a -17.5 gradi Celsius richiede:
 
 \[
 t_{app} \approx 62\,\text{min}

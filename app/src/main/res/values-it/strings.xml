@@ -9,11 +9,11 @@
     <string name="cooling_time">Raffreddamento</string>
     <string name="calculated_cooling_time">Raffreddamento</string>
     <string name="remaining_time">Tempo residuo</string>
-    <string name="ends_at">Fine alle %1$s</string>
+    <string name="ends_at">Pronta alle %1$s</string>
     <string name="bottle_size">Bottiglia</string>
     <string name="bottle_volume">Bottiglia</string>
     <string name="start_temperature">Temperatura iniziale</string>
-    <string name="target_temperature">Temperatura obiettivo</string>
+    <string name="target_temperature">Temperatura desiderata</string>
     <string name="device_temperature">Temperatura dispositivo</string>
     <string name="start_timer">Avvia timer</string>
     <string name="stop">Stop</string>
@@ -34,11 +34,11 @@
     <string name="app_info_message">%1$s
 %2$s</string>
     <string name="close">Chiudi</string>
-    <string name="alarm_ringing">La tua birra è fredda</string>
-    <string name="alarm_detail">Temperatura obiettivo raggiunta.</string>
+    <string name="alarm_ringing">La tua birra è pronta</string>
+    <string name="alarm_detail">Temperatura desiderata raggiunta.</string>
     <string name="stop_alarm">Ferma allarme</string>
     <string name="no_timer">-- min</string>
-    <string name="end_time_placeholder">Fine alle --:--</string>
+    <string name="end_time_placeholder">Pronta alle --:--</string>
     <string name="info_text">Versione %1$s · Allarme Android</string>
     <string name="version_display">BeerCHILLER Versione %1$s</string>
     <string name="alarm_channel_name">Allarme BeerCHILLER</string>
