@@ -6,9 +6,24 @@ Model je prakticna aproksimacija. Koristi pocetnu temperaturu, ciljnu temperatur
 
 ## 1. Razlika temperature
 
+Odlučujuca vrijednost je razlika temperature izmedu piva i uredaja:
+
+\[
+\Delta = T - T_D
+\]
+
+Gdje:
+
+- \(T\): trenutna temperatura piva
+- \(T_D\): temperatura hladnjaka ili zamrzivaca
+
+Na pocetku vrijedi:
+
 \[
 \Delta_0 = T_0 - T_D
 \]
+
+Ciljna temperatura opisuje se kao bezdimenzijski omjer:
 
 \[
 \theta = \frac{T_Z - T_D}{T_0 - T_D}
@@ -18,22 +33,45 @@ Gdje:
 
 - \(T_0\): pocetna temperatura piva
 - \(T_Z\): ciljna temperatura
-- \(T_D\): temperatura hladnjaka ili zamrzivaca
 - \(\theta\): bezdimenzijski omjer ciljne temperature
 
-## 2. Krivulja hladenja
+## 2. Prijenos topline ovisan o temperaturi
 
-Hladenje se usporava kako se pivo priblizava temperaturi uredaja. BeerCHILLER to modelira empirijskim eksponentom:
+Hladenje se usporava kako se pivo priblizava temperaturi uredaja. BeerCHILLER to modelira malim empirijskim eksponentom:
 
 \[
 n = 0.15
 \]
 
+Toplinski tok se priblizno uzima kao proporcionalan:
+
+\[
+\dot Q \sim \Delta^{1+n}
+\]
+
+Iz toga slijedi jednadzba hladenja:
+
 \[
 \frac{d\Delta}{dt} = -k \cdot \Delta^{1+n}
 \]
 
-## 3. Konacna formula aplikacije
+## 3. Formula vremena
+
+Nakon razdvajanja varijabli, vrijeme od pocetne razlike \(\Delta_0\) do ciljne razlike \(\Delta_Z\) je:
+
+\[
+t \sim \Delta_0^{-n} \cdot \frac{\theta^{-n}-1}{n}
+\]
+
+Aplikacija koristi referentnu temperaturnu razliku kako bi konstante ostale jednostavne za kalibraciju:
+
+\[
+\Delta_{ref}=25K
+\]
+
+## 4. Konacna formula aplikacije
+
+Aplikacija koristi:
 
 \[
 t =
@@ -51,11 +89,25 @@ t =
 }{0.15}
 \]
 
+Izracunato vrijeme zaokruzuje se prema gore na pune minute:
+
 \[
 t_{app}=\lceil t \rceil
 \]
 
-## 4. Konstante
+Ako nastane pozitivno vrijeme manje od jedne minute, aplikacija prikazuje najmanje 1 minutu.
+
+## 5. Konstante
+
+Globalna kalibracija je:
+
+\[
+n = 0.15
+\]
+
+\[
+\Delta_{ref}=25K
+\]
 
 Osnovne vrijednosti za \(\tau_0\):
 
@@ -81,7 +133,9 @@ Faktori polozaja:
 | Boca | 1.00 | 0.95 |
 | Limenka | 1.00 | 0.92 |
 
-## 5. Temperatura tijekom timera
+## 6. Temperatura tijekom timera
+
+Tijekom aktivnog timera aplikacija koristi istu krivulju unatrag kako bi procijenila trenutnu temperaturu piva:
 
 \[
 \theta(t)=
@@ -94,11 +148,49 @@ Faktori polozaja:
 T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 \]
 
-## 6. Pravila valjanosti
+Ovdje je \(\tau_{eff}\) kalibrirani vremenski faktor iz \(\tau_0\), \(f_D\), \(f_P\) i korekcije temperaturne razlike.
+
+## 7. Pravila valjanosti
+
+Aplikacija ne prikazuje beskonacna, negativna ili neizracunljiva vremena.
 
 - Ako je \(T_0 \le T_Z\), pivo je vec dovoljno hladno.
 - Ako je \(T_Z \le T_D\), ciljna temperatura nije smisleno dostizna.
+- Ako je \(\Delta_0 \le 0\), unos nije valjan.
 - Vrijedi samo raspon \(0 < \theta < 1\).
+
+## 8. Kalibracija
+
+Model je uglavnom kalibriran prema mjerenjima staklene boce od 0.33 l.
+
+Hladnjak na oko 5.3 stupnja Celzija i pocetna temperatura 32.94 stupnja Celzija:
+
+| Ciljna temperatura | Izmjereno vrijeme | Model V2 |
+|---:|---:|---:|
+| 12 stupnjeva Celzija | oko 134 min | 136 min |
+| 10 stupnjeva Celzija | oko 172 min | 174 min |
+| 8 stupnjeva Celzija | oko 239 min | 239 min |
+
+Zamrzivac na oko -17.5 stupnjeva Celzija i pocetna temperatura 39.5 stupnjeva Celzija:
+
+| Ciljna temperatura | Izmjereno vrijeme | Model V2 |
+|---:|---:|---:|
+| 6 stupnjeva Celzija | oko 61 min | 62 min |
+
+## 9. Ogranicenja modela
+
+Izracun ne uzima u obzir:
+
+- zaledivanje
+- toplinu kristalizacije
+- fazne promjene
+- tresenje ili pomicanje piva
+- tocan protok zraka u uredaju
+- razlicite oblike boca
+- tocne kontaktne povrsine s policom
+- karton, vrecice ili dodatnu izolaciju
+
+Blizu tocke smrzavanja izracun postaje manje pouzdan. Za normalne temperature pijenja, kao 8 stupnjeva Celzija ili 6 stupnjeva Celzija, model je prakticna aproksimacija.
 
 ## Primjer
 
