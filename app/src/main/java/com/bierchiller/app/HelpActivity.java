@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 
 public class HelpActivity extends Activity {
     private static final String HELP_BASE_URL = "file:///android_asset/help/";
@@ -63,7 +62,7 @@ public class HelpActivity extends Activity {
     }
 
     private String resolveHelpMarkdownAsset() {
-        String language = Locale.getDefault().getLanguage();
+        String language = getCurrentResourceLanguage();
         switch (language) {
             case "en":
             case "it":
@@ -76,9 +75,17 @@ public class HelpActivity extends Activity {
             case "hr":
                 return "help/cooling_model_" + language + ".md";
             case "de":
-            default:
                 return "help/cooling_model_de.md";
+            default:
+                return "help/cooling_model_en.md";
         }
+    }
+
+    private String getCurrentResourceLanguage() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            return getResources().getConfiguration().getLocales().get(0).getLanguage();
+        }
+        return getResources().getConfiguration().locale.getLanguage();
     }
 
     private String markdownToHtml(String markdown) {

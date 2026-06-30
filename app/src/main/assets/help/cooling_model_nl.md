@@ -1,10 +1,10 @@
-# Calculation model
+# Berekeningsmodel
 
-The app calculates beer cooling time in a refrigerator or freezer with **BeerChiller Calibrated V2**.
+De app berekent de koeltijd van bier in een koelkast of vriezer met het model **BeerCHILLER Calibrated V2**.
 
-The model is a practical approximation. It uses the starting temperature, target temperature, device temperature, container, volume, and position. Real appliances can cool faster or slower because of airflow, contact surfaces, loading, and door openings.
+Het model is een praktische benadering. Het gebruikt de starttemperatuur, doeltemperatuur, apparaattemperatuur, verpakking, volume en positie. In de praktijk kunnen apparaten sneller of langzamer koelen door luchtstroming, contactoppervlakken, belading en het openen van de deur.
 
-## 1. Temperature difference
+## 1. Temperatuurverschil
 
 \[
 \Delta_0 = T_0 - T_D
@@ -14,16 +14,16 @@ The model is a practical approximation. It uses the starting temperature, target
 \theta = \frac{T_Z - T_D}{T_0 - T_D}
 \]
 
-Where:
+Waarbij:
 
-- \(T_0\): starting beer temperature
-- \(T_Z\): target beer temperature
-- \(T_D\): refrigerator or freezer temperature
-- \(\theta\): dimensionless target ratio
+- \(T_0\): starttemperatuur van het bier
+- \(T_Z\): doeltemperatuur
+- \(T_D\): temperatuur van koelkast of vriezer
+- \(\theta\): dimensieloze verhouding voor de doeltemperatuur
 
-## 2. Cooling curve
+## 2. Koelcurve
 
-Cooling slows down as the beer approaches the appliance temperature. BeerChiller models this with an empirical exponent:
+Het koelen vertraagt naarmate het bier dichter bij de apparaattemperatuur komt. BeerCHILLER modelleert dit met een empirische exponent:
 
 \[
 n = 0.15
@@ -33,7 +33,7 @@ n = 0.15
 \frac{d\Delta}{dt} = -k \cdot \Delta^{1+n}
 \]
 
-## 3. Final app formula
+## 3. Eindformule van de app
 
 \[
 t =
@@ -55,33 +55,33 @@ t =
 t_{app}=\lceil t \rceil
 \]
 
-## 4. Constants
+## 4. Constanten
 
-Base values for \(\tau_0\):
+Basiswaarden voor \(\tau_0\):
 
-| Container | Volume | \(\tau_0\) |
+| Verpakking | Volume | \(\tau_0\) |
 |---|---:|---:|
-| Bottle | 0.33 l | 87 min |
-| Bottle | 0.5 l | 110 min |
-| Bottle | 1.0 l | 155 min |
-| Can | 0.33 l | 85 min |
-| Can | 0.5 l | 105 min |
+| Fles | 0.33 l | 87 min |
+| Fles | 0.5 l | 110 min |
+| Fles | 1.0 l | 155 min |
+| Blik | 0.33 l | 85 min |
+| Blik | 0.5 l | 105 min |
 
-Device factors:
+Apparaatfactoren:
 
-| Device | \(f_D\) |
+| Apparaat | \(f_D\) |
 |---|---:|
-| Refrigerator | 1.00 |
-| Freezer | 0.84 |
+| Koelkast | 1.00 |
+| Vriezer | 0.84 |
 
-Position factors:
+Positiefactoren:
 
-| Container | Standing | Lying |
+| Verpakking | Staand | Liggend |
 |---|---:|---:|
-| Bottle | 1.00 | 0.95 |
-| Can | 1.00 | 0.92 |
+| Fles | 1.00 | 0.95 |
+| Blik | 1.00 | 0.92 |
 
-## 5. Temperature during the timer
+## 5. Temperatuur tijdens de timer
 
 \[
 \theta(t)=
@@ -94,15 +94,15 @@ Position factors:
 T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 \]
 
-## 6. Validity rules
+## 6. Geldigheidsregels
 
-- If \(T_0 \le T_Z\), the beer is already cold enough.
-- If \(T_Z \le T_D\), the target temperature is not meaningfully reachable.
-- Only \(0 < \theta < 1\) is valid.
+- Als \(T_0 \le T_Z\), is het bier al koud genoeg.
+- Als \(T_Z \le T_D\), is de doeltemperatuur niet zinvol bereikbaar.
+- Alleen \(0 < \theta < 1\) is geldig.
 
-## Example
+## Voorbeeld
 
-A 0.33 l glass bottle from 39.5 degrees Celsius to 6 degrees Celsius in a freezer at -17.5 degrees Celsius gives:
+Een glazen fles van 0.33 l van 39.5 graden Celsius naar 6 graden Celsius in een vriezer van -17.5 graden Celsius geeft:
 
 \[
 t_{app} \approx 62\,\text{min}
