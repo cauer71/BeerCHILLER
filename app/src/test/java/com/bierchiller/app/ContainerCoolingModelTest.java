@@ -17,8 +17,33 @@ public class ContainerCoolingModelTest {
     }
 
     @Test
+    public void matchesFridgeCalibrationAt8C() {
+        assertEquals(239, coolingMinutes(32.94, 8.0, 5.3, 0, 0, 1, 1));
+    }
+
+    @Test
     public void matchesFreezerCalibrationAt6C() {
         assertEquals(62, coolingMinutes(39.5, 6.0, -17.5, 0, 0, 0, 1));
+    }
+
+    @Test
+    public void coldBottleFreezerStartAt16CTo12CUsesCorrection() {
+        assertEquals(15, coolingMinutes(16.0, 12.0, -18.0, 0, 0, 0, 1));
+    }
+
+    @Test
+    public void coldBottleFreezerStartAt16CTo8CUsesCorrection() {
+        assertEquals(33, coolingMinutes(16.0, 8.0, -18.0, 0, 0, 0, 1));
+    }
+
+    @Test
+    public void coldBottleFreezerStartAt20CInterpolatesCorrection() {
+        assertEquals(37, coolingMinutes(20.0, 8.0, -18.0, 0, 0, 0, 1));
+    }
+
+    @Test
+    public void coldStartCorrectionDoesNotApplyToCans() {
+        assertEquals(19, coolingMinutes(16.0, 8.0, -18.0, 1, 0, 0, 1));
     }
 
     @Test

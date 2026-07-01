@@ -106,6 +106,9 @@ public class MainActivity extends Activity {
     private static final double BOTTLE_POSITION_FACTOR_LYING = 0.95;
     private static final double CAN_POSITION_FACTOR_STANDING = 1.0;
     private static final double CAN_POSITION_FACTOR_LYING = 0.92;
+    private static final double COLD_START_FULL_CORRECTION_C = 16.0;
+    private static final double COLD_START_NO_CORRECTION_C = 24.0;
+    private static final double COLD_START_MAX_EXTRA_FACTOR = 0.70;
     private static final String[] LANGUAGE_CODES = new String[]{
             LocaleHelper.SYSTEM_LANGUAGE, "de", "en", "it", "fr", "es", "pt", "nl", "pl", "cs", "hr"
     };
@@ -1564,16 +1567,43 @@ public class MainActivity extends Activity {
         double deltaCorrection = Math.pow(DELTA_REF_C / delta0, CONVECTION_EXPONENT);
         double temperatureTerm = (Math.pow(thetaTarget, -CONVECTION_EXPONENT) - 1.0)
                 / CONVECTION_EXPONENT;
+        double coldStartFactor = coldBottleFreezerStartFactor(
+                preset.containerType,
+                requestedDeviceMode,
+                startTempC
+        );
         double minutes = preset.baseTauMinutes
                 * deviceFactorFor(requestedDeviceMode)
                 * positionFactorFor(preset.containerType, requestedOrientation)
                 * deltaCorrection
+                * coldStartFactor
                 * temperatureTerm;
         double seconds = minutes * 60.0;
         if (!Double.isFinite(seconds) || seconds < 0.0) {
             return CoolingModel.invalid();
         }
         return new CoolingModel(true, seconds, thetaTarget);
+    }
+
+    static double coldBottleFreezerStartFactor(int requestedContainerType,
+                                               int requestedDeviceMode,
+                                               double startTempC) {
+        if (requestedContainerType != CONTAINER_BOTTLE || requestedDeviceMode != DEVICE_FREEZER) {
+            return 1.0;
+        }
+        double x = (COLD_START_NO_CORRECTION_C - startTempC)
+                / (COLD_START_NO_CORRECTION_C - COLD_START_FULL_CORRECTION_C);
+        double correctionStrength = smoothstep01(x);
+        return 1.0 + COLD_START_MAX_EXTRA_FACTOR * correctionStrength;
+    }
+
+    private static double smoothstep01(double value) {
+        double x = clamp01(value);
+        return x * x * (3.0 - 2.0 * x);
+    }
+
+    private static double clamp01(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
     }
 
     static double surfaceAreaFor(ContainerPreset preset) {
