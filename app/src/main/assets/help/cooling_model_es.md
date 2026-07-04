@@ -133,7 +133,13 @@ Factores de posición:
 | Botella | 1.00 | 0.95 |
 | Lata | 1.00 | 0.92 |
 
-## 6. Temperatura durante el temporizador
+## 6. Correccion de inicio frio para botellas en el congelador
+
+BeerChiller Calibrated V2.1 amplia el modelo V2 con un factor interno para botellas de vidrio en el congelador cuando la cerveza ya empieza relativamente fria. El factor solo se aplica a botellas en el congelador, no a latas ni al refrigerador.
+
+A partir de 24 grados Celsius de temperatura inicial el factor se mantiene en 1,00. A 16 grados Celsius o menos sube a 1,70. Entre esos valores se interpola suavemente. Asi las mediciones con cerveza caliente no cambian, mientras que los enfriamientos cortos en congelador con inicio frio son mas realistas.
+
+## 7. Temperatura durante el temporizador
 
 Durante un temporizador activo, la app usa la misma curva en sentido inverso para estimar la temperatura actual de la cerveza:
 
@@ -150,7 +156,7 @@ T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 
 Aquí, \(\tau_{eff}\) es el factor de tiempo calibrado a partir de \(\tau_0\), \(f_D\), \(f_P\) y la corrección de la diferencia de temperatura.
 
-## 7. Reglas de validez
+## 8. Reglas de validez
 
 La app no muestra tiempos infinitos, negativos o no calculables.
 
@@ -159,13 +165,13 @@ La app no muestra tiempos infinitos, negativos o no calculables.
 - Si \(\Delta_0 \le 0\), la entrada no es válida.
 - Solo es válido \(0 < \theta < 1\).
 
-## 8. Calibración
+## 9. Calibración
 
 El modelo está calibrado principalmente con mediciones de una botella de vidrio de 0.33 l.
 
 Frigorífico a unos 5.3 grados Celsius y temperatura inicial de 32.94 grados Celsius:
 
-| Temperatura deseada | Tiempo medido | Modelo V2 |
+| Temperatura deseada | Tiempo medido | Modelo V2.1 |
 |---:|---:|---:|
 | 12 grados Celsius | aprox. 134 min | 136 min |
 | 10 grados Celsius | aprox. 172 min | 174 min |
@@ -173,11 +179,11 @@ Frigorífico a unos 5.3 grados Celsius y temperatura inicial de 32.94 grados Cel
 
 Congelador a unos -17.5 grados Celsius y temperatura inicial de 39.5 grados Celsius:
 
-| Temperatura deseada | Tiempo medido | Modelo V2 |
+| Temperatura deseada | Tiempo medido | Modelo V2.1 |
 |---:|---:|---:|
 | 6 grados Celsius | aprox. 61 min | 62 min |
 
-## 9. Límites del modelo
+## 10. Límites del modelo
 
 El cálculo no considera:
 

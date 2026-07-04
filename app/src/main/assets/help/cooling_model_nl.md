@@ -133,7 +133,13 @@ Positiefactoren:
 | Fles | 1.00 | 0.95 |
 | Blik | 1.00 | 0.92 |
 
-## 6. Temperatuur tijdens de timer
+## 6. Koude-startcorrectie voor glazen flessen in de vriezer
+
+BeerChiller Calibrated V2.1 breidt het V2-model uit met een interne correctiefactor voor glazen flessen in de vriezer wanneer het bier al relatief koel begint. De factor geldt alleen voor flessen in de vriezer, niet voor blikjes en niet voor de koelkast.
+
+Vanaf een starttemperatuur van 24 graden Celsius blijft de factor 1,00. Bij 16 graden Celsius of lager stijgt hij naar 1,70. Daartussen wordt vloeiend geinterpoleerd. Daardoor blijven warme meetreeksen gelijk, terwijl korte vriezerkoelingen met een koele starttemperatuur realistischer worden.
+
+## 7. Temperatuur tijdens de timer
 
 Tijdens een actieve timer gebruikt de app dezelfde curve achteruit om de actuele biertemperatuur te schatten:
 
@@ -150,7 +156,7 @@ T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 
 Hier is \(\tau_{eff}\) de gekalibreerde tijdfactor uit \(\tau_0\), \(f_D\), \(f_P\) en de correctie voor het temperatuurverschil.
 
-## 7. Geldigheidsregels
+## 8. Geldigheidsregels
 
 De app toont geen oneindige, negatieve of niet-berekenbare tijden.
 
@@ -159,7 +165,7 @@ De app toont geen oneindige, negatieve of niet-berekenbare tijden.
 - Als \(\Delta_0 \le 0\), is de invoer ongeldig.
 - Alleen \(0 < \theta < 1\) is geldig.
 
-## 8. Kalibratie
+## 9. Kalibratie
 
 Het model is vooral gekalibreerd met metingen van een glazen fles van 0.33 l.
 
@@ -177,7 +183,7 @@ Vriezer bij ongeveer -17.5 graden Celsius en starttemperatuur 39.5 graden Celsiu
 |---:|---:|---:|
 | 6 graden Celsius | ca. 61 min | 62 min |
 
-## 9. Grenzen van het model
+## 10. Grenzen van het model
 
 De berekening houdt geen rekening met:
 

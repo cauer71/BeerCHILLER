@@ -1,6 +1,6 @@
 # Calculation model
 
-The app calculates beer cooling time in a refrigerator or freezer with **BeerChiller Calibrated V2**.
+The app calculates beer cooling time in a refrigerator or freezer with **BeerChiller Calibrated V2.1**.
 
 The model is a practical approximation. It uses the starting temperature, target temperature, device temperature, container, volume, and position. Real appliances can cool faster or slower because of airflow, contact surfaces, loading, and door openings.
 
@@ -133,7 +133,13 @@ Position factors:
 | Bottle | 1.00 | 0.95 |
 | Can | 1.00 | 0.92 |
 
-## 6. Temperature during the timer
+## 6. Cold-start correction for glass bottles in the freezer
+
+BeerChiller Calibrated V2.1 extends the V2 model with an internal correction factor for glass bottles in the freezer when the beer already starts relatively cool. The factor applies only to bottles in the freezer, not to cans and not to the refrigerator.
+
+From 24 degrees Celsius starting temperature upward the factor remains 1.00. At 16 degrees Celsius or below it rises to 1.70. Between those values it is interpolated smoothly. This keeps warm calibration runs unchanged while making short freezer runs with a cool starting temperature more realistic.
+
+## 7. Temperature during the timer
 
 During an active timer, the app uses the same curve in reverse to estimate the current beer temperature:
 
@@ -150,7 +156,7 @@ T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 
 Here, \(\tau_{eff}\) is the calibrated time factor from \(\tau_0\), \(f_D\), \(f_P\), and the temperature-difference correction.
 
-## 7. Validity rules
+## 8. Validity rules
 
 The app does not display infinite, negative, or non-computable times.
 
@@ -159,13 +165,13 @@ The app does not display infinite, negative, or non-computable times.
 - If \(\Delta_0 \le 0\), the input is invalid.
 - Only \(0 < \theta < 1\) is valid.
 
-## 8. Calibration
+## 9. Calibration
 
 The model is mainly calibrated against measurements from a 0.33 l glass bottle.
 
 Refrigerator at about 5.3 degrees Celsius and starting temperature 32.94 degrees Celsius:
 
-| Target temperature | Measured time | V2 model |
+| Target temperature | Measured time | V2.1 model |
 |---:|---:|---:|
 | 12 degrees Celsius | about 134 min | 136 min |
 | 10 degrees Celsius | about 172 min | 174 min |
@@ -173,11 +179,11 @@ Refrigerator at about 5.3 degrees Celsius and starting temperature 32.94 degrees
 
 Freezer at about -17.5 degrees Celsius and starting temperature 39.5 degrees Celsius:
 
-| Target temperature | Measured time | V2 model |
+| Target temperature | Measured time | V2.1 model |
 |---:|---:|---:|
 | 6 degrees Celsius | about 61 min | 62 min |
 
-## 9. Model limits
+## 10. Model limits
 
 The calculation does not consider:
 

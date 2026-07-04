@@ -133,7 +133,13 @@ Faktory polohy:
 | Lahev | 1.00 | 0.95 |
 | Plechovka | 1.00 | 0.92 |
 
-## 6. Teplota behem timeru
+## 6. Korekce studeneho startu pro sklenene lahve v mrazaku
+
+BeerChiller Calibrated V2.1 rozsiruje model V2 o interni korekcni faktor pro sklenene lahve v mrazaku, kdyz pivo zacina uz relativne chladne. Faktor plati jen pro lahve v mrazaku, ne pro plechovky a ne pro lednici.
+
+Od pocatecni teploty 24 stupnu Celsia zustava faktor 1,00. Pri 16 stupnich Celsia nebo mene stoupne na 1,70. Mezi temito hodnotami se plynule interpoluje. Teple merici rady tak zustavaji beze zmeny, zatimco kratke chlazeni v mrazaku s nizkou pocatecni teplotou je realistictejsi.
+
+## 7. Teplota behem timeru
 
 Behem aktivniho timeru aplikace pouziva stejnou krivku opacnym smerem, aby odhadla aktualni teplotu piva:
 
@@ -150,7 +156,7 @@ T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 
 Zde je \(\tau_{eff}\) kalibrovany casovy faktor z \(\tau_0\), \(f_D\), \(f_P\) a korekce teplotniho rozdilu.
 
-## 7. Pravidla platnosti
+## 8. Pravidla platnosti
 
 Aplikace nezobrazuje nekonecne, zaporne ani nevypocitatelne casy.
 
@@ -159,13 +165,13 @@ Aplikace nezobrazuje nekonecne, zaporne ani nevypocitatelne casy.
 - Pokud \(\Delta_0 \le 0\), vstup je neplatny.
 - Platny je pouze rozsah \(0 < \theta < 1\).
 
-## 8. Kalibrace
+## 9. Kalibrace
 
 Model je kalibrovan hlavne podle mereni sklenene lahve 0.33 l.
 
 Lednice pri asi 5.3 stupne Celsia a pocatecni teplote 32.94 stupne Celsia:
 
-| Cilova teplota | Namerene casy | Model V2 |
+| Cilova teplota | Namerene casy | Model V2.1 |
 |---:|---:|---:|
 | 12 stupnu Celsia | asi 134 min | 136 min |
 | 10 stupnu Celsia | asi 172 min | 174 min |
@@ -173,11 +179,11 @@ Lednice pri asi 5.3 stupne Celsia a pocatecni teplote 32.94 stupne Celsia:
 
 Mrazak pri asi -17.5 stupne Celsia a pocatecni teplote 39.5 stupne Celsia:
 
-| Cilova teplota | Namerene casy | Model V2 |
+| Cilova teplota | Namerene casy | Model V2.1 |
 |---:|---:|---:|
 | 6 stupnu Celsia | asi 61 min | 62 min |
 
-## 9. Omezeni modelu
+## 10. Omezeni modelu
 
 Vypocet nezohlednuje:
 

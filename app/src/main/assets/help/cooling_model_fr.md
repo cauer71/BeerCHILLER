@@ -133,7 +133,13 @@ Facteurs de position:
 | Bouteille | 1.00 | 0.95 |
 | Canette | 1.00 | 0.92 |
 
-## 6. Température pendant le minuteur
+## 6. Correction de depart froid pour les bouteilles au congelateur
+
+BeerChiller Calibrated V2.1 ajoute au modele V2 un facteur interne pour les bouteilles en verre au congelateur lorsque la biere est deja relativement fraiche au depart. Ce facteur ne s'applique qu'aux bouteilles au congelateur, pas aux canettes ni au refrigerateur.
+
+A partir de 24 degres Celsius de temperature initiale, le facteur reste a 1,00. A 16 degres Celsius ou moins, il monte a 1,70. Entre les deux, l'interpolation est progressive. Les mesures avec une biere chaude restent donc inchangees, tandis que les passages courts au congelateur avec une temperature initiale basse deviennent plus realistes.
+
+## 7. Température pendant le minuteur
 
 Pendant un minuteur actif, l'application utilise la même courbe en sens inverse pour estimer la température actuelle de la bière:
 
@@ -150,7 +156,7 @@ T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 
 Ici, \(\tau_{eff}\) est le facteur de temps calibré à partir de \(\tau_0\), \(f_D\), \(f_P\) et de la correction de différence de température.
 
-## 7. Règles de validité
+## 8. Règles de validité
 
 L'application n'affiche pas de temps infinis, négatifs ou non calculables.
 
@@ -159,7 +165,7 @@ L'application n'affiche pas de temps infinis, négatifs ou non calculables.
 - Si \(\Delta_0 \le 0\), l'entrée n'est pas valide.
 - Seul \(0 < \theta < 1\) est valide.
 
-## 8. Calibration
+## 9. Calibration
 
 Le modèle est principalement calibré sur des mesures d'une bouteille en verre de 0.33 l.
 
@@ -177,7 +183,7 @@ Congélateur à environ -17.5 degrés Celsius et température initiale de 39.5 d
 |---:|---:|---:|
 | 6 degrés Celsius | env. 61 min | 62 min |
 
-## 9. Limites du modèle
+## 10. Limites du modèle
 
 Le calcul ne prend pas en compte:
 

@@ -907,9 +907,34 @@ public class MainActivity extends Activity {
         );
 
         if (alarmManager != null) {
-            AlarmManager.AlarmClockInfo alarmClockInfo =
-                    new AlarmManager.AlarmClockInfo(triggerAtMillis, showPendingIntent);
-            alarmManager.setAlarmClock(alarmClockInfo, pendingIntent);
+            try {
+                if (canScheduleExactTimerAlarm()) {
+                    AlarmManager.AlarmClockInfo alarmClockInfo =
+                            new AlarmManager.AlarmClockInfo(triggerAtMillis, showPendingIntent);
+                    alarmManager.setAlarmClock(alarmClockInfo, pendingIntent);
+                } else {
+                    scheduleInexactTimerAlarm(triggerAtMillis, pendingIntent);
+                }
+            } catch (SecurityException ignored) {
+                scheduleInexactTimerAlarm(triggerAtMillis, pendingIntent);
+            }
+        }
+    }
+
+    private boolean canScheduleExactTimerAlarm() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S
+                || alarmManager == null
+                || alarmManager.canScheduleExactAlarms();
+    }
+
+    private void scheduleInexactTimerAlarm(long triggerAtMillis, PendingIntent pendingIntent) {
+        if (alarmManager == null) {
+            return;
+        }
+        try {
+            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+        } catch (RuntimeException ignored) {
+            // The foreground timer continues running even if this platform rejects alarm scheduling.
         }
     }
 

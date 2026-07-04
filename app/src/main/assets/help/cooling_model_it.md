@@ -133,7 +133,13 @@ Fattori di posizione:
 | Bottiglia | 1.00 | 0.95 |
 | Lattina | 1.00 | 0.92 |
 
-## 6. Temperatura durante il timer
+## 6. Correzione per partenza fredda delle bottiglie in freezer
+
+BeerChiller Calibrated V2.1 estende il modello V2 con un fattore interno per le bottiglie di vetro in freezer quando la birra parte gia relativamente fresca. Il fattore vale solo per le bottiglie in freezer, non per le lattine e non per il frigorifero.
+
+Da 24 gradi Celsius di temperatura iniziale in su il fattore resta 1,00. A 16 gradi Celsius o meno sale a 1,70. Tra questi valori viene interpolato in modo graduale. Le misurazioni con birra calda restano quindi invariate, mentre i raffreddamenti brevi in freezer con partenza fresca diventano piu realistici.
+
+## 7. Temperatura durante il timer
 
 Durante un timer attivo, l'app usa la stessa curva al contrario per stimare la temperatura attuale della birra:
 
@@ -150,7 +156,7 @@ T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 
 Qui \(\tau_{eff}\) è il fattore di tempo calibrato da \(\tau_0\), \(f_D\), \(f_P\) e dalla correzione della differenza di temperatura.
 
-## 7. Regole di validità
+## 8. Regole di validità
 
 L'app non mostra tempi infiniti, negativi o non calcolabili.
 
@@ -159,13 +165,13 @@ L'app non mostra tempi infiniti, negativi o non calcolabili.
 - Se \(\Delta_0 \le 0\), l'input non è valido.
 - È valido solo \(0 < \theta < 1\).
 
-## 8. Calibrazione
+## 9. Calibrazione
 
 Il modello è calibrato soprattutto su misurazioni con una bottiglia di vetro da 0.33 l.
 
 Frigorifero a circa 5.3 gradi Celsius e temperatura iniziale 32.94 gradi Celsius:
 
-| Temperatura desiderata | Tempo misurato | Modello V2 |
+| Temperatura desiderata | Tempo misurato | Modello V2.1 |
 |---:|---:|---:|
 | 12 gradi Celsius | circa 134 min | 136 min |
 | 10 gradi Celsius | circa 172 min | 174 min |
@@ -173,11 +179,11 @@ Frigorifero a circa 5.3 gradi Celsius e temperatura iniziale 32.94 gradi Celsius
 
 Congelatore a circa -17.5 gradi Celsius e temperatura iniziale 39.5 gradi Celsius:
 
-| Temperatura desiderata | Tempo misurato | Modello V2 |
+| Temperatura desiderata | Tempo misurato | Modello V2.1 |
 |---:|---:|---:|
 | 6 gradi Celsius | circa 61 min | 62 min |
 
-## 9. Limiti del modello
+## 10. Limiti del modello
 
 Il calcolo non considera:
 

@@ -1,6 +1,6 @@
 # Berechnungsmodell
 
-Die App berechnet die Kühlzeit eines Bieres im Kühlschrank oder Gefrierschrank mit dem Modell **BeerChiller Calibrated V2**.
+Die App berechnet die Kühlzeit eines Bieres im Kühlschrank oder Gefrierschrank mit dem Modell **BeerChiller Calibrated V2.1**.
 
 Das Modell ist eine praktische Näherung. Es verwendet Starttemperatur, Zieltemperatur, Gerätetemperatur, Gebinde, Volumen und Lage. Reale Geräte können durch Luftbewegung, Kontaktflächen, Beladung und Tür-Öffnungen schneller oder langsamer kühlen.
 
@@ -133,7 +133,13 @@ Lagefaktoren:
 | Flasche | 1,00 | 0,95 |
 | Dose | 1,00 | 0,92 |
 
-## 6. Temperatur während des Timers
+## 6. Kaltstartkorrektur fuer Glasflaschen im Gefrierschrank
+
+BeerChiller Calibrated V2.1 ergaenzt das V2-Modell um einen internen Korrekturfaktor fuer Glasflaschen im Gefrierschrank, wenn das Bier bereits relativ kuehl startet. Der Faktor gilt nur fuer Flaschen im Gefrierschrank, nicht fuer Dosen und nicht fuer den Kuehlschrank.
+
+Ab 24 Grad Celsius Starttemperatur bleibt der Faktor 1,00. Bei 16 Grad Celsius oder darunter steigt er auf 1,70. Dazwischen wird weich interpoliert. So bleibt das Verhalten bei warmen Messreihen unveraendert, waehrend kurze Gefrierfach-Laeufe mit kalter Starttemperatur realistischer werden.
+
+## 7. Temperatur während des Timers
 
 Während eines laufenden Timers verwendet die App dieselbe Kurve rückwärts, um die aktuelle Biertemperatur zu schätzen:
 
@@ -150,7 +156,7 @@ T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 
 Dabei ist \(\tau_{eff}\) der kalibrierte Zeitfaktor aus \(\tau_0\), \(f_D\), \(f_P\) und der Temperaturdifferenz-Korrektur.
 
-## 7. Gültigkeitsregeln
+## 8. Gültigkeitsregeln
 
 Die App zeigt keine unendlichen, negativen oder nicht berechenbaren Zeiten an.
 
@@ -159,7 +165,7 @@ Die App zeigt keine unendlichen, negativen oder nicht berechenbaren Zeiten an.
 - Wenn \(\Delta_0 \le 0\), ist die Eingabe ungültig.
 - Gültig ist nur \(0 < \theta < 1\).
 
-## 8. Kalibrierung
+## 9. Kalibrierung
 
 Das Modell ist vor allem an Messreihen einer 0,33-l-Glasflasche kalibriert.
 
@@ -177,7 +183,7 @@ Gefrierschrank bei etwa -17,5 Grad Celsius und Starttemperatur 39,5 Grad Celsius
 |---:|---:|---:|
 | 6 Grad Celsius | ca. 61 min | 62 min |
 
-## 9. Grenzen des Modells
+## 10. Grenzen des Modells
 
 Die Berechnung berücksichtigt nicht:
 

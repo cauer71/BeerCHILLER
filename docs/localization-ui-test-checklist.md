@@ -26,7 +26,7 @@ Check each screen for:
 - Temperature labels do not run into the plus/minus/value controls.
 - Bottle-size buttons stay readable.
 - Language dialog opens and shows the current selection.
-- System language clears the saved manual language.
+- System language clears the saved manual language and follows the current device language.
 - Info dialog shows the dynamic app version.
 
 Abbreviations used:

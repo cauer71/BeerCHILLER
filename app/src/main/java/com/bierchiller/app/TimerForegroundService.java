@@ -74,8 +74,8 @@ public final class TimerForegroundService extends Service {
             return START_NOT_STICKY;
         }
 
-        Notification notification = buildTimerNotification();
         try {
+            Notification notification = buildTimerNotification();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                 startForeground(
                         TimerNotificationHelper.NOTIFICATION_ID,

@@ -133,7 +133,13 @@ Faktori polozaja:
 | Boca | 1.00 | 0.95 |
 | Limenka | 1.00 | 0.92 |
 
-## 6. Temperatura tijekom timera
+## 6. Korekcija hladnog starta za staklene boce u zamrzivacu
+
+BeerChiller Calibrated V2.1 prosiruje model V2 internim korekcijskim faktorom za staklene boce u zamrzivacu kada pivo vec pocinje relativno hladno. Faktor vrijedi samo za boce u zamrzivacu, ne za limenke i ne za hladnjak.
+
+Od pocetne temperature 24 stupnja Celzija faktor ostaje 1,00. Na 16 stupnjeva Celzija ili nize raste na 1,70. Izmedu tih vrijednosti interpolira se glatko. Time topla mjerenja ostaju nepromijenjena, a kratka hladenja u zamrzivacu s hladnim startom postaju realnija.
+
+## 7. Temperatura tijekom timera
 
 Tijekom aktivnog timera aplikacija koristi istu krivulju unatrag kako bi procijenila trenutnu temperaturu piva:
 
@@ -150,7 +156,7 @@ T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 
 Ovdje je \(\tau_{eff}\) kalibrirani vremenski faktor iz \(\tau_0\), \(f_D\), \(f_P\) i korekcije temperaturne razlike.
 
-## 7. Pravila valjanosti
+## 8. Pravila valjanosti
 
 Aplikacija ne prikazuje beskonacna, negativna ili neizracunljiva vremena.
 
@@ -159,13 +165,13 @@ Aplikacija ne prikazuje beskonacna, negativna ili neizracunljiva vremena.
 - Ako je \(\Delta_0 \le 0\), unos nije valjan.
 - Vrijedi samo raspon \(0 < \theta < 1\).
 
-## 8. Kalibracija
+## 9. Kalibracija
 
 Model je uglavnom kalibriran prema mjerenjima staklene boce od 0.33 l.
 
 Hladnjak na oko 5.3 stupnja Celzija i pocetna temperatura 32.94 stupnja Celzija:
 
-| Ciljna temperatura | Izmjereno vrijeme | Model V2 |
+| Ciljna temperatura | Izmjereno vrijeme | Model V2.1 |
 |---:|---:|---:|
 | 12 stupnjeva Celzija | oko 134 min | 136 min |
 | 10 stupnjeva Celzija | oko 172 min | 174 min |
@@ -173,11 +179,11 @@ Hladnjak na oko 5.3 stupnja Celzija i pocetna temperatura 32.94 stupnja Celzija:
 
 Zamrzivac na oko -17.5 stupnjeva Celzija i pocetna temperatura 39.5 stupnjeva Celzija:
 
-| Ciljna temperatura | Izmjereno vrijeme | Model V2 |
+| Ciljna temperatura | Izmjereno vrijeme | Model V2.1 |
 |---:|---:|---:|
 | 6 stupnjeva Celzija | oko 61 min | 62 min |
 
-## 9. Ogranicenja modela
+## 10. Ogranicenja modela
 
 Izracun ne uzima u obzir:
 

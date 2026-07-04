@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Build;
 import android.os.LocaleList;
 
@@ -71,11 +72,12 @@ final class LocaleHelper {
     }
 
     private static Locale resolveSystemLocale() {
+        Configuration systemConfiguration = Resources.getSystem().getConfiguration();
         Locale locale;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            locale = LocaleList.getDefault().get(0);
+            locale = systemConfiguration.getLocales().get(0);
         } else {
-            locale = Locale.getDefault();
+            locale = systemConfiguration.locale;
         }
         String language = locale.getLanguage();
         if (SUPPORTED_LANGUAGES.contains(language)) {

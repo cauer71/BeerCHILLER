@@ -133,7 +133,13 @@ Wspolczynniki polozenia:
 | Butelka | 1.00 | 0.95 |
 | Puszka | 1.00 | 0.92 |
 
-## 6. Temperatura podczas timera
+## 6. Korekta zimnego startu dla szklanych butelek w zamrazarce
+
+BeerChiller Calibrated V2.1 rozszerza model V2 o wewnetrzny wspolczynnik dla szklanych butelek w zamrazarce, gdy piwo startuje juz stosunkowo chlodne. Wspolczynnik dotyczy tylko butelek w zamrazarce, nie puszek i nie lodowki.
+
+Od temperatury poczatkowej 24 stopnie Celsjusza wspolczynnik pozostaje 1,00. Przy 16 stopniach Celsjusza lub mniej rosnie do 1,70. Pomiedzy tymi wartosciami jest plynnie interpolowany. Dzieki temu pomiary dla cieplego piwa pozostaja bez zmian, a krotkie chlodzenie w zamrazarce z niska temperatura startowa jest bardziej realistyczne.
+
+## 7. Temperatura podczas timera
 
 Podczas aktywnego timera aplikacja uzywa tej samej krzywej w odwrotna strone, aby oszacowac aktualna temperature piwa:
 
@@ -150,7 +156,7 @@ T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 
 Tutaj \(\tau_{eff}\) jest skalibrowanym wspolczynnikiem czasu z \(\tau_0\), \(f_D\), \(f_P\) oraz korekty roznicy temperatur.
 
-## 7. Reguly poprawnosci
+## 8. Reguly poprawnosci
 
 Aplikacja nie pokazuje czasow nieskonczonych, ujemnych ani niemozliwych do obliczenia.
 
@@ -159,13 +165,13 @@ Aplikacja nie pokazuje czasow nieskonczonych, ujemnych ani niemozliwych do oblic
 - Jesli \(\Delta_0 \le 0\), dane wejsciowe sa niepoprawne.
 - Poprawny jest tylko zakres \(0 < \theta < 1\).
 
-## 8. Kalibracja
+## 9. Kalibracja
 
 Model jest skalibrowany glownie na pomiarach szklanej butelki 0.33 l.
 
 Lodowka przy okolo 5.3 stopnia Celsjusza i temperaturze poczatkowej 32.94 stopnia Celsjusza:
 
-| Temperatura docelowa | Czas pomiaru | Model V2 |
+| Temperatura docelowa | Czas pomiaru | Model V2.1 |
 |---:|---:|---:|
 | 12 stopni Celsjusza | ok. 134 min | 136 min |
 | 10 stopni Celsjusza | ok. 172 min | 174 min |
@@ -173,11 +179,11 @@ Lodowka przy okolo 5.3 stopnia Celsjusza i temperaturze poczatkowej 32.94 stopni
 
 Zamrazarka przy okolo -17.5 stopnia Celsjusza i temperaturze poczatkowej 39.5 stopnia Celsjusza:
 
-| Temperatura docelowa | Czas pomiaru | Model V2 |
+| Temperatura docelowa | Czas pomiaru | Model V2.1 |
 |---:|---:|---:|
 | 6 stopni Celsjusza | ok. 61 min | 62 min |
 
-## 9. Ograniczenia modelu
+## 10. Ograniczenia modelu
 
 Obliczenie nie uwzglednia:
 

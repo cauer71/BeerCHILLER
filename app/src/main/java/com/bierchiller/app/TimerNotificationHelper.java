@@ -27,6 +27,7 @@ public final class TimerNotificationHelper {
 
     private static final String CHANNEL_ID = "timer_channel_v3";
     static final int NOTIFICATION_ID = 43;
+    private static final int ANDROID_16_API = 36;
     private static final double CONVECTION_EXPONENT = 0.15;
     private TimerNotificationHelper() {
     }
@@ -111,6 +112,22 @@ public final class TimerNotificationHelper {
     private static Notification buildInternal(Context context, long endTimeMillis, long totalDurationMillis,
                                               double startTempC, double targetTempC, double deviceTempC,
                                               boolean displayFahrenheit) {
+        return buildInternal(
+                context,
+                endTimeMillis,
+                totalDurationMillis,
+                startTempC,
+                targetTempC,
+                deviceTempC,
+                displayFahrenheit,
+                supportsPromotedOngoing()
+        );
+    }
+
+    private static Notification buildInternal(Context context, long endTimeMillis, long totalDurationMillis,
+                                              double startTempC, double targetTempC, double deviceTempC,
+                                              boolean displayFahrenheit,
+                                              boolean usePromotedOngoing) {
         Intent openIntent = new Intent(context, MainActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent openPendingIntent = PendingIntent.getActivity(
@@ -153,31 +170,54 @@ public final class TimerNotificationHelper {
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .build();
 
-        return new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_beer_mug_button)
-                .setColor(0xFFFFC107)          // Gold / Amber
+        if (usePromotedOngoing) {
+            return new NotificationCompat.Builder(context, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_beer_mug_button)
+                    .setColor(0xFFFFC107)          // Gold / Amber
 //                .setColor(resolveAppAccentColor(context))
 //                .setContentTitle(context.getString(R.string.app_name))
 //                .setContentText(statusText(remainingText, currentTempText))
-                .setContentTitle(context.getString(R.string.running))
-                .setContentText("⏱ " + remainingText + " min 🌡" + currentTempText + " → " + targetTempText)
+                    .setContentTitle(context.getString(R.string.running))
+                    .setContentText("⏱ " + remainingText + " min 🌡" + currentTempText + " → " + targetTempText)
 
+                    .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
+                    .setPriority(NotificationCompat.PRIORITY_MAX)
+                    .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                    .setPublicVersion(publicVersion)
+                    .setOngoing(true)
+                    .setOnlyAlertOnce(true)
+                    .setShowWhen(false)
+                    .setShortCriticalText("⏱ " + remainingText)
+//                .setShortCriticalText(remainingText)
+                    .setContentIntent(openPendingIntent)
+                    .addAction(
+                            R.drawable.ic_beer_mug_button,
+                            context.getString(R.string.stop_timer),
+                            stopPendingIntent
+                    )
+                    .setRequestPromotedOngoing(true)
+                    .setTimeoutAfter(remainingMillis)
+                    .build();
+        }
+
+        return new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_beer_mug_button)
+                .setColor(resolveAppAccentColor(context))
+                .setContentTitle(context.getString(R.string.running))
+                .setContentText(statusText(remainingText, currentTempText) + " → " + targetTempText)
                 .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setPublicVersion(publicVersion)
                 .setOngoing(true)
                 .setOnlyAlertOnce(true)
                 .setShowWhen(false)
-                .setShortCriticalText("⏱ " + remainingText)
-//                .setShortCriticalText(remainingText)
                 .setContentIntent(openPendingIntent)
                 .addAction(
                         R.drawable.ic_beer_mug_button,
                         context.getString(R.string.stop_timer),
                         stopPendingIntent
                 )
-                .setRequestPromotedOngoing(true)
                 .setTimeoutAfter(remainingMillis)
                 .build();
     }
@@ -214,15 +254,32 @@ public final class TimerNotificationHelper {
         NotificationManager manager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager != null) {
-            manager.notify(NOTIFICATION_ID, build(
-                    context,
-                    endTimeMillis,
-                    totalDurationMillis,
-                    startTempC,
-                    targetTempC,
-                    deviceTempC,
-                    displayFahrenheit
-            ));
+            try {
+                manager.notify(NOTIFICATION_ID, build(
+                        context,
+                        endTimeMillis,
+                        totalDurationMillis,
+                        startTempC,
+                        targetTempC,
+                        deviceTempC,
+                        displayFahrenheit
+                ));
+            } catch (RuntimeException ignored) {
+                try {
+                    manager.notify(NOTIFICATION_ID, buildInternal(
+                            context,
+                            endTimeMillis,
+                            totalDurationMillis,
+                            startTempC,
+                            targetTempC,
+                            deviceTempC,
+                            displayFahrenheit,
+                            false
+                    ));
+                } catch (RuntimeException ignoredAgain) {
+                    // Keep the timer running even if this platform rejects the notification.
+                }
+            }
         }
     }
 
@@ -263,6 +320,10 @@ public final class TimerNotificationHelper {
             return baseFlags | PendingIntent.FLAG_IMMUTABLE;
         }
         return baseFlags;
+    }
+
+    private static boolean supportsPromotedOngoing() {
+        return Build.VERSION.SDK_INT >= ANDROID_16_API;
     }
 
     private static String formatRemainingClock(long remainingMillis) {

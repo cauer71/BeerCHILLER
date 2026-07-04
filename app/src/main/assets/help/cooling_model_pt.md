@@ -133,7 +133,13 @@ Fatores de posição:
 | Garrafa | 1.00 | 0.95 |
 | Lata | 1.00 | 0.92 |
 
-## 6. Temperatura durante o temporizador
+## 6. Correcao de inicio frio para garrafas no congelador
+
+BeerChiller Calibrated V2.1 amplia o modelo V2 com um fator interno para garrafas de vidro no congelador quando a cerveja ja comeca relativamente fria. O fator vale apenas para garrafas no congelador, nao para latas nem para o frigorifico.
+
+A partir de 24 graus Celsius de temperatura inicial o fator permanece em 1,00. A 16 graus Celsius ou menos sobe para 1,70. Entre esses valores a interpolacao e suave. Assim, as medicoes com cerveja quente permanecem iguais, enquanto arrefecimentos curtos no congelador com inicio frio ficam mais realistas.
+
+## 7. Temperatura durante o temporizador
 
 Durante um temporizador ativo, a app usa a mesma curva em sentido inverso para estimar a temperatura atual da cerveja:
 
@@ -150,7 +156,7 @@ T(t)=T_D+(T_0-T_D)\cdot\theta(t)
 
 Aqui, \(\tau_{eff}\) é o fator de tempo calibrado a partir de \(\tau_0\), \(f_D\), \(f_P\) e da correção da diferença de temperatura.
 
-## 7. Regras de validade
+## 8. Regras de validade
 
 A app não mostra tempos infinitos, negativos ou não calculáveis.
 
@@ -159,13 +165,13 @@ A app não mostra tempos infinitos, negativos ou não calculáveis.
 - Se \(\Delta_0 \le 0\), a entrada é inválida.
 - Apenas \(0 < \theta < 1\) é válido.
 
-## 8. Calibração
+## 9. Calibração
 
 O modelo é calibrado principalmente com medições de uma garrafa de vidro de 0.33 l.
 
 Frigorífico a cerca de 5.3 graus Celsius e temperatura inicial de 32.94 graus Celsius:
 
-| Temperatura alvo | Tempo medido | Modelo V2 |
+| Temperatura alvo | Tempo medido | Modelo V2.1 |
 |---:|---:|---:|
 | 12 graus Celsius | cerca de 134 min | 136 min |
 | 10 graus Celsius | cerca de 172 min | 174 min |
@@ -173,11 +179,11 @@ Frigorífico a cerca de 5.3 graus Celsius e temperatura inicial de 32.94 graus C
 
 Congelador a cerca de -17.5 graus Celsius e temperatura inicial de 39.5 graus Celsius:
 
-| Temperatura alvo | Tempo medido | Modelo V2 |
+| Temperatura alvo | Tempo medido | Modelo V2.1 |
 |---:|---:|---:|
 | 6 graus Celsius | cerca de 61 min | 62 min |
 
-## 9. Limites do modelo
+## 10. Limites do modelo
 
 O cálculo não considera:
 
