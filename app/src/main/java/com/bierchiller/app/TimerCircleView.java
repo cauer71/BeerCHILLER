@@ -203,7 +203,8 @@ public class TimerCircleView extends View {
             canvas.drawArc(highlightOval, 205, 82, false, highlightPaint);
         }
 
-        float textMaxWidth = size * 0.56f;
+        boolean tablet = getResources().getConfiguration().smallestScreenWidthDp >= 600;
+        float textMaxWidth = size * (tablet ? 0.62f : 0.56f);
         mainTextPaint.setColor(vrStyle ? Color.WHITE : Color.parseColor("#123B4A"));
         if (vrStyle) {
             mainTextPaint.setShadowLayer(dp(3), 0, dp(2), Color.parseColor("#99000000"));
@@ -212,7 +213,10 @@ public class TimerCircleView extends View {
             mainTextPaint.clearShadowLayer();
             labelTextPaint.clearShadowLayer();
         }
-        mainTextPaint.setTextSize(fitTextSize(mainTextPaint, mainText, Math.min(sp(52), size * 0.21f), sp(24), textMaxWidth));
+        float maxMainTextSize = tablet ? sp(66) : sp(52);
+        float minMainTextSize = tablet ? sp(32) : sp(24);
+        float mainTextScale = tablet ? 0.245f : 0.21f;
+        mainTextPaint.setTextSize(fitTextSize(mainTextPaint, mainText, Math.min(maxMainTextSize, size * mainTextScale), minMainTextSize, textMaxWidth));
         labelTextPaint.setColor(vrStyle
                 ? Color.WHITE
                 : (backgroundVisible ? Color.parseColor("#123B4A") : Color.parseColor("#5F767B")));
@@ -239,7 +243,10 @@ public class TimerCircleView extends View {
             canvas.drawText(detailText, centerX, detailBaseline, detailTextPaint);
         }
         if (showTemperature) {
-            temperatureTextPaint.setTextSize(fitTextSize(temperatureTextPaint, temperatureText, Math.min(sp(26), size * 0.105f), sp(15), textMaxWidth));
+            float maxTemperatureTextSize = tablet ? sp(34) : sp(26);
+            float minTemperatureTextSize = tablet ? sp(20) : sp(15);
+            float temperatureTextScale = tablet ? 0.135f : 0.105f;
+            temperatureTextPaint.setTextSize(fitTextSize(temperatureTextPaint, temperatureText, Math.min(maxTemperatureTextSize, size * temperatureTextScale), minTemperatureTextSize, textMaxWidth));
             Paint.FontMetrics tempMetrics = temperatureTextPaint.getFontMetrics();
             float tempBaseline = centerY + Math.min(dp(76), size * 0.24f)
                     - (tempMetrics.ascent + tempMetrics.descent) / 2f;
