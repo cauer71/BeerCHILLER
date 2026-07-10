@@ -47,7 +47,7 @@ public final class TimerForegroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && TimerNotificationHelper.ACTION_STOP_TIMER.equals(intent.getAction())) {
-            stopTimerService();
+            TimerNotificationHelper.stopTimer(this);
             return START_NOT_STICKY;
         }
 

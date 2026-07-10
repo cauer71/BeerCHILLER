@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
 }
@@ -10,13 +12,28 @@ android {
         }
     }
     val releaseKeystore = file("bierchiller-release.keystore")
+    val keystoreProperties = Properties().apply {
+        val propertiesFile = rootProject.file("keystore.properties")
+        if (propertiesFile.exists()) {
+            propertiesFile.inputStream().use(::load)
+        }
+    }
+    val releaseStorePassword = providers.environmentVariable("BEERCHILLER_STORE_PASSWORD").orNull
+        ?: keystoreProperties.getProperty("storePassword")
+    val releaseKeyPassword = providers.environmentVariable("BEERCHILLER_KEY_PASSWORD").orNull
+        ?: keystoreProperties.getProperty("keyPassword")
+    val releaseKeyAlias = providers.environmentVariable("BEERCHILLER_KEY_ALIAS").orNull
+        ?: keystoreProperties.getProperty("keyAlias", "bierchiller")
+    val releaseSigningAvailable = releaseKeystore.exists()
+            && !releaseStorePassword.isNullOrBlank()
+            && !releaseKeyPassword.isNullOrBlank()
 
     defaultConfig {
         applicationId = "com.bierchiller.app"
         minSdk = 23
         targetSdk = 36
-        versionCode = 10378
-        versionName = "1.3.78"
+        versionCode = 10379
+        versionName = "1.3.79"
     }
 
     buildFeatures {
@@ -24,12 +41,12 @@ android {
     }
 
     signingConfigs {
-        if (releaseKeystore.exists()) {
+        if (releaseSigningAvailable) {
             create("release") {
                 storeFile = releaseKeystore
-                storePassword = "bierchiller-2026"
-                keyAlias = "bierchiller"
-                keyPassword = "bierchiller-2026"
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
@@ -38,7 +55,7 @@ android {
         release {
             isMinifyEnabled = false
             isDebuggable = false
-            if (releaseKeystore.exists()) {
+            if (releaseSigningAvailable) {
                 signingConfig = signingConfigs.getByName("release")
             }
             proguardFiles(
@@ -51,6 +68,12 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    bundle {
+        language {
+            enableSplit = false
+        }
     }
 
 }

@@ -9,9 +9,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
-import android.util.TypedValue;
 
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import java.util.Locale;
 
@@ -137,11 +137,11 @@ public final class TimerNotificationHelper {
                 pendingIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT)
         );
 
-        Intent stopIntent = new Intent(context, TimerForegroundService.class)
+        Intent stopIntent = new Intent(context, TimerActionReceiver.class)
                 .setAction(ACTION_STOP_TIMER)
                 .putExtra(EXTRA_END_TIME_MILLIS, endTimeMillis)
                 .putExtra(EXTRA_TOTAL_DURATION_MILLIS, totalDurationMillis);
-        PendingIntent stopPendingIntent = PendingIntent.getService(
+        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(
                 context,
                 3002,
                 stopIntent,
@@ -173,12 +173,9 @@ public final class TimerNotificationHelper {
         if (usePromotedOngoing) {
             return new NotificationCompat.Builder(context, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_beer_mug_button)
-                    .setColor(0xFFFFC107)          // Gold / Amber
-//                .setColor(resolveAppAccentColor(context))
-//                .setContentTitle(context.getString(R.string.app_name))
-//                .setContentText(statusText(remainingText, currentTempText))
+                    .setColor(resolveAppAccentColor(context))
                     .setContentTitle(context.getString(R.string.running))
-                    .setContentText("⏱ " + remainingText + " min 🌡" + currentTempText + " → " + targetTempText)
+                    .setContentText("⏱ " + remainingText + "  🌡 " + currentTempText + " → " + targetTempText)
 
                     .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
                     .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -187,8 +184,7 @@ public final class TimerNotificationHelper {
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
                     .setShowWhen(false)
-                    .setShortCriticalText("⏱ " + remainingText)
-//                .setShortCriticalText(remainingText)
+                    .setShortCriticalText(remainingText)
                     .setContentIntent(openPendingIntent)
                     .addAction(
                             R.drawable.ic_beer_mug_button,
@@ -223,17 +219,11 @@ public final class TimerNotificationHelper {
     }
 
     private static int resolveAppAccentColor(Context context) {
-        TypedValue value = new TypedValue();
-        context.getTheme().resolveAttribute(android.R.attr.colorAccent, value, true);
-        return value.data;
+        return ContextCompat.getColor(context, R.color.app_accent);
     }
 
     private static String statusText(String remainingText, String currentTempText) {
         return "⏱" + remainingText + "🌡 " + currentTempText;
-    }
-
-    private static String statusText2(String remainingText, String currentTempText) {
-        return "time:" + remainingText;
     }
 
     static void postDirectly(Context context, long endTimeMillis, long totalDurationMillis) {
@@ -320,6 +310,18 @@ public final class TimerNotificationHelper {
             return baseFlags | PendingIntent.FLAG_IMMUTABLE;
         }
         return baseFlags;
+    }
+
+    static void stopTimer(Context context) {
+        TimerAlarmScheduler.cancel(context);
+        context.stopService(new Intent(context, AlarmService.class));
+        context.getSharedPreferences("bierchiller", Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(MainActivity.KEY_ALARM_DISMISSED, true)
+                .remove("endTimeMillis")
+                .remove("totalDurationMillis")
+                .apply();
+        cancel(context);
     }
 
     private static boolean supportsPromotedOngoing() {
