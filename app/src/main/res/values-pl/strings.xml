@@ -26,24 +26,14 @@
     <string name="menu_classic_ui">Classic UI</string>
     <string name="menu_beer_ui">Beer UI</string>
     <string name="menu_language">Język</string>
-    <string name="menu_settings">Ustawienia</string>
-    <string name="menu_temperature_unit">Jednostka temperatury</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Wybierz język</string>
     <string name="language_system">Język systemu</string>
-    <string name="settings_title">Ustawienia</string>
-    <string name="temperature_unit_title">Jednostka temperatury</string>
-    <string name="temperature_unit_system">Ustawienie systemowe</string>
-    <string name="temperature_unit_celsius">Celsjusz</string>
-    <string name="temperature_unit_fahrenheit">Fahrenheit</string>
     <string name="info_title">Info</string>
     <string name="app_version">Wersja %1$s</string>
     <string name="app_info_message">%1$s
 %2$s</string>
     <string name="close">Zamknij</string>
-    <string name="open_settings">Otwórz ustawienia</string>
-    <string name="full_screen_intent_title">Zezwól na alarmy pełnoekranowe</string>
-    <string name="full_screen_intent_message">BeerCHILLER potrzebuje uprawnienia do alarmów pełnoekranowych, aby ekran zatrzymania pojawiał się natychmiast, gdy telefon jest zablokowany.</string>
     <string name="alarm_ringing">Twoje piwo jest zimne</string>
     <string name="alarm_detail">Osiągnięto temperaturę docelową.</string>
     <string name="stop_alarm">Zatrzymaj alarm</string>
@@ -62,8 +52,6 @@
     <string name="current_temperature">Aktualna temperatura</string>
     <string name="current_temperature_short">Temperatura</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
-    <string name="degrees_fahrenheit">%1$d °F</string>
-    <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
     <string name="menu_calculation_model">Model obliczeń</string>
     <string name="container_bottle">Butelka</string>
     <string name="container_can">Puszka</string>

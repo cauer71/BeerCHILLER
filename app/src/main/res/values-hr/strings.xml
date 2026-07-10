@@ -26,24 +26,14 @@
     <string name="menu_classic_ui">Classic UI</string>
     <string name="menu_beer_ui">Beer UI</string>
     <string name="menu_language">Jezik</string>
-    <string name="menu_settings">Postavke</string>
-    <string name="menu_temperature_unit">Jedinica temperature</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Odabir jezika</string>
     <string name="language_system">Jezik sustava</string>
-    <string name="settings_title">Postavke</string>
-    <string name="temperature_unit_title">Jedinica temperature</string>
-    <string name="temperature_unit_system">Postavka sustava</string>
-    <string name="temperature_unit_celsius">Celzij</string>
-    <string name="temperature_unit_fahrenheit">Fahrenheit</string>
     <string name="info_title">Info</string>
     <string name="app_version">Verzija %1$s</string>
     <string name="app_info_message">%1$s
 %2$s</string>
     <string name="close">Zatvori</string>
-    <string name="open_settings">Otvori postavke</string>
-    <string name="full_screen_intent_title">Dopusti alarme preko cijelog zaslona</string>
-    <string name="full_screen_intent_message">BeerCHILLER treba dopuštenje za alarme preko cijelog zaslona kako bi se zaslon za zaustavljanje odmah prikazao kada je telefon zaključan.</string>
     <string name="alarm_ringing">Vaše pivo je hladno</string>
     <string name="alarm_detail">Ciljna temperatura dosegnuta.</string>
     <string name="stop_alarm">Zaustavi alarm</string>
@@ -62,8 +52,6 @@
     <string name="current_temperature">Trenutačna temperatura</string>
     <string name="current_temperature_short">Temperatura</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
-    <string name="degrees_fahrenheit">%1$d °F</string>
-    <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
     <string name="menu_calculation_model">Model izračuna</string>
     <string name="container_bottle">Boca</string>
     <string name="container_can">Limenka</string>

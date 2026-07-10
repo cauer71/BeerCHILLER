@@ -32,8 +32,8 @@ android {
         applicationId = "com.bierchiller.app"
         minSdk = 23
         targetSdk = 36
-        versionCode = 10379
-        versionName = "1.3.79"
+        versionCode = 10380
+        versionName = "1.3.80"
     }
 
     buildFeatures {
@@ -68,12 +68,6 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    bundle {
-        language {
-            enableSplit = false
-        }
     }
 
 }

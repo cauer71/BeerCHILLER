@@ -26,24 +26,14 @@
     <string name="menu_classic_ui">Classic UI</string>
     <string name="menu_beer_ui">Beer UI</string>
     <string name="menu_language">Lingua</string>
-    <string name="menu_settings">Impostazioni</string>
-    <string name="menu_temperature_unit">Unità di temperatura</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Scegli lingua</string>
     <string name="language_system">Lingua di sistema</string>
-    <string name="settings_title">Impostazioni</string>
-    <string name="temperature_unit_title">Unità di temperatura</string>
-    <string name="temperature_unit_system">Impostazione di sistema</string>
-    <string name="temperature_unit_celsius">Celsius</string>
-    <string name="temperature_unit_fahrenheit">Fahrenheit</string>
     <string name="info_title">Info</string>
     <string name="app_version">Versione %1$s</string>
     <string name="app_info_message">%1$s
 %2$s</string>
     <string name="close">Chiudi</string>
-    <string name="open_settings">Apri impostazioni</string>
-    <string name="full_screen_intent_title">Consenti allarmi a schermo intero</string>
-    <string name="full_screen_intent_message">BeerCHILLER richiede l’autorizzazione per gli allarmi a schermo intero, affinché la schermata di arresto venga visualizzata immediatamente quando il telefono è bloccato.</string>
     <string name="alarm_ringing">La tua birra è pronta</string>
     <string name="alarm_detail">Temperatura desiderata raggiunta.</string>
     <string name="stop_alarm">Ferma allarme</string>
@@ -62,8 +52,6 @@
     <string name="current_temperature">Temperatura attuale</string>
     <string name="current_temperature_short">Temperatura</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
-    <string name="degrees_fahrenheit">%1$d °F</string>
-    <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
     <string name="menu_calculation_model">Modello di calcolo</string>
     <string name="container_bottle">Bottiglia</string>
     <string name="container_can">Lattina</string>

@@ -26,24 +26,14 @@
     <string name="menu_classic_ui">Classic UI</string>
     <string name="menu_beer_ui">Beer UI</string>
     <string name="menu_language">Langue</string>
-    <string name="menu_settings">Paramètres</string>
-    <string name="menu_temperature_unit">Unité de température</string>
     <string name="menu_info">Infos</string>
     <string name="language_title">Choisir la langue</string>
     <string name="language_system">Langue du système</string>
-    <string name="settings_title">Paramètres</string>
-    <string name="temperature_unit_title">Unité de température</string>
-    <string name="temperature_unit_system">Paramètre système</string>
-    <string name="temperature_unit_celsius">Celsius</string>
-    <string name="temperature_unit_fahrenheit">Fahrenheit</string>
     <string name="info_title">Infos</string>
     <string name="app_version">Version %1$s</string>
     <string name="app_info_message">%1$s
 %2$s</string>
     <string name="close">Fermer</string>
-    <string name="open_settings">Ouvrir les paramètres</string>
-    <string name="full_screen_intent_title">Autoriser les alarmes en plein écran</string>
-    <string name="full_screen_intent_message">BeerCHILLER a besoin de l’autorisation d’alarme en plein écran pour que l’écran d’arrêt apparaisse immédiatement lorsque le téléphone est verrouillé.</string>
     <string name="alarm_ringing">Votre bière est froide</string>
     <string name="alarm_detail">Température cible atteinte.</string>
     <string name="stop_alarm">Arrêter l’alarme</string>
@@ -62,8 +52,6 @@
     <string name="current_temperature">Température actuelle</string>
     <string name="current_temperature_short">Température</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
-    <string name="degrees_fahrenheit">%1$d °F</string>
-    <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
     <string name="menu_calculation_model">Modèle de calcul</string>
     <string name="container_bottle">Bouteille</string>
     <string name="container_can">Canette</string>

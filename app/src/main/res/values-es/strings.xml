@@ -26,24 +26,14 @@
     <string name="menu_classic_ui">Classic UI</string>
     <string name="menu_beer_ui">Beer UI</string>
     <string name="menu_language">Idioma</string>
-    <string name="menu_settings">Ajustes</string>
-    <string name="menu_temperature_unit">Unidad de temperatura</string>
     <string name="menu_info">Información</string>
     <string name="language_title">Elegir idioma</string>
     <string name="language_system">Idioma del sistema</string>
-    <string name="settings_title">Ajustes</string>
-    <string name="temperature_unit_title">Unidad de temperatura</string>
-    <string name="temperature_unit_system">Ajuste del sistema</string>
-    <string name="temperature_unit_celsius">Celsius</string>
-    <string name="temperature_unit_fahrenheit">Fahrenheit</string>
     <string name="info_title">Información</string>
     <string name="app_version">Versión %1$s</string>
     <string name="app_info_message">%1$s
 %2$s</string>
     <string name="close">Cerrar</string>
-    <string name="open_settings">Abrir ajustes</string>
-    <string name="full_screen_intent_title">Permitir alarmas a pantalla completa</string>
-    <string name="full_screen_intent_message">BeerCHILLER necesita permiso para mostrar alarmas a pantalla completa, de modo que la pantalla para detenerlas aparezca inmediatamente cuando el teléfono esté bloqueado.</string>
     <string name="alarm_ringing">Tu cerveza está fría</string>
     <string name="alarm_detail">Temperatura objetivo alcanzada.</string>
     <string name="stop_alarm">Detener alarma</string>
@@ -62,8 +52,6 @@
     <string name="current_temperature">Temperatura actual</string>
     <string name="current_temperature_short">Temperatura</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
-    <string name="degrees_fahrenheit">%1$d °F</string>
-    <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
     <string name="menu_calculation_model">Modelo de cálculo</string>
     <string name="container_bottle">Botella</string>
     <string name="container_can">Lata</string>

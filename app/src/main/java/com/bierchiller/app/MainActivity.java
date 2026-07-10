@@ -3,6 +3,8 @@ package com.bierchiller.app;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -67,6 +69,8 @@ public class MainActivity extends Activity {
     private static final String KEY_TEMPERATURE_UNIT = "temperatureUnit";
     private static final String KEY_FREEZER_DEFAULT_MIGRATED = "freezerDefaultMigrated";
     static final String KEY_ALARM_DISMISSED = "alarmDismissed";
+    private static final int ALARM_REQUEST_CODE = 1001;
+    private static final int SHOW_REQUEST_CODE = 1002;
     private static final int APP_UPDATE_REQUEST_CODE = 3001;
     private static final int VISUAL_CLASSIC = 0;
     private static final int VISUAL_BEER = 1;
@@ -177,12 +181,19 @@ public class MainActivity extends Activity {
     private Button selectedVolumeButton;
     private Button selectedDeviceButton;
     private int visualMode;
+    private AlarmManager alarmManager;
     private AppUpdateManager appUpdateManager;
     private SharedPreferences preferences;
 
     @Override
     protected void attachBaseContext(Context newBase) {
-        super.attachBaseContext(LocaleHelper.wrap(newBase));
+        super.attachBaseContext(lockUiFontScale(LocaleHelper.wrap(newBase)));
+    }
+
+    private static Context lockUiFontScale(Context context) {
+        Configuration configuration = new Configuration(context.getResources().getConfiguration());
+        configuration.fontScale = 1.0f;
+        return context.createConfigurationContext(configuration);
     }
 
     @Override
@@ -235,6 +246,7 @@ public class MainActivity extends Activity {
 
         lockCompactControlText();
         preferences = getSharedPreferences(PREFS, MODE_PRIVATE);
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         restoreInputPreferences();
         updateHeaderBrand();
         visualMode = readVisualModePreference();
@@ -878,7 +890,52 @@ public class MainActivity extends Activity {
     }
 
     private void scheduleExactAlarm(long triggerAtMillis) {
-        TimerAlarmScheduler.schedule(this, triggerAtMillis);
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                ALARM_REQUEST_CODE,
+                intent,
+                pendingIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT)
+        );
+
+        Intent showIntent = new Intent(this, AlarmActivity.class);
+        PendingIntent showPendingIntent = PendingIntent.getActivity(
+                this,
+                SHOW_REQUEST_CODE,
+                showIntent,
+                pendingIntentFlags(PendingIntent.FLAG_UPDATE_CURRENT)
+        );
+
+        if (alarmManager != null) {
+            try {
+                if (canScheduleExactTimerAlarm()) {
+                    AlarmManager.AlarmClockInfo alarmClockInfo =
+                            new AlarmManager.AlarmClockInfo(triggerAtMillis, showPendingIntent);
+                    alarmManager.setAlarmClock(alarmClockInfo, pendingIntent);
+                } else {
+                    scheduleInexactTimerAlarm(triggerAtMillis, pendingIntent);
+                }
+            } catch (SecurityException ignored) {
+                scheduleInexactTimerAlarm(triggerAtMillis, pendingIntent);
+            }
+        }
+    }
+
+    private boolean canScheduleExactTimerAlarm() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.S
+                || alarmManager == null
+                || alarmManager.canScheduleExactAlarms();
+    }
+
+    private void scheduleInexactTimerAlarm(long triggerAtMillis, PendingIntent pendingIntent) {
+        if (alarmManager == null) {
+            return;
+        }
+        try {
+            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent);
+        } catch (RuntimeException ignored) {
+            // The foreground timer continues running even if this platform rejects alarm scheduling.
+        }
     }
 
     private void stopTimer() {
@@ -891,7 +948,18 @@ public class MainActivity extends Activity {
             countDownTimer = null;
         }
 
-        TimerAlarmScheduler.cancel(this);
+        if (alarmManager != null) {
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    this,
+                    ALARM_REQUEST_CODE,
+                    new Intent(this, AlarmReceiver.class),
+                    pendingIntentFlags(PendingIntent.FLAG_NO_CREATE)
+            );
+            if (pendingIntent != null) {
+                alarmManager.cancel(pendingIntent);
+                pendingIntent.cancel();
+            }
+        }
 
         stopService(new Intent(this, AlarmService.class));
         TimerNotificationHelper.cancel(this);
@@ -1735,6 +1803,13 @@ public class MainActivity extends Activity {
     static String formatTime(Context context, long targetTimeMillis) {
         return new SimpleDateFormat("HH:mm", Locale.GERMANY)
                 .format(new Date(targetTimeMillis));
+    }
+
+    private int pendingIntentFlags(int baseFlags) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return baseFlags | PendingIntent.FLAG_IMMUTABLE;
+        }
+        return baseFlags;
     }
 
     static int clamp(int value, int min, int max) {

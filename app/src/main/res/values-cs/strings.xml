@@ -26,24 +26,14 @@
     <string name="menu_classic_ui">Classic UI</string>
     <string name="menu_beer_ui">Beer UI</string>
     <string name="menu_language">Jazyk</string>
-    <string name="menu_settings">Nastavení</string>
-    <string name="menu_temperature_unit">Jednotka teploty</string>
     <string name="menu_info">Info</string>
     <string name="language_title">Vybrat jazyk</string>
     <string name="language_system">Jazyk systému</string>
-    <string name="settings_title">Nastavení</string>
-    <string name="temperature_unit_title">Jednotka teploty</string>
-    <string name="temperature_unit_system">Nastavení systému</string>
-    <string name="temperature_unit_celsius">Celsia</string>
-    <string name="temperature_unit_fahrenheit">Fahrenheita</string>
     <string name="info_title">Info</string>
     <string name="app_version">Verze %1$s</string>
     <string name="app_info_message">%1$s
 %2$s</string>
     <string name="close">Zavřít</string>
-    <string name="open_settings">Otevřít nastavení</string>
-    <string name="full_screen_intent_title">Povolit budíky na celé obrazovce</string>
-    <string name="full_screen_intent_message">BeerCHILLER potřebuje oprávnění k budíkům na celé obrazovce, aby se obrazovka pro zastavení zobrazila ihned po uzamčení telefonu.</string>
     <string name="alarm_ringing">Vaše pivo je studené</string>
     <string name="alarm_detail">Cílová teplota dosažena.</string>
     <string name="stop_alarm">Zastavit alarm</string>
@@ -62,8 +52,6 @@
     <string name="current_temperature">Aktuální teplota</string>
     <string name="current_temperature_short">Teplota</string>
     <string name="degrees_celsius_decimal">%1$.1f °C</string>
-    <string name="degrees_fahrenheit">%1$d °F</string>
-    <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
     <string name="menu_calculation_model">Výpočetní model</string>
     <string name="container_bottle">Láhev</string>
     <string name="container_can">Plechovka</string>

@@ -1,6 +1,5 @@
 package com.bierchiller.app;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.KeyguardManager;
 import android.content.Context;
@@ -39,12 +38,6 @@ public class AlarmActivity extends Activity {
         title.setText(getString(R.string.alarm_ringing));
 
         stopButton.setOnClickListener(v -> stopAlarm());
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                    android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-                    this::stopAlarm
-            );
-        }
     }
 
     private void stopAlarm() {
@@ -65,7 +58,6 @@ public class AlarmActivity extends Activity {
     }
 
     @Override
-    @SuppressLint("GestureBackNavigation")
     public void onBackPressed() {
         stopAlarm();
     }
