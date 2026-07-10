@@ -171,30 +171,34 @@ public final class TimerNotificationHelper {
                 .build();
 
         if (usePromotedOngoing) {
+            int progress = calculateProgress(endTimeMillis, totalDurationMillis);
+            NotificationCompat.ProgressStyle progressStyle = new NotificationCompat.ProgressStyle()
+                    .setProgress(progress)
+                    .setStyledByProgress(true);
+
             return new NotificationCompat.Builder(context, CHANNEL_ID)
                     .setSmallIcon(R.drawable.ic_beer_mug_button)
-                    .setColor(0xFFFFC107)          // Gold / Amber
-//                .setColor(resolveAppAccentColor(context))
-//                .setContentTitle(context.getString(R.string.app_name))
-//                .setContentText(statusText(remainingText, currentTempText))
+                    .setColor(resolveAppAccentColor(context))
                     .setContentTitle(context.getString(R.string.running))
                     .setContentText("⏱ " + remainingText + " min 🌡" + currentTempText + " → " + targetTempText)
-
                     .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
                     .setPriority(NotificationCompat.PRIORITY_MAX)
                     .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                     .setPublicVersion(publicVersion)
                     .setOngoing(true)
                     .setOnlyAlertOnce(true)
-                    .setShowWhen(false)
-                    .setShortCriticalText("⏱ " + remainingText)
-//                .setShortCriticalText(remainingText)
+                    .setShowWhen(true)
+                    .setWhen(endTimeMillis)
+                    .setUsesChronometer(true)
+                    .setChronometerCountDown(true)
+                    .setShortCriticalText(remainingText)
                     .setContentIntent(openPendingIntent)
                     .addAction(
                             R.drawable.ic_beer_mug_button,
                             context.getString(R.string.stop_timer),
                             stopPendingIntent
                     )
+                    .setStyle(progressStyle)
                     .setRequestPromotedOngoing(true)
                     .setTimeoutAfter(remainingMillis)
                     .build();
@@ -324,6 +328,20 @@ public final class TimerNotificationHelper {
 
     private static boolean supportsPromotedOngoing() {
         return Build.VERSION.SDK_INT >= ANDROID_16_API;
+    }
+
+    private static int calculateProgress(long endTimeMillis, long totalDurationMillis) {
+        if (totalDurationMillis <= 0L) {
+            return 0;
+        }
+        long elapsedMillis = Math.max(
+                0L,
+                totalDurationMillis - (endTimeMillis - System.currentTimeMillis())
+        );
+        return Math.max(
+                0,
+                Math.min(1000, (int) ((elapsedMillis * 1000L) / totalDurationMillis))
+        );
     }
 
     private static String formatRemainingClock(long remainingMillis) {
