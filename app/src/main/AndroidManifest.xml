@@ -49,6 +49,9 @@
         <receiver
             android:name=".AlarmReceiver"
             android:exported="false" />
+        <receiver
+            android:name=".TimerActionReceiver"
+            android:exported="false" />
     </application>
 
 </manifest>

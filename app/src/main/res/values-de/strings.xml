@@ -31,6 +31,7 @@
     <string name="menu_temperature_unit">Temperatureinheit</string>
     <string name="menu_info">Info</string>
     <string name="settings_title">Einstellungen</string>
+    <string name="visual_style_title">Darstellung</string>
     <string name="language_title">Sprache wählen</string>
     <string name="language_system">Systemsprache</string>
     <string name="temperature_unit_title">Temperatureinheit</string>

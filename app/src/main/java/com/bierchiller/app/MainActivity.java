@@ -174,6 +174,7 @@ public class MainActivity extends Activity {
     private int beerVolumeHeight;
     private int beerControlHeight;
     private int beerBottomRowHeight;
+    private int beerTimerHeight;
     private float beerStartWeight;
     private float beerStopWeight;
     private int beerStopLeftMargin;
@@ -259,7 +260,7 @@ public class MainActivity extends Activity {
         requestFullScreenIntentPermissionIfNeeded();
         handleNotificationAction(getIntent());
         updateIdleDisplay();
-        restoreRunningAlarm();
+        clearTimerStateOnAppStart();
         checkForAppUpdate();
     }
 
@@ -300,17 +301,11 @@ public class MainActivity extends Activity {
 
     private void wireMenu() {
         menuButton.setOnClickListener(v -> {
-        PopupMenu popupMenu = new PopupMenu(this, menuButton);
-            popupMenu.getMenu().add(0, 1, 0,
-                    visualMode == VISUAL_CLASSIC ? R.string.menu_beer_ui : R.string.menu_classic_ui);
-            popupMenu.getMenu().add(0, 3, 1, R.string.menu_calculation_model);
-            popupMenu.getMenu().add(0, 4, 2, R.string.menu_settings);
-            popupMenu.getMenu().add(0, 5, 3, R.string.menu_info);
+            PopupMenu popupMenu = new PopupMenu(this, menuButton);
+            popupMenu.getMenu().add(0, 3, 0, R.string.menu_calculation_model);
+            popupMenu.getMenu().add(0, 4, 1, R.string.menu_settings);
+            popupMenu.getMenu().add(0, 5, 2, R.string.menu_info);
             popupMenu.setOnMenuItemClickListener(item -> {
-                if (item.getItemId() == 1) {
-                    setVisualMode(visualMode == VISUAL_CLASSIC ? VISUAL_BEER : VISUAL_CLASSIC);
-                    return true;
-                }
                 if (item.getItemId() == 3) {
                     startActivity(new Intent(this, HelpActivity.class));
                     return true;
@@ -509,6 +504,33 @@ public class MainActivity extends Activity {
     }
 
     private void applyBackgroundScale() {
+        if (getResources().getConfiguration().smallestScreenWidthDp >= 600) {
+            backgroundImage.post(() -> {
+                Drawable drawable = backgroundImage.getDrawable();
+                int viewWidth = backgroundImage.getWidth();
+                int viewHeight = backgroundImage.getHeight();
+                if (drawable == null || viewWidth <= 0 || viewHeight <= 0) {
+                    return;
+                }
+                int drawableWidth = drawable.getIntrinsicWidth();
+                int drawableHeight = drawable.getIntrinsicHeight();
+                if (drawableWidth <= 0 || drawableHeight <= 0) {
+                    return;
+                }
+                float scale = Math.max((float) viewWidth / drawableWidth,
+                        (float) viewHeight / drawableHeight);
+                float dx = (viewWidth - drawableWidth * scale) * 0.5f;
+                float foamBoundary = drawableHeight * 0.105f;
+                float targetFoamY = headerBeerText.getBottom() + dp(52);
+                float dy = targetFoamY - foamBoundary * scale;
+                Matrix matrix = new Matrix();
+                matrix.setScale(scale, scale);
+                matrix.postTranslate(dx, dy);
+                backgroundImage.setScaleType(ImageView.ScaleType.MATRIX);
+                backgroundImage.setImageMatrix(matrix);
+            });
+            return;
+        }
         if (getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
             backgroundImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
             return;
@@ -597,8 +619,13 @@ public class MainActivity extends Activity {
     private void showSettingsDialog() {
         String[] languageNames = languageNames();
         String[] unitNames = temperatureUnitNames();
+        String[] visualModeNames = new String[]{
+                getString(R.string.menu_classic_ui),
+                getString(R.string.menu_beer_ui)
+        };
         int currentLanguageSelection = LocaleHelper.currentSelectionIndex(this, LANGUAGE_CODES);
         int currentUnitSelection = Math.max(UNIT_SYSTEM, Math.min(temperatureUnit, UNIT_FAHRENHEIT));
+        int currentVisualModeSelection = visualMode == VISUAL_CLASSIC ? 0 : 1;
 
         ScrollView scrollView = new ScrollView(this);
         LinearLayout content = new LinearLayout(this);
@@ -612,7 +639,11 @@ public class MainActivity extends Activity {
         RadioGroup languageGroup = settingsRadioGroup(languageNames, currentLanguageSelection);
         TextView unitLabel = settingsSectionLabel(R.string.temperature_unit_title);
         RadioGroup unitGroup = settingsRadioGroup(unitNames, currentUnitSelection);
+        TextView visualModeLabel = settingsSectionLabel(R.string.visual_style_title);
+        RadioGroup visualModeGroup = settingsRadioGroup(visualModeNames, currentVisualModeSelection);
 
+        content.addView(visualModeLabel);
+        content.addView(visualModeGroup);
         content.addView(languageLabel);
         content.addView(languageGroup);
         content.addView(unitLabel);
@@ -624,6 +655,8 @@ public class MainActivity extends Activity {
                 .setPositiveButton(R.string.close, (dialog, which) -> {
                     int selectedLanguageIndex = languageGroup.indexOfChild(languageGroup.findViewById(languageGroup.getCheckedRadioButtonId()));
                     int selectedUnitIndex = unitGroup.indexOfChild(unitGroup.findViewById(unitGroup.getCheckedRadioButtonId()));
+                    int selectedVisualModeIndex = visualModeGroup.indexOfChild(
+                            visualModeGroup.findViewById(visualModeGroup.getCheckedRadioButtonId()));
 
                     boolean languageChanged = selectedLanguageIndex >= 0
                             && selectedLanguageIndex != currentLanguageSelection;
@@ -633,6 +666,9 @@ public class MainActivity extends Activity {
                     if (unitChanged) {
                         temperatureUnit = Math.max(UNIT_SYSTEM, Math.min(selectedUnitIndex, UNIT_FAHRENHEIT));
                         preferences.edit().putInt(KEY_TEMPERATURE_UNIT, temperatureUnit).apply();
+                    }
+                    if (selectedVisualModeIndex >= 0 && selectedVisualModeIndex != currentVisualModeSelection) {
+                        setVisualMode(selectedVisualModeIndex == 0 ? VISUAL_CLASSIC : VISUAL_BEER);
                     }
                     if (languageChanged) {
                         LocaleHelper.setStoredLanguage(this, LANGUAGE_CODES[selectedLanguageIndex]);
@@ -975,32 +1011,14 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void restoreRunningAlarm() {
-        long storedEndTime = preferences.getLong(KEY_END_TIME, 0);
-        if (storedEndTime > System.currentTimeMillis()) {
-            endTimeMillis = storedEndTime;
-            totalDurationMillis = preferences.getLong(
-                    KEY_TOTAL_DURATION,
-                    Math.max(1, storedEndTime - System.currentTimeMillis())
-            );
-            running = true;
-            setControlsForRunningState();
-            setStatus(getString(R.string.running));
-            startUiCountdown(endTimeMillis);
-            TimerNotificationHelper.show(
-                    this,
-                    endTimeMillis,
-                    totalDurationMillis,
-                    startTemp,
-                    targetTemp,
-                    deviceTemp,
-                    shouldDisplayFahrenheit()
-            );
-            openPromotedNotificationSettingsIfNeeded();
-        } else {
-            preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
-            TimerNotificationHelper.cancel(this);
-        }
+    private void clearTimerStateOnAppStart() {
+        TimerAlarmScheduler.cancel(this);
+        stopService(new Intent(this, AlarmService.class));
+        TimerNotificationHelper.cancel(this);
+        endTimeMillis = 0;
+        totalDurationMillis = 0;
+        running = false;
+        preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
     }
 
     private AppUpdateManager getAppUpdateManager() {
@@ -1360,6 +1378,9 @@ public class MainActivity extends Activity {
         if (beerBottomRowHeight <= 0) {
             beerBottomRowHeight = Math.max(bottomButtonRow.getHeight(), dpInt(62));
         }
+        if (beerTimerHeight <= 0) {
+            beerTimerHeight = Math.max(timerCircle.getHeight(), dpInt(420));
+        }
         if (beerStartWeight <= 0f) {
             beerStartWeight = ((LinearLayout.LayoutParams) startButton.getLayoutParams()).weight;
         }
@@ -1404,6 +1425,11 @@ public class MainActivity extends Activity {
         setViewHeight(volumeRow, Math.round(beerVolumeHeight * (1f - clamped)));
         setViewHeight(controlPanel, Math.round(beerControlHeight * (1f - clamped)));
         setViewHeight(bottomButtonRow, beerBottomRowHeight);
+        if (isPortraitTablet()) {
+            int expandedHeight = expandedTabletTimerHeight();
+            setViewHeight(timerCircle, Math.round(beerTimerHeight
+                    + (expandedHeight - beerTimerHeight) * clamped));
+        }
 
         float controlsAlpha = 1f - clamped;
         selectionTopRow.setAlpha(controlsAlpha);
@@ -1438,6 +1464,9 @@ public class MainActivity extends Activity {
         setViewHeight(volumeRow, collapsed ? 0 : beerVolumeHeight);
         setViewHeight(controlPanel, collapsed ? 0 : beerControlHeight);
         setViewHeight(bottomButtonRow, beerBottomRowHeight);
+        if (isPortraitTablet()) {
+            setViewHeight(timerCircle, collapsed ? expandedTabletTimerHeight() : beerTimerHeight);
+        }
 
         LinearLayout.LayoutParams startParams = (LinearLayout.LayoutParams) startButton.getLayoutParams();
         LinearLayout.LayoutParams stopParams = (LinearLayout.LayoutParams) stopButton.getLayoutParams();
@@ -1455,6 +1484,17 @@ public class MainActivity extends Activity {
         }
         params.height = Math.max(0, height);
         view.setLayoutParams(params);
+    }
+
+    private boolean isPortraitTablet() {
+        return getResources().getConfiguration().smallestScreenWidthDp >= 600
+                && getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE;
+    }
+
+    private int expandedTabletTimerHeight() {
+        int rootHeight = timerCircle.getRootView().getHeight();
+        int fixedBottomSpace = dpInt(12 + 12 + 16 + 22 + 78 + 48);
+        return Math.max(beerTimerHeight, rootHeight - timerCircle.getTop() - fixedBottomSpace);
     }
 
     private void tintStartButton(int color) {
