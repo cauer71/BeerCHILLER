@@ -233,8 +233,14 @@ public class TimerCircleView extends View {
                 - (mainMetrics.ascent + mainMetrics.descent) / 2f;
         float labelBaseline = centerY - Math.min(dp(showTemperature ? 82 : 70), size * (showTemperature ? 0.27f : 0.23f))
                 - (labelMetrics.ascent + labelMetrics.descent) / 2f;
-        float detailBaseline = centerY + Math.min(dp(showTemperature ? 24 : 43), size * (showTemperature ? 0.08f : 0.16f))
-                - (labelMetrics.ascent + labelMetrics.descent) / 2f;
+        float primaryTextGap = mainBaseline - labelBaseline;
+        float detailBaseline;
+        if (tablet && !running) {
+            detailBaseline = mainBaseline + primaryTextGap;
+        } else {
+            detailBaseline = centerY + Math.min(dp(showTemperature ? 24 : 43), size * (showTemperature ? 0.08f : 0.16f))
+                    - (labelMetrics.ascent + labelMetrics.descent) / 2f;
+        }
 
         canvas.drawText(mainText, centerX, mainBaseline, mainTextPaint);
         canvas.drawText(visibleLabelText, centerX, labelBaseline, labelTextPaint);
@@ -248,15 +254,23 @@ public class TimerCircleView extends View {
             float temperatureTextScale = tablet ? 0.135f : 0.105f;
             temperatureTextPaint.setTextSize(fitTextSize(temperatureTextPaint, temperatureText, Math.min(maxTemperatureTextSize, size * temperatureTextScale), minTemperatureTextSize, textMaxWidth));
             Paint.FontMetrics tempMetrics = temperatureTextPaint.getFontMetrics();
-            float tempBaseline = centerY + Math.min(dp(76), size * 0.24f)
+            float temperatureOffset = tablet && running
+                    ? Math.min(dp(84), size * 0.24f)
+                    : Math.min(dp(76), size * 0.24f);
+            float tempBaseline = centerY + temperatureOffset
                     - (tempMetrics.ascent + tempMetrics.descent) / 2f;
             canvas.drawText(temperatureText, centerX, tempBaseline, temperatureTextPaint);
 
             if (temperatureLabelText != null && !temperatureLabelText.isEmpty()) {
                 temperatureLabelPaint.setTextSize(fitTextSize(temperatureLabelPaint, temperatureLabelText, Math.min(sp(11), size * 0.048f), sp(7), textMaxWidth));
                 Paint.FontMetrics tempLabelMetrics = temperatureLabelPaint.getFontMetrics();
-                float tempLabelBaseline = centerY + Math.min(dp(101), size * 0.32f)
-                        - (tempLabelMetrics.ascent + tempLabelMetrics.descent) / 2f;
+                float tempLabelBaseline;
+                if (tablet && running) {
+                    tempLabelBaseline = tempBaseline + dp(28);
+                } else {
+                    tempLabelBaseline = centerY + Math.min(dp(101), size * 0.32f)
+                            - (tempLabelMetrics.ascent + tempLabelMetrics.descent) / 2f;
+                }
                 canvas.drawText(temperatureLabelText, centerX, tempLabelBaseline, temperatureLabelPaint);
             }
         }
