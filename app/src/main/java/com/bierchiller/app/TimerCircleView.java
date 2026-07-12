@@ -204,6 +204,8 @@ public class TimerCircleView extends View {
         }
 
         boolean tablet = getResources().getConfiguration().smallestScreenWidthDp >= 600;
+        float tabletTextScale = tablet ? 1.5f : 1f;
+        float tabletSpacingScale = tablet ? 1.25f : 1f;
         float textMaxWidth = size * (tablet ? 0.62f : 0.56f);
         mainTextPaint.setColor(vrStyle ? Color.WHITE : Color.parseColor("#123B4A"));
         if (vrStyle) {
@@ -213,15 +215,17 @@ public class TimerCircleView extends View {
             mainTextPaint.clearShadowLayer();
             labelTextPaint.clearShadowLayer();
         }
-        float maxMainTextSize = tablet ? sp(66) : sp(52);
-        float minMainTextSize = tablet ? sp(32) : sp(24);
-        float mainTextScale = tablet ? 0.245f : 0.21f;
+        float maxMainTextSize = tablet ? sp(66 * tabletTextScale) : sp(52);
+        float minMainTextSize = tablet ? sp(32 * tabletTextScale) : sp(24);
+        float mainTextScale = tablet ? 0.245f * tabletTextScale : 0.21f;
         mainTextPaint.setTextSize(fitTextSize(mainTextPaint, mainText, Math.min(maxMainTextSize, size * mainTextScale), minMainTextSize, textMaxWidth));
         labelTextPaint.setColor(vrStyle
                 ? Color.WHITE
                 : (backgroundVisible ? Color.parseColor("#123B4A") : Color.parseColor("#5F767B")));
         String visibleLabelText = vrStyle ? labelText.toUpperCase(Locale.getDefault()) : labelText;
-        labelTextPaint.setTextSize(fitTextSize(labelTextPaint, visibleLabelText, Math.min(sp(17), size * 0.08f), sp(9), textMaxWidth));
+        labelTextPaint.setTextSize(fitTextSize(labelTextPaint, visibleLabelText,
+                Math.min(sp(17 * tabletTextScale), size * (tablet ? 0.08f * tabletTextScale : 0.08f)),
+                sp(9 * tabletTextScale), textMaxWidth));
         Paint detailTextPaint = labelTextPaint;
         Paint temperatureTextPaint = mainTextPaint;
         Paint temperatureLabelPaint = labelTextPaint;
@@ -229,46 +233,53 @@ public class TimerCircleView extends View {
         Paint.FontMetrics mainMetrics = mainTextPaint.getFontMetrics();
         Paint.FontMetrics labelMetrics = labelTextPaint.getFontMetrics();
         boolean showTemperature = temperatureText != null && !temperatureText.isEmpty();
-        float mainBaseline = centerY - Math.min(dp(showTemperature ? 30 : 2), size * (showTemperature ? 0.10f : 0.01f))
+        float mainBaseline = centerY - Math.min(dp((showTemperature ? 30 : 2) * tabletSpacingScale),
+                        size * (showTemperature ? 0.10f : 0.01f) * tabletSpacingScale)
                 - (mainMetrics.ascent + mainMetrics.descent) / 2f;
-        float labelBaseline = centerY - Math.min(dp(showTemperature ? 82 : 70), size * (showTemperature ? 0.27f : 0.23f))
+        float labelBaseline = centerY - Math.min(dp((showTemperature ? 82 : 70) * tabletSpacingScale),
+                        size * (showTemperature ? 0.27f : 0.23f) * tabletSpacingScale)
                 - (labelMetrics.ascent + labelMetrics.descent) / 2f;
         float primaryTextGap = mainBaseline - labelBaseline;
         float detailBaseline;
         if (tablet && !running) {
             detailBaseline = mainBaseline + primaryTextGap;
         } else {
-            detailBaseline = centerY + Math.min(dp(showTemperature ? 24 : 43), size * (showTemperature ? 0.08f : 0.16f))
+            detailBaseline = centerY + Math.min(dp((showTemperature ? 24 : 43) * tabletSpacingScale),
+                            size * (showTemperature ? 0.08f : 0.16f) * tabletSpacingScale)
                     - (labelMetrics.ascent + labelMetrics.descent) / 2f;
         }
 
         canvas.drawText(mainText, centerX, mainBaseline, mainTextPaint);
         canvas.drawText(visibleLabelText, centerX, labelBaseline, labelTextPaint);
         if (detailText != null && !detailText.isEmpty()) {
-            detailTextPaint.setTextSize(fitTextSize(detailTextPaint, detailText, Math.min(sp(16), size * 0.075f), sp(9), textMaxWidth));
+            detailTextPaint.setTextSize(fitTextSize(detailTextPaint, detailText,
+                    Math.min(sp(16 * tabletTextScale), size * 0.075f * tabletTextScale),
+                    sp(9 * tabletTextScale), textMaxWidth));
             canvas.drawText(detailText, centerX, detailBaseline, detailTextPaint);
         }
         if (showTemperature) {
-            float maxTemperatureTextSize = tablet ? sp(34) : sp(26);
-            float minTemperatureTextSize = tablet ? sp(20) : sp(15);
-            float temperatureTextScale = tablet ? 0.135f : 0.105f;
+            float maxTemperatureTextSize = tablet ? sp(34 * tabletTextScale) : sp(26);
+            float minTemperatureTextSize = tablet ? sp(20 * tabletTextScale) : sp(15);
+            float temperatureTextScale = tablet ? 0.135f * tabletTextScale : 0.105f;
             temperatureTextPaint.setTextSize(fitTextSize(temperatureTextPaint, temperatureText, Math.min(maxTemperatureTextSize, size * temperatureTextScale), minTemperatureTextSize, textMaxWidth));
             Paint.FontMetrics tempMetrics = temperatureTextPaint.getFontMetrics();
             float temperatureOffset = tablet && running
-                    ? Math.min(dp(84), size * 0.24f)
-                    : Math.min(dp(76), size * 0.24f);
+                    ? Math.min(dp(84 * tabletSpacingScale), size * 0.24f * tabletSpacingScale)
+                    : Math.min(dp(76 * tabletSpacingScale), size * 0.24f * tabletSpacingScale);
             float tempBaseline = centerY + temperatureOffset
                     - (tempMetrics.ascent + tempMetrics.descent) / 2f;
             canvas.drawText(temperatureText, centerX, tempBaseline, temperatureTextPaint);
 
             if (temperatureLabelText != null && !temperatureLabelText.isEmpty()) {
-                temperatureLabelPaint.setTextSize(fitTextSize(temperatureLabelPaint, temperatureLabelText, Math.min(sp(11), size * 0.048f), sp(7), textMaxWidth));
+                temperatureLabelPaint.setTextSize(fitTextSize(temperatureLabelPaint, temperatureLabelText,
+                        Math.min(sp(11 * tabletTextScale), size * 0.048f * tabletTextScale),
+                        sp(7 * tabletTextScale), textMaxWidth));
                 Paint.FontMetrics tempLabelMetrics = temperatureLabelPaint.getFontMetrics();
                 float tempLabelBaseline;
                 if (tablet && running) {
-                    tempLabelBaseline = tempBaseline + dp(28);
+                    tempLabelBaseline = tempBaseline + dp(28 * tabletSpacingScale);
                 } else {
-                    tempLabelBaseline = centerY + Math.min(dp(101), size * 0.32f)
+                    tempLabelBaseline = centerY + Math.min(dp(101 * tabletSpacingScale), size * 0.32f * tabletSpacingScale)
                             - (tempLabelMetrics.ascent + tempLabelMetrics.descent) / 2f;
                 }
                 canvas.drawText(temperatureLabelText, centerX, tempLabelBaseline, temperatureLabelPaint);
