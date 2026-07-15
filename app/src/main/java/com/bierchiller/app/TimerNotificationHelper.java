@@ -195,7 +195,6 @@ public final class TimerNotificationHelper {
                             context.getString(R.string.stop_timer),
                             stopPendingIntent
                     )
-                    .setRequestPromotedOngoing(true)
                     .setTimeoutAfter(remainingMillis)
                     .build();
         }

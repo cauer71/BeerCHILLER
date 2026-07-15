@@ -167,7 +167,6 @@ public class MainActivity extends Activity {
     private int orientation = ORIENTATION_LYING;
     private int temperatureUnit = UNIT_SYSTEM;
     private boolean running;
-    private boolean promotedNotificationSettingsOpened;
     private boolean beerControlsCollapsed;
     private ValueAnimator beerAnimator;
     private int beerSelectionHeight;
@@ -924,7 +923,6 @@ public class MainActivity extends Activity {
                 deviceTemp,
                 shouldDisplayFahrenheit()
         );
-        openPromotedNotificationSettingsIfNeeded();
     }
 
     private void scheduleExactAlarm(long triggerAtMillis) {
@@ -1898,28 +1896,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void openPromotedNotificationSettingsIfNeeded() {
-        if (Build.VERSION.SDK_INT < 36) {
-            return;
-        }
-        android.app.NotificationManager notificationManager =
-                getSystemService(android.app.NotificationManager.class);
-        if (notificationManager == null || notificationManager.canPostPromotedNotifications()) {
-            return;
-        }
-
-        Intent intent = new Intent("android.settings.MANAGE_APP_PROMOTED_NOTIFICATIONS")
-                .setData(Uri.parse("package:" + getPackageName()));
-        try {
-            promotedNotificationSettingsOpened = true;
-            startActivity(intent);
-        } catch (RuntimeException ignored) {
-            Intent fallbackIntent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                    .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
-            startActivity(fallbackIntent);
-        }
-    }
-
     private void enableFullscreen() {
         Window window = getWindow();
         WindowCompat.setDecorFitsSystemWindows(window, false);
@@ -1943,18 +1919,6 @@ public class MainActivity extends Activity {
         }
         if (running && endTimeMillis > System.currentTimeMillis()) {
             startUiCountdown(endTimeMillis);
-            if (promotedNotificationSettingsOpened) {
-                promotedNotificationSettingsOpened = false;
-                TimerNotificationHelper.show(
-                        this,
-                        endTimeMillis,
-                        totalDurationMillis,
-                        startTemp,
-                        targetTemp,
-                        deviceTemp,
-                        shouldDisplayFahrenheit()
-                );
-            }
         }
     }
 
