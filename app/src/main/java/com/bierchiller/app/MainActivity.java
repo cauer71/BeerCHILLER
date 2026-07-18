@@ -24,10 +24,12 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.PathInterpolator;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -40,6 +42,7 @@ import android.widget.TextView;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.core.view.ViewCompat;
 import androidx.dynamicanimation.animation.DynamicAnimation;
 import androidx.dynamicanimation.animation.SpringAnimation;
 import androidx.dynamicanimation.animation.SpringForce;
@@ -200,10 +203,14 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        enableFullscreen();
+        configureSystemBars();
         setContentView(R.layout.activity_main);
+        installHeaderStatusBarOffset();
+        installTabletSystemBarInsets();
+        installPhoneLandscapeNavigationBarLayout();
 
         timerCircle = findViewById(R.id.timerCircle);
+        timerCircle.setTranslationY(-18f);
         backgroundImage = findViewById(R.id.backgroundImage);
         backgroundOverlay = findViewById(R.id.backgroundOverlay);
         controlPanel = findViewById(R.id.controlPanel);
@@ -1896,21 +1903,117 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void enableFullscreen() {
+    private void configureSystemBars() {
         Window window = getWindow();
-        WindowCompat.setDecorFitsSystemWindows(window, false);
-        window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        boolean tablet = getResources().getConfiguration().smallestScreenWidthDp >= 600;
+        WindowCompat.setDecorFitsSystemWindows(window, tablet);
+        window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        window.setStatusBarColor(Color.TRANSPARENT);
+        boolean phoneLandscape = !tablet
+                && getResources().getConfiguration().orientation
+                == Configuration.ORIENTATION_LANDSCAPE;
+        int navigationBarColor = phoneLandscape ? Color.BLACK : Color.TRANSPARENT;
+        window.setNavigationBarColor(navigationBarColor);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            window.setNavigationBarDividerColor(navigationBarColor);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            window.setNavigationBarContrastEnforced(false);
+        }
         WindowInsetsControllerCompat controller =
                 WindowCompat.getInsetsController(window, window.getDecorView());
-        controller.hide(WindowInsetsCompat.Type.systemBars());
-        controller.setSystemBarsBehavior(
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+        controller.show(WindowInsetsCompat.Type.statusBars()
+                | WindowInsetsCompat.Type.navigationBars());
+        controller.setAppearanceLightStatusBars(true);
+        controller.setAppearanceLightNavigationBars(!phoneLandscape);
+    }
+
+    private void installHeaderStatusBarOffset() {
+        View header = findViewById(R.id.headerRow);
+        if (header == null) {
+            header = findViewById(R.id.headerTitleGroup);
+        }
+        if (header == null) {
+            return;
+        }
+        final View titleHeader = header;
+        boolean tablet = getResources().getConfiguration().smallestScreenWidthDp >= 600;
+        if (tablet) {
+            titleHeader.setTranslationY(0f);
+            return;
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(titleHeader, (view, insets) -> {
+            int statusBarHeight = insets.getInsets(
+                    WindowInsetsCompat.Type.statusBars()).top;
+            titleHeader.setTranslationY(statusBarHeight / 2);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(titleHeader);
+    }
+
+    private void installPhoneLandscapeNavigationBarLayout() {
+        View navigationBarBackground = findViewById(R.id.phoneLandscapeNavBarBackground);
+        View mainContent = findViewById(R.id.mainContent);
+        if (navigationBarBackground == null || mainContent == null) {
+            return;
+        }
+
+        FrameLayout.LayoutParams baseContentParams =
+                (FrameLayout.LayoutParams) mainContent.getLayoutParams();
+        final int baseLeftMargin = baseContentParams.leftMargin;
+        final int baseRightMargin = baseContentParams.rightMargin;
+        View decorView = getWindow().getDecorView();
+        ViewCompat.setOnApplyWindowInsetsListener(decorView, (view, insets) -> {
+            androidx.core.graphics.Insets navigationBars = insets.getInsets(
+                    WindowInsetsCompat.Type.navigationBars());
+            FrameLayout.LayoutParams contentParams =
+                    (FrameLayout.LayoutParams) mainContent.getLayoutParams();
+            contentParams.leftMargin = baseLeftMargin + navigationBars.left;
+            contentParams.rightMargin = baseRightMargin + navigationBars.right;
+            mainContent.setLayoutParams(contentParams);
+
+            FrameLayout.LayoutParams backgroundParams =
+                    (FrameLayout.LayoutParams) navigationBarBackground.getLayoutParams();
+            backgroundParams.width = navigationBars.left > 0
+                    ? navigationBars.left : navigationBars.right;
+            backgroundParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            backgroundParams.leftMargin = navigationBars.left > 0
+                    ? 0 : getResources().getDisplayMetrics().widthPixels - navigationBars.right;
+            navigationBarBackground.setLayoutParams(backgroundParams);
+            navigationBarBackground.setVisibility(backgroundParams.width > 0
+                    ? View.VISIBLE : View.GONE);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(decorView);
+    }
+
+    private void installTabletSystemBarInsets() {
+        View tabletContent = findViewById(R.id.tabletContent);
+        if (tabletContent == null) {
+            return;
+        }
+
+        final int basePaddingLeft = tabletContent.getPaddingLeft();
+        final int basePaddingTop = tabletContent.getPaddingTop();
+        final int basePaddingRight = tabletContent.getPaddingRight();
+        final int basePaddingBottom = tabletContent.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(tabletContent, (view, insets) -> {
+            androidx.core.graphics.Insets systemBars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars());
+            tabletContent.setPadding(
+                    basePaddingLeft + systemBars.left,
+                    basePaddingTop + systemBars.top,
+                    basePaddingRight + systemBars.right,
+                    basePaddingBottom + systemBars.bottom);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(tabletContent);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        enableFullscreen();
+        configureSystemBars();
         resumeAppUpdateIfInProgress();
         if (preferences.getBoolean(KEY_ALARM_DISMISSED, false)) {
             preferences.edit().remove(KEY_ALARM_DISMISSED).apply();
@@ -1926,7 +2029,7 @@ public class MainActivity extends Activity {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
-            enableFullscreen();
+            configureSystemBars();
         }
     }
 }

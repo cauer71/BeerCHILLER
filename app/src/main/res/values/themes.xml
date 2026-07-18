@@ -3,9 +3,9 @@
     <style name="Theme.HelloWorld" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:colorAccent">#E8B923</item>
-        <item name="android:navigationBarColor">#F8FBFA</item>
-        <item name="android:statusBarColor">#F8FBFA</item>
-        <item name="android:windowFullscreen">true</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:windowFullscreen">false</item>
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowLightStatusBar">true</item>

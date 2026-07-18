@@ -23,6 +23,7 @@
         android:visibility="gone" />
 
     <LinearLayout
+        android:id="@+id/mainContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipChildren="false"
@@ -78,7 +79,8 @@
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/menu_open"
                 android:padding="12dp"
-                android:src="@drawable/ic_more_vert" />
+                android:src="@drawable/ic_more_vert"
+                android:translationY="-8dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -400,4 +402,11 @@
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+
+    <View
+        android:id="@+id/phoneLandscapeNavBarBackground"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:background="#000000"
+        android:visibility="gone" />
 </FrameLayout>
