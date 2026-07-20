@@ -32,8 +32,8 @@ android {
         applicationId = "com.bierchiller.app"
         minSdk = 23
         targetSdk = 36
-        versionCode = 10386
-        versionName = "1.3.86"
+        versionCode = 10387
+        versionName = "1.3.87"
     }
 
     buildFeatures {
@@ -53,7 +53,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             isDebuggable = false
             if (releaseSigningAvailable) {
                 signingConfig = signingConfigs.getByName("release")

@@ -60,4 +60,17 @@
     <string name="calculation_model_title">Berekeningsmodel</string>
     <string name="back">Terug</string>
     <string name="help_load_error">De hulppagina kon niet worden geladen. Probeer het opnieuw nadat je de app hebt bijgewerkt.</string>
+    <string name="menu_settings">Instellingen</string>
+    <string name="menu_temperature_unit">Temperatuureenheid</string>
+    <string name="settings_title">Instellingen</string>
+    <string name="visual_style_title">Visuele stijl</string>
+    <string name="temperature_unit_title">Temperatuureenheid</string>
+    <string name="temperature_unit_system">Systeeminstelling</string>
+    <string name="temperature_unit_celsius">Celsius</string>
+    <string name="temperature_unit_fahrenheit">Fahrenheit</string>
+    <string name="open_settings">Instellingen openen</string>
+    <string name="full_screen_intent_title">Alarmen op volledig scherm toestaan</string>
+    <string name="full_screen_intent_message">BeerCHILLER heeft toestemming voor alarmen op volledig scherm nodig, zodat het stopscherm direct verschijnt wanneer de telefoon is vergrendeld.</string>
+    <string name="degrees_fahrenheit">%1$d °F</string>
+    <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
 </resources>

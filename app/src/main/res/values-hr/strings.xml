@@ -60,4 +60,17 @@
     <string name="calculation_model_title">Model izračuna</string>
     <string name="back">Natrag</string>
     <string name="help_load_error">Stranicu pomoći nije moguće učitati. Pokušajte ponovno nakon ažuriranja aplikacije.</string>
+    <string name="menu_settings">Postavke</string>
+    <string name="menu_temperature_unit">Jedinica temperature</string>
+    <string name="settings_title">Postavke</string>
+    <string name="visual_style_title">Vizualni stil</string>
+    <string name="temperature_unit_title">Jedinica temperature</string>
+    <string name="temperature_unit_system">Postavka sustava</string>
+    <string name="temperature_unit_celsius">Celzij</string>
+    <string name="temperature_unit_fahrenheit">Fahrenheit</string>
+    <string name="open_settings">Otvori postavke</string>
+    <string name="full_screen_intent_title">Dopusti alarme preko cijelog zaslona</string>
+    <string name="full_screen_intent_message">BeerCHILLER treba dopuštenje za alarme preko cijelog zaslona kako bi se zaslon za zaustavljanje odmah prikazao kada je telefon zaključan.</string>
+    <string name="degrees_fahrenheit">%1$d °F</string>
+    <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
 </resources>

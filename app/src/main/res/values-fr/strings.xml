@@ -60,4 +60,17 @@
     <string name="calculation_model_title">Modèle de calcul</string>
     <string name="back">Retour</string>
     <string name="help_load_error">La page d’aide n’a pas pu être chargée. Réessayez après avoir mis l’application à jour.</string>
+    <string name="menu_settings">Paramètres</string>
+    <string name="menu_temperature_unit">Unité de température</string>
+    <string name="settings_title">Paramètres</string>
+    <string name="visual_style_title">Style visuel</string>
+    <string name="temperature_unit_title">Unité de température</string>
+    <string name="temperature_unit_system">Paramètre système</string>
+    <string name="temperature_unit_celsius">Celsius</string>
+    <string name="temperature_unit_fahrenheit">Fahrenheit</string>
+    <string name="open_settings">Ouvrir les paramètres</string>
+    <string name="full_screen_intent_title">Autoriser les alarmes en plein écran</string>
+    <string name="full_screen_intent_message">BeerCHILLER a besoin de l’autorisation d’afficher les alarmes en plein écran afin que l’écran d’arrêt apparaisse immédiatement lorsque le téléphone est verrouillé.</string>
+    <string name="degrees_fahrenheit">%1$d °F</string>
+    <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
 </resources>

@@ -1,6 +1,5 @@
 package com.bierchiller.app;
 
-import android.app.Activity;
 import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
@@ -11,11 +10,13 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.activity.ComponentActivity;
+import androidx.activity.OnBackPressedCallback;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
-public class AlarmActivity extends Activity {
+public class AlarmActivity extends ComponentActivity {
     private static final String PREFS = "bierchiller";
     private static final String KEY_END_TIME = "endTimeMillis";
     private static final String KEY_TOTAL_DURATION = "totalDurationMillis";
@@ -38,6 +39,12 @@ public class AlarmActivity extends Activity {
         title.setText(getString(R.string.alarm_ringing));
 
         stopButton.setOnClickListener(v -> stopAlarm());
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                stopAlarm();
+            }
+        });
     }
 
     private void stopAlarm() {
@@ -57,14 +64,9 @@ public class AlarmActivity extends Activity {
         TimerNotificationHelper.cancel(this);
     }
 
-    @Override
-    public void onBackPressed() {
-        stopAlarm();
-    }
-
     private void enableFullscreen() {
         Window window = getWindow();
-        WindowCompat.setDecorFitsSystemWindows(window, false);
+        WindowCompat.enableEdgeToEdge(window);
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         WindowInsetsControllerCompat controller =
                 WindowCompat.getInsetsController(window, window.getDecorView());

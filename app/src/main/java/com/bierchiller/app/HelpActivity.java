@@ -5,10 +5,13 @@ import android.content.Context;
 import android.os.Bundle;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,8 +31,9 @@ public class HelpActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+        WindowCompat.enableEdgeToEdge(getWindow());
         setContentView(R.layout.activity_help);
+        installSystemBarInsets();
 
         ImageButton backButton = findViewById(R.id.helpBackButton);
         TextView titleView = findViewById(R.id.helpTitle);
@@ -49,6 +53,26 @@ public class HelpActivity extends Activity {
         }
 
         webView.loadDataWithBaseURL(HELP_BASE_URL, buildHelpHtml(), "text/html", "UTF-8", null);
+    }
+
+    private void installSystemBarInsets() {
+        View root = findViewById(R.id.helpRoot);
+        final int basePaddingLeft = root.getPaddingLeft();
+        final int basePaddingTop = root.getPaddingTop();
+        final int basePaddingRight = root.getPaddingRight();
+        final int basePaddingBottom = root.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(root, (view, insets) -> {
+            androidx.core.graphics.Insets safeDrawing = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                            | WindowInsetsCompat.Type.displayCutout());
+            root.setPadding(
+                    basePaddingLeft + safeDrawing.left,
+                    basePaddingTop + safeDrawing.top,
+                    basePaddingRight + safeDrawing.right,
+                    basePaddingBottom + safeDrawing.bottom);
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(root);
     }
 
     private String buildHelpHtml() {

@@ -23,6 +23,7 @@ import android.os.CountDownTimer;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
@@ -206,6 +207,7 @@ public class MainActivity extends Activity {
         configureSystemBars();
         setContentView(R.layout.activity_main);
         installHeaderStatusBarOffset();
+        installPhonePortraitNavigationBarInset();
         installTabletSystemBarInsets();
         installPhoneLandscapeNavigationBarLayout();
 
@@ -1905,18 +1907,11 @@ public class MainActivity extends Activity {
 
     private void configureSystemBars() {
         Window window = getWindow();
-        boolean tablet = getResources().getConfiguration().smallestScreenWidthDp >= 600;
-        WindowCompat.setDecorFitsSystemWindows(window, tablet);
+        WindowCompat.enableEdgeToEdge(window);
         window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        window.setStatusBarColor(Color.TRANSPARENT);
-        boolean phoneLandscape = !tablet
+        boolean phoneLandscape = getResources().getConfiguration().smallestScreenWidthDp < 600
                 && getResources().getConfiguration().orientation
                 == Configuration.ORIENTATION_LANDSCAPE;
-        int navigationBarColor = phoneLandscape ? Color.BLACK : Color.TRANSPARENT;
-        window.setNavigationBarColor(navigationBarColor);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.setNavigationBarDividerColor(navigationBarColor);
-        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.setNavigationBarContrastEnforced(false);
         }
@@ -1944,7 +1939,8 @@ public class MainActivity extends Activity {
         }
         ViewCompat.setOnApplyWindowInsetsListener(titleHeader, (view, insets) -> {
             int statusBarHeight = insets.getInsets(
-                    WindowInsetsCompat.Type.statusBars()).top;
+                    WindowInsetsCompat.Type.statusBars()
+                            | WindowInsetsCompat.Type.displayCutout()).top;
             titleHeader.setTranslationY(statusBarHeight / 2);
             return insets;
         });
@@ -1966,10 +1962,13 @@ public class MainActivity extends Activity {
         ViewCompat.setOnApplyWindowInsetsListener(decorView, (view, insets) -> {
             androidx.core.graphics.Insets navigationBars = insets.getInsets(
                     WindowInsetsCompat.Type.navigationBars());
+            androidx.core.graphics.Insets safeDrawing = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                            | WindowInsetsCompat.Type.displayCutout());
             FrameLayout.LayoutParams contentParams =
                     (FrameLayout.LayoutParams) mainContent.getLayoutParams();
-            contentParams.leftMargin = baseLeftMargin + navigationBars.left;
-            contentParams.rightMargin = baseRightMargin + navigationBars.right;
+            contentParams.leftMargin = baseLeftMargin + safeDrawing.left;
+            contentParams.rightMargin = baseRightMargin + safeDrawing.right;
             mainContent.setLayoutParams(contentParams);
 
             FrameLayout.LayoutParams backgroundParams =
@@ -1977,14 +1976,36 @@ public class MainActivity extends Activity {
             backgroundParams.width = navigationBars.left > 0
                     ? navigationBars.left : navigationBars.right;
             backgroundParams.height = ViewGroup.LayoutParams.MATCH_PARENT;
-            backgroundParams.leftMargin = navigationBars.left > 0
-                    ? 0 : getResources().getDisplayMetrics().widthPixels - navigationBars.right;
+            backgroundParams.leftMargin = 0;
+            backgroundParams.rightMargin = 0;
+            backgroundParams.gravity = navigationBars.left > 0 ? Gravity.START : Gravity.END;
             navigationBarBackground.setLayoutParams(backgroundParams);
             navigationBarBackground.setVisibility(backgroundParams.width > 0
                     ? View.VISIBLE : View.GONE);
             return insets;
         });
         ViewCompat.requestApplyInsets(decorView);
+    }
+
+    private void installPhonePortraitNavigationBarInset() {
+        View phonePortraitContent = findViewById(R.id.phonePortraitContent);
+        if (phonePortraitContent == null) {
+            return;
+        }
+
+        final int basePaddingBottom = phonePortraitContent.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(phonePortraitContent, (view, insets) -> {
+            androidx.core.graphics.Insets safeDrawing = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                            | WindowInsetsCompat.Type.displayCutout());
+            phonePortraitContent.setPadding(
+                    phonePortraitContent.getPaddingLeft(),
+                    phonePortraitContent.getPaddingTop(),
+                    phonePortraitContent.getPaddingRight(),
+                    Math.max(basePaddingBottom, safeDrawing.bottom));
+            return insets;
+        });
+        ViewCompat.requestApplyInsets(phonePortraitContent);
     }
 
     private void installTabletSystemBarInsets() {
@@ -1999,7 +2020,8 @@ public class MainActivity extends Activity {
         final int basePaddingBottom = tabletContent.getPaddingBottom();
         ViewCompat.setOnApplyWindowInsetsListener(tabletContent, (view, insets) -> {
             androidx.core.graphics.Insets systemBars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars());
+                    WindowInsetsCompat.Type.systemBars()
+                            | WindowInsetsCompat.Type.displayCutout());
             tabletContent.setPadding(
                     basePaddingLeft + systemBars.left,
                     basePaddingTop + systemBars.top,

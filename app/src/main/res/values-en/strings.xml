@@ -60,4 +60,17 @@
     <string name="calculation_model_title">Calculation model</string>
     <string name="back">Back</string>
     <string name="help_load_error">The help page could not be loaded. Please try again after updating the app.</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_temperature_unit">Temperature unit</string>
+    <string name="settings_title">Settings</string>
+    <string name="visual_style_title">Visual style</string>
+    <string name="temperature_unit_title">Temperature unit</string>
+    <string name="temperature_unit_system">System setting</string>
+    <string name="temperature_unit_celsius">Celsius</string>
+    <string name="temperature_unit_fahrenheit">Fahrenheit</string>
+    <string name="open_settings">Open settings</string>
+    <string name="full_screen_intent_title">Allow full-screen alarms</string>
+    <string name="full_screen_intent_message">BeerCHILLER needs full-screen alarm permission so the stop screen appears immediately when the phone is locked.</string>
+    <string name="degrees_fahrenheit">%1$d °F</string>
+    <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
 </resources>
