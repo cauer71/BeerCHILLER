@@ -40,7 +40,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.activity.ComponentActivity;
-import androidx.activity.EdgeToEdge;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -204,7 +203,6 @@ public class MainActivity extends ComponentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         configureSystemBars();
         setContentView(R.layout.activity_main);
@@ -1909,6 +1907,7 @@ public class MainActivity extends ComponentActivity {
 
     private void configureSystemBars() {
         Window window = getWindow();
+        WindowCompat.setDecorFitsSystemWindows(window, false);
         window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         boolean phoneLandscape = getResources().getConfiguration().smallestScreenWidthDp < 600
                 && getResources().getConfiguration().orientation
