@@ -1,7 +1,6 @@
 package com.bierchiller.app;
 
 import android.animation.ValueAnimator;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
@@ -40,6 +39,8 @@ import android.widget.RadioGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import androidx.activity.ComponentActivity;
+import androidx.activity.EdgeToEdge;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
@@ -58,7 +59,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class MainActivity extends Activity {
+public class MainActivity extends ComponentActivity {
     private static final String PREFS = "bierchiller";
     private static final String KEY_END_TIME = "endTimeMillis";
     private static final String KEY_TOTAL_DURATION = "totalDurationMillis";
@@ -203,6 +204,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         configureSystemBars();
         setContentView(R.layout.activity_main);
@@ -1907,7 +1909,6 @@ public class MainActivity extends Activity {
 
     private void configureSystemBars() {
         Window window = getWindow();
-        WindowCompat.enableEdgeToEdge(window);
         window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         boolean phoneLandscape = getResources().getConfiguration().smallestScreenWidthDp < 600
                 && getResources().getConfiguration().orientation

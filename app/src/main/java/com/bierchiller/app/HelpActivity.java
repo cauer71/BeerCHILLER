@@ -1,6 +1,5 @@
 package com.bierchiller.app;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.webkit.WebSettings;
@@ -9,8 +8,9 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.activity.ComponentActivity;
+import androidx.activity.EdgeToEdge;
 import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.io.BufferedReader;
@@ -19,7 +19,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
-public class HelpActivity extends Activity {
+public class HelpActivity extends ComponentActivity {
     private static final String HELP_BASE_URL = "file:///android_asset/help/";
     private static final String HELP_TEMPLATE = "help/help_template.html";
 
@@ -30,8 +30,8 @@ public class HelpActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
-        WindowCompat.enableEdgeToEdge(getWindow());
         setContentView(R.layout.activity_help);
         installSystemBarInsets();
 

@@ -32,8 +32,8 @@ android {
         applicationId = "com.bierchiller.app"
         minSdk = 23
         targetSdk = 36
-        versionCode = 10387
-        versionName = "1.3.87"
+        versionCode = 10388
+        versionName = "1.3.88"
     }
 
     buildFeatures {
@@ -78,6 +78,7 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 dependencies {
+    implementation("androidx.activity:activity:1.13.0")
     implementation("androidx.core:core:1.17.0")
     implementation("androidx.fragment:fragment:1.8.9")
     implementation("androidx.dynamicanimation:dynamicanimation:1.1.0")

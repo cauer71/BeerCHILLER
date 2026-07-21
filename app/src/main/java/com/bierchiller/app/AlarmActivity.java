@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.activity.ComponentActivity;
+import androidx.activity.EdgeToEdge;
 import androidx.activity.OnBackPressedCallback;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -29,6 +30,7 @@ public class AlarmActivity extends ComponentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         configureLockScreenAlarmWindow();
         enableFullscreen();
@@ -66,7 +68,6 @@ public class AlarmActivity extends ComponentActivity {
 
     private void enableFullscreen() {
         Window window = getWindow();
-        WindowCompat.enableEdgeToEdge(window);
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         WindowInsetsControllerCompat controller =
                 WindowCompat.getInsetsController(window, window.getDecorView());
