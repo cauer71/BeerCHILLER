@@ -21,6 +21,7 @@ public final class TimerForegroundService extends Service {
     private double deviceTempC;
     private boolean displayFahrenheit;
     private boolean foregroundStarted;
+    private long lastWidgetUpdateMillis;
 
     private final Runnable updateNotificationRunnable = new Runnable() {
         @Override
@@ -34,6 +35,11 @@ public final class TimerForegroundService extends Service {
                     (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager != null) {
                 manager.notify(TimerNotificationHelper.NOTIFICATION_ID, buildTimerNotification());
+            }
+            long now = System.currentTimeMillis();
+            if (now - lastWidgetUpdateMillis >= 30_000L) {
+                BeerChillerWidgetProvider.updateAll(TimerForegroundService.this);
+                lastWidgetUpdateMillis = now;
             }
             handler.postDelayed(this, 1000L);
         }
@@ -94,6 +100,8 @@ public final class TimerForegroundService extends Service {
                 startForeground(TimerNotificationHelper.NOTIFICATION_ID, notification);
             }
             foregroundStarted = true;
+            lastWidgetUpdateMillis = System.currentTimeMillis();
+            BeerChillerWidgetProvider.updateAll(this);
             handler.removeCallbacks(updateNotificationRunnable);
             handler.postDelayed(updateNotificationRunnable, 1000L);
         } catch (RuntimeException ignored) {
