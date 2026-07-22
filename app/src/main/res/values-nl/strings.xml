@@ -73,4 +73,9 @@
     <string name="full_screen_intent_message">BeerCHILLER heeft toestemming voor alarmen op volledig scherm nodig, zodat het stopscherm direct verschijnt wanneer de telefoon is vergrendeld.</string>
     <string name="degrees_fahrenheit">%1$d °F</string>
     <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
+    <string name="widget_name">BeerCHILLER-timer</string>
+    <string name="widget_description">Koeltimer op je startscherm</string>
+    <string name="widget_open_app">App openen</string>
+    <string name="widget_tap_to_start">Tik om een timer te starten</string>
+    <string name="widget_target">Doel %1$s</string>
 </resources>

@@ -62,6 +62,7 @@ public class AlarmActivity extends ComponentActivity {
                 .remove(KEY_TOTAL_DURATION)
                 .apply();
         TimerNotificationHelper.cancel(this);
+        BeerChillerWidgetProvider.updateAll(this);
     }
 
     private void enableFullscreen() {

@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.os.Handler;
@@ -47,6 +48,13 @@ public final class TimerForegroundService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && TimerNotificationHelper.ACTION_STOP_TIMER.equals(intent.getAction())) {
+            SharedPreferences preferences = getSharedPreferences("bierchiller", MODE_PRIVATE);
+            preferences.edit()
+                    .remove("endTimeMillis")
+                    .remove("totalDurationMillis")
+                    .apply();
+            TimerAlarmScheduler.cancel(this);
+            BeerChillerWidgetProvider.updateAll(this);
             stopTimerService();
             return START_NOT_STICKY;
         }
@@ -116,6 +124,7 @@ public final class TimerForegroundService extends Service {
     }
 
     private void stopTimerService() {
+        BeerChillerWidgetProvider.updateAll(this);
         removeForegroundNotification();
         stopSelf();
     }

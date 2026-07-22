@@ -73,4 +73,9 @@
     <string name="calculation_model_title">Berechnungsmodell</string>
     <string name="back">Zurück</string>
     <string name="help_load_error">Die Hilfeseite konnte nicht geladen werden. Bitte versuche es nach einer App-Aktualisierung erneut.</string>
+    <string name="widget_name">BeerCHILLER Timer</string>
+    <string name="widget_description">Kühl-Timer auf dem Startbildschirm</string>
+    <string name="widget_open_app">App öffnen</string>
+    <string name="widget_tap_to_start">Tippen, um einen Timer zu starten</string>
+    <string name="widget_target">Ziel %1$s</string>
 </resources>

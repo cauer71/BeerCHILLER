@@ -73,4 +73,9 @@
     <string name="full_screen_intent_message">BeerCHILLER necesita permiso para mostrar alarmas a pantalla completa, de modo que la pantalla de parada aparezca inmediatamente cuando el teléfono esté bloqueado.</string>
     <string name="degrees_fahrenheit">%1$d °F</string>
     <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
+    <string name="widget_name">Temporizador BeerCHILLER</string>
+    <string name="widget_description">Temporizador de enfriamiento en la pantalla de inicio</string>
+    <string name="widget_open_app">Abrir app</string>
+    <string name="widget_tap_to_start">Toca para iniciar un temporizador</string>
+    <string name="widget_target">Objetivo %1$s</string>
 </resources>

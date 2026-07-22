@@ -161,5 +161,6 @@ public class AlarmService extends Service {
                 .remove(KEY_TOTAL_DURATION)
                 .apply();
         TimerNotificationHelper.cancel(this);
+        BeerChillerWidgetProvider.updateAll(this);
     }
 }

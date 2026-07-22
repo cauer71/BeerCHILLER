@@ -73,4 +73,9 @@
     <string name="full_screen_intent_message">BeerCHILLER needs full-screen alarm permission so the stop screen appears immediately when the phone is locked.</string>
     <string name="degrees_fahrenheit">%1$d °F</string>
     <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
+    <string name="widget_name">BeerCHILLER timer</string>
+    <string name="widget_description">Cooling timer on your home screen</string>
+    <string name="widget_open_app">Open app</string>
+    <string name="widget_tap_to_start">Tap to start a timer</string>
+    <string name="widget_target">Target %1$s</string>
 </resources>

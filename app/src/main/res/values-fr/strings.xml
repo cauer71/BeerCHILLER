@@ -73,4 +73,9 @@
     <string name="full_screen_intent_message">BeerCHILLER a besoin de l’autorisation d’afficher les alarmes en plein écran afin que l’écran d’arrêt apparaisse immédiatement lorsque le téléphone est verrouillé.</string>
     <string name="degrees_fahrenheit">%1$d °F</string>
     <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
+    <string name="widget_name">Minuteur BeerCHILLER</string>
+    <string name="widget_description">Minuteur de refroidissement sur l’écran d’accueil</string>
+    <string name="widget_open_app">Ouvrir l’application</string>
+    <string name="widget_tap_to_start">Touchez pour lancer un minuteur</string>
+    <string name="widget_target">Cible %1$s</string>
 </resources>

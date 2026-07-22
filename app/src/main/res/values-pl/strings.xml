@@ -73,4 +73,9 @@
     <string name="full_screen_intent_message">BeerCHILLER potrzebuje uprawnienia do alarmów pełnoekranowych, aby ekran zatrzymania pojawiał się natychmiast po zablokowaniu telefonu.</string>
     <string name="degrees_fahrenheit">%1$d °F</string>
     <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
+    <string name="widget_name">Minutnik BeerCHILLER</string>
+    <string name="widget_description">Minutnik chłodzenia na ekranie głównym</string>
+    <string name="widget_open_app">Otwórz aplikację</string>
+    <string name="widget_tap_to_start">Dotknij, aby uruchomić minutnik</string>
+    <string name="widget_target">Cel %1$s</string>
 </resources>

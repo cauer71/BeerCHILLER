@@ -73,4 +73,9 @@
     <string name="full_screen_intent_message">BeerCHILLER potřebuje oprávnění k alarmům na celé obrazovce, aby se obrazovka pro zastavení zobrazila okamžitě, když je telefon zamčený.</string>
     <string name="degrees_fahrenheit">%1$d °F</string>
     <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
+    <string name="widget_name">Časovač BeerCHILLER</string>
+    <string name="widget_description">Časovač chlazení na domovské obrazovce</string>
+    <string name="widget_open_app">Otevřít aplikaci</string>
+    <string name="widget_tap_to_start">Klepnutím spusťte časovač</string>
+    <string name="widget_target">Cíl %1$s</string>
 </resources>

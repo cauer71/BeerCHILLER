@@ -73,4 +73,9 @@
     <string name="full_screen_intent_message">A BeerCHILLER precisa de permissão para alarmes em ecrã inteiro, para que o ecrã de paragem apareça imediatamente quando o telemóvel estiver bloqueado.</string>
     <string name="degrees_fahrenheit">%1$d °F</string>
     <string name="degrees_fahrenheit_decimal">%1$.1f °F</string>
+    <string name="widget_name">Temporizador BeerCHILLER</string>
+    <string name="widget_description">Temporizador de arrefecimento no ecrã inicial</string>
+    <string name="widget_open_app">Abrir aplicação</string>
+    <string name="widget_tap_to_start">Toque para iniciar um temporizador</string>
+    <string name="widget_target">Objetivo %1$s</string>
 </resources>

@@ -344,6 +344,7 @@ public class MainActivity extends ComponentActivity {
         } else if (endTimeMillis > System.currentTimeMillis()) {
             updateRunningTimerCircle(endTimeMillis - System.currentTimeMillis());
         }
+        BeerChillerWidgetProvider.updateAll(this);
     }
 
     private void applyVisualMode() {
@@ -932,6 +933,7 @@ public class MainActivity extends ComponentActivity {
                 deviceTemp,
                 shouldDisplayFahrenheit()
         );
+        BeerChillerWidgetProvider.updateAll(this);
     }
 
     private void scheduleExactAlarm(long triggerAtMillis) {
@@ -1012,6 +1014,7 @@ public class MainActivity extends ComponentActivity {
         totalDurationMillis = 0;
         running = false;
         preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
+        BeerChillerWidgetProvider.updateAll(this);
 
         if (resetUi) {
             updateIdleDisplay();
@@ -1026,6 +1029,7 @@ public class MainActivity extends ComponentActivity {
         totalDurationMillis = 0;
         running = false;
         preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
+        BeerChillerWidgetProvider.updateAll(this);
     }
 
     private AppUpdateManager getAppUpdateManager() {
@@ -1109,6 +1113,7 @@ public class MainActivity extends ComponentActivity {
         setStatus(getString(R.string.alarm_ringing));
         preferences.edit().remove(KEY_END_TIME).remove(KEY_TOTAL_DURATION).apply();
         TimerNotificationHelper.cancel(this);
+        BeerChillerWidgetProvider.updateAll(this);
     }
 
     private void updateRunningTimerCircle(long remainingMillis) {

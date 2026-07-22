@@ -9,6 +9,7 @@ public class AlarmReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         TimerNotificationHelper.cancel(context);
+        BeerChillerWidgetProvider.updateAll(context);
         Intent serviceIntent = new Intent(context, AlarmService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent);
