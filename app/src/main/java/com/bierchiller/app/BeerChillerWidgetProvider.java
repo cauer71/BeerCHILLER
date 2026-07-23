@@ -94,7 +94,7 @@ public final class BeerChillerWidgetProvider extends AppWidgetProvider {
         if (running) {
             long remainingMillis = Math.max(0L, endTimeMillis - now);
             long chronometerBase = SystemClock.elapsedRealtime() + remainingMillis;
-            float countdownTextSize = totalDurationMillis >= 100L * 60L * 1000L ? 35f : 45f;
+            float countdownTextSize = totalDurationMillis >= 100L * 60L * 1000L ? 17f : 23f;
             views.setViewVisibility(R.id.widgetCountdown, View.VISIBLE);
             views.setViewVisibility(R.id.widgetIdleTime, View.GONE);
             views.setViewVisibility(R.id.widgetIdleMug, View.GONE);
@@ -105,11 +105,10 @@ public final class BeerChillerWidgetProvider extends AppWidgetProvider {
                     countdownTextSize
             );
             views.setChronometer(R.id.widgetCountdown, chronometerBase, null, true);
-            views.setTextViewText(R.id.widgetEndTime,
-                    localizedContext.getString(
-                            R.string.ends_at,
-                            DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(endTimeMillis))
-            ));
+            views.setTextViewText(
+                    R.id.widgetEndTime,
+                    DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date(endTimeMillis))
+            );
             views.setTextViewText(R.id.widgetTarget,
                     formatCurrentTemperature(
                             localizedContext,
@@ -125,7 +124,7 @@ public final class BeerChillerWidgetProvider extends AppWidgetProvider {
             views.setTextViewTextSize(
                     R.id.widgetIdleTime,
                     TypedValue.COMPLEX_UNIT_SP,
-                    45f
+                    23f
             );
             views.setTextViewText(R.id.widgetIdleTime, finished ? "00:00" : "--:--");
             views.setTextViewText(R.id.widgetEndTime, "--:--");
